@@ -1,0 +1,71 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Species {
+  CAT
+  DOG
+}
+
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  passwordHash     String?
+  name             String
+  lastname         String
+  role             Role      @default(USER)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  pets             Pet[]     // Relación: Un usuario tiene muchas mascotas
+
+  resetToken       String?   @unique
+  resetTokenExpiry DateTime?
+}
+
+model Pet {
+  id            String    @id @default(cuid())
+  name          String
+  species       Species
+  breed         String?
+  gender        String?   // "Macho" o "Hembra"
+  birthDate     DateTime?
+  isCastrated   Boolean   @default(false)
+  specialNeeds  String?   // Para tu gatita ciega
+  imageUrl      String?   // Foto desde Cloudinary
+  ownerId       String
+  owner         User      @relation(fields: [ownerId], references: [id])
+  
+  vaccinations  Vaccination[]
+  medicalHistory MedicalRecord[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Vaccination {
+  id              String   @id @default(cuid())
+  name            String   // Ej: "Antirrábica", "Triple Felina"
+  dateApplied     DateTime
+  nextDueDate     DateTime? 
+  notes           String?
+  petId           String
+  pet             Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+model MedicalRecord {
+  id          String   @id @default(cuid())
+  date        DateTime @default(now())
+  title       String   
+  description String   @db.Text
+  petId       String
+  pet         Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+}

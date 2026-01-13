@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    // --- Configuración de Módulo (Correcta para tu "type": "module") ---
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2022", // Moderno y seguro
+
+    // --- ¡LAS LÍNEAS MÁS IMPORTANTES! ---
+    "outDir": "./dist", // Le dice a 'tsc' dónde poner los .js
+    "rootDir": "./src",   // Le dice a 'tsc' que la raíz es 'src'
+
+    // --- Opciones Recomendadas ---
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  // Le dice a 'tsc' que SOLO compile lo que está en 'src'
+  "include": ["src"]
+}
