@@ -1,83 +1,123 @@
-# Blue Team Alumns Platform
+# My Pets Front
 
-Plataforma educativa y de gestión de alumnas (CRM) construida con tecnologías modernas de React.
+Proyecto frontend de My Pets Health: una aplicación web para gestionar información de mascotas (registro, autenticación, listado y administración de mascotas). Esta interfaz consume una API (backend) para operaciones de usuario y mascotas.
 
-## 🚀 Descripción
+## Objetivo
 
-Este proyecto es una aplicación web frontend diseñada para gestionar la venta y acceso a cursos (Masters), así como proporcionar herramientas administrativas para el seguimiento de alumnas y ventas.
+Proveer una UI limpia y responsiva donde los usuarios pueden:
+- Registrarse, iniciar sesión y recuperar contraseña.
+- Añadir, listar y gestionar sus mascotas.
+- Ver y editar perfil de usuario.
 
-La aplicación cuenta con dos áreas principales:
-- **Portal de Alumnas:** Donde las usuarias pueden registrarse, ver cursos, realizar compras y acceder a su contenido.
-- **Panel de Administración (CRM):** Donde los administradores pueden ver el historial de ventas y gestionar la base de datos de alumnas.
+## Tecnologías
 
-## 🛠️ Tech Stack
+- Vite + React
+- TypeScript
+- CSS (archivo `index.css`) — proyecto ligero y personalizable
+- Axios (cliente HTTP) en `src/lib/axios.ts`
+- Enrutado y componentes propias para páginas y UI
 
-El proyecto utiliza un stack moderno y optimizado para rendimiento y experiencia de desarrollador:
+> Nota: revisa `package.json` para dependencias exactas.
 
-- **Core:** [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
-- **Build Tool:** [Vite 7](https://vitejs.dev/)
-- **Estilos:** [Tailwind CSS 4](https://tailwindcss.com/)
-- **Enrutamiento:** [React Router 7](https://reactrouter.com/)
-- **Estado & Data Fetching:** [TanStack Query (React Query)](https://tanstack.com/query/latest)
-- **Formularios:** [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/) (Validación)
-- **HTTP Client:** [Axios](https://axios-http.com/)
-- **Notificaciones:** [Sonner](https://sonner.emilkowal.ski/)
+## Estructura del proyecto
 
-## 📂 Estructura del Proyecto
+Raíz (archivos importantes):
+
+- `index.html` — entrada HTML
+- `vite.config.ts` — configuración de Vite
+- `package.json` — scripts y dependencias
+- `tsconfig.json`, `tsconfig.app.json` — configuraciones TypeScript
+
+Carpeta `src/` (frontend principal):
+
+- `main.tsx` — punto de entrada de la app
+- `App.tsx` — componente raíz
+- `index.css` — estilos globales
+
+- `components/` — componentes UI reutilizables
+  - `Navbar.tsx` — navegación principal
+  - `Footer.tsx` — pie de página
+  - `Button.tsx`, `Input.tsx`, `Card.tsx` — elementos UI base
+  - `PetCard.tsx`, `AddPetModal.tsx` — UI relacionada a mascotas
+  - `ProfileDropdown.tsx`, `ProtectedRoute.tsx` — utilidades de navegación y seguridad
+
+- `pages/` — vistas / páginas de la aplicación
+  - `Login.tsx`, `Register.tsx`, `ForgotPassword.tsx`, `ResetPassword.tsx`
+  - `pets/PetList.tsx` — listado de mascotas (página de mascotas)
+
+- `context/`
+  - `AuthContext.tsx` — estado y helpers de autenticación
+
+- `hooks/`
+  - `useDarkMode.ts` — hook para modo oscuro
+
+- `lib/`
+  - `axios.ts` — instancia configurada de Axios para llamadas a la API
+
+- `routes/`
+  - `Router.tsx` — definición de rutas de la aplicación
+
+## Comandos útiles
+
+Usa npm o yarn según prefieras.
+
+Instalar dependencias:
 
 ```
-src/
-├── components/      # Componentes reutilizables (Button, Card, Input, Navbar, etc.)
-├── context/         # Contextos de React (ej. AuthContext para autenticación)
-├── lib/             # Configuraciones y utilidades (axios, utils)
-├── pages/           # Vistas principales de la aplicación
-│   ├── AdminOrders.tsx    # Panel de Ventas (Admin)
-│   ├── AdminStudents.tsx  # CRM de Alumnas (Admin)
-│   ├── Courses.tsx        # Catálogo de cursos
-│   ├── CourseDetails.tsx  # Detalle de curso
-│   ├── Checkout.tsx       # Proceso de pago
-│   ├── Login.tsx / Register.tsx
-│   └── ...
-├── routes/          # Configuración de rutas (Router.tsx)
-└── main.tsx         # Punto de entrada
+npm install
 ```
 
-## ⚡ Instalación y Uso
+Ejecutar en desarrollo (Vite):
 
-1.  **Clonar el repositorio:**
-    ```bash
-    git clone <url-del-repo>
-    cd blue-7eam-alumns
-    ```
+```
+npm run dev
+```
 
-2.  **Instalar dependencias:**
-    ```bash
-    npm install
-    ```
+Construir para producción:
 
-3.  **Configurar variables de entorno:**
-    Crea un archivo `.env` en la raíz del proyecto (basado en `.env.example` si existe) con la URL de tu backend:
-    ```env
-    VITE_API_URL=http://localhost:3000/api
-    ```
+```
+npm run build
+```
 
-4.  **Iniciar servidor de desarrollo:**
-    ```bash
-    npm run dev
-    ```
-    La aplicación estará disponible en `http://localhost:5173`.
+Previsualizar la build (si está configurado):
 
-## 📜 Scripts Disponibles
+```
+npm run preview
+```
 
-- `npm run dev`: Inicia el servidor de desarrollo.
-- `npm run build`: Compila la aplicación para producción.
-- `npm run preview`: Vista previa de la build de producción.
-- `npm run lint`: Ejecuta el linter (ESLint) para encontrar errores.
+## Variables de entorno
 
-## 🔐 Autenticación y Roles
+- Si el proyecto consume una API, añade la variable para la URL base, p. ej. `VITE_API_BASE_URL` en un archivo `.env` o en la plataforma de despliegue.
 
-El sistema maneja dos roles principales:
-- **STUDENT:** Acceso a cursos comprados y perfil.
-- **ADMIN:** Acceso total + Panel de Administración (Ventas y Alumnas).
+Ejemplo `.env`:
 
-La protección de rutas se maneja en `src/routes/Router.tsx` mediante el componente `ProtectedRoute`.
+```
+VITE_API_BASE_URL=https://api.my-pets.example
+```
+
+## Despliegue
+
+- Recomendado: Vercel (configuración por defecto para proyectos Vite/React). Asegúrate de establecer las variables de entorno en el dashboard de Vercel.
+- Alternativa: Netlify, o servir la carpeta `dist/` desde cualquier host estático.
+
+## Contribuciones
+
+- Abrir issues para bugs o mejoras.
+- Para PRs: crear rama con prefijo `feature/` o `fix/`, describir cambios y probar localmente.
+
+## Archivos a revisar al empezar a desarrollar
+
+- `src/pages/pets/PetList.tsx` — revisar lógica de listado y paginación
+- `src/context/AuthContext.tsx` — revisar flujo de autenticación y tokens
+- `src/lib/axios.ts` — configurar interceptores y baseURL
+
+## Licencia
+
+Licencia por definir. Añade un archivo `LICENSE` si se requiere.
+
+---
+
+Si quieres, puedo:
+- Añadir sección de testing (Jest/React Testing Library).
+- Añadir guía de estilo y convenciones de commits.
+- Generar README en inglés también.

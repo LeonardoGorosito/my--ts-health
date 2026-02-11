@@ -1,6 +1,6 @@
+import { Link } from 'react-router-dom' // <--- Necesario para navegar
 import { Card } from './Card'
-import { Button } from './Button'
-import { Cat, Dog, Heart, Syringe } from 'lucide-react'
+import { Cat, Dog, Heart, ArrowRight } from 'lucide-react'
 
 type PetCardProps = {
   pet: {
@@ -15,36 +15,36 @@ type PetCardProps = {
 
 export function PetCard({ pet }: PetCardProps) {
   return (
-    <Card className="p-4 hover:shadow-lg transition-shadow border-l-4 border-blue-500">
+    <Card className="p-5 bg-white dark:bg-bg-card border-l-4 border-emerald-500 dark:border-emerald-600 shadow-sm hover:shadow-xl dark:hover:shadow-none transition-all duration-300">
+      
+      {/* CABECERA (Igual que antes) */}
       <div className="flex justify-between items-start">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 rounded-full text-blue-600">
+        <div className="flex items-center gap-4">
+          <div className="p-2.5 bg-emerald-50 dark:bg-emerald-900/10 rounded-2xl text-emerald-600 dark:text-emerald-400">
             {pet.species === 'CAT' ? <Cat size={24} /> : <Dog size={24} />}
           </div>
           <div>
-            <h3 className="text-lg font-bold text-gray-800">{pet.name}</h3>
-            <p className="text-sm text-gray-500">{pet.breed || 'Raza no definida'}</p>
+            <h3 className="text-lg font-black text-gray-800 dark:text-gray-100 leading-tight">{pet.name}</h3>
+            <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">{pet.breed || 'Mestizo'}</p>
           </div>
         </div>
-        {pet.specialNeeds && (
-          <span className="bg-amber-100 text-amber-700 text-xs px-2 py-1 rounded-full font-medium">
-            Atención Especial
-          </span>
-        )}
       </div>
 
-      <div className="mt-4 flex gap-2">
-        <div className="flex items-center gap-1 text-xs text-gray-600">
-          <Heart size={14} className={pet.isCastrated ? 'text-green-500' : 'text-gray-400'} />
-          {pet.isCastrated ? 'Castrado' : 'Pendiente'}
-        </div>
+      {/* STATUS CASTRADO (Igual que antes) */}
+      <div className="mt-6 flex items-center gap-2 border-t border-gray-50 dark:border-gray-800/50 pt-4 text-xs font-bold text-gray-600 dark:text-gray-400">
+        <Heart size={14} className={pet.isCastrated ? 'fill-emerald-500 text-emerald-500' : 'text-gray-300 dark:text-gray-700'} />
+        {pet.isCastrated ? 'Castrado' : 'Pendiente de castración'}
       </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-2">
-        <Button  className="text-xs py-1 h-auto">Ver Historial</Button>
-        <Button className="text-xs py-1 h-auto flex gap-1 items-center">
-          <Syringe size={14} /> Vacunar
-        </Button>
+      {/* --- ZONA DE ACCIÓN NUEVA (Solo un botón) --- */}
+      <div className="mt-6">
+        <Link 
+          to={`/pets/${pet.id}`} 
+          className="group w-full flex items-center justify-center gap-2 text-[10px] uppercase font-black py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all shadow-md shadow-emerald-900/10"
+        >
+          Ver Perfil Completo 
+          <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+        </Link>
       </div>
     </Card>
   )

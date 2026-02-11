@@ -7,7 +7,6 @@ export default function App() {
     <AuthProvider>
       <AppRouter />
       <Toaster richColors position="bottom-right" />
-      
     </AuthProvider>
   )
 }

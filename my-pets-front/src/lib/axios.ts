@@ -14,3 +14,14 @@ api.interceptors.request.use((cfg) => {
   }
   return cfg
 })
+
+
+export const uploadPetAttachment = async (petId: string, file: File) => {
+  const formData = new FormData();
+  formData.append('file', file); // 'file' debe coincidir con lo que espera el backend
+
+  // Nota: No hace falta poner Content-Type manualmente, Axios lo detecta al ver FormData
+  // Pero necesitamos pasarle el petId como query param
+  const response = await api.post(`/upload?petId=${petId}`, formData);
+  return response.data;
+};

@@ -1,96 +1,51 @@
-
 import { Link } from 'react-router-dom';
+import { Cat, Heart } from 'lucide-react';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-white border-t border-gray-200 mt-auto">
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Brand Section */}
+    <footer className="bg-white dark:bg-bg-matte border-t border-gray-100 dark:border-gray-800 transition-colors duration-300">
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+          
+          {/* Sección de Marca */}
           <div className="col-span-1 md:col-span-2">
-            <h3 className="text-xl font-bold text-blue-600 mb-4">Blue Team Alumnas</h3>
-            <p className="text-gray-600 text-sm mb-4 max-w-xs">
-              Plataforma educativa para potenciar tus habilidades y transformar tu carrera profesional.
-            </p>
-            <div className="flex space-x-4">
-              {/* Social Icons Placeholder */}
-              <a 
-                href="https://blue7eam.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-blue-600 transition-colors"
-              >
-                <span className="sr-only">Sitio Web</span>
-                <svg 
-                  className="h-6 w-6" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor" 
-                  strokeWidth={2}
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" 
-                  />
-                </svg>
-              </a>
-              <a 
-                  href="https://www.instagram.com/blue_7eam/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-blue-600 transition-colors"
-                >
-                  <span className="sr-only">Instagram</span>
-                  <svg 
-                    className="h-6 w-6" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
-                    stroke="currentColor" 
-                    strokeWidth={2}
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      d="M12 18v4m0 0v-4m0 9a9 9 0 110-18 9 9 0 010 18z" 
-                    />
-                  </svg>
-                </a>
-              </div>
+            <div className="flex items-center gap-2 mb-4">
+               <Cat className="text-emerald-600" size={28} />
+               <span className="font-black text-xl tracking-tighter text-gray-900 dark:text-white uppercase">
+                 Pet<span className="text-emerald-600">Health</span>
+               </span>
             </div>
-
-
-          {/* Links Section 1 */}
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-4">Plataforma</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link to="/courses" className="text-gray-600 hover:text-blue-600">Cursos</Link></li>
-              <li>
-                <a 
-                  href="https://www.blue7eam.com/"  // <--- Aquí pones la URL completa
-                  target="_blank"           // (Opcional) Abre en una pestaña nueva
-                  rel="noopener noreferrer" // (Importante) Seguridad al usar target="_blank"
-                  className="text-gray-600 hover:text-blue-600"
-                >
-                  Sobre Nosotros
-                </a>
-              </li>            </ul>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 max-w-sm leading-relaxed">
+              Gestión integral para la salud de tus mascotas. Hecho para cuidar a los que siempre nos esperan.
+            </p>
           </div>
 
-          {/* Links Section 2 */}
+          {/* Links de Navegación */}
           <div>
-            <h4 className="font-semibold text-gray-900 mb-4">Soporte</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link to="/contact" className="text-gray-600 hover:text-blue-600">Contacto</Link></li>
-              <li><Link to="/terms" className="text-gray-600 hover:text-blue-600">Términos y Condiciones</Link></li>
+            <h4 className="font-black text-xs uppercase tracking-widest text-gray-900 dark:text-gray-300 mb-6">Explorar</h4>
+            <ul className="space-y-4 text-sm font-bold">
+              <li><Link to="/pets" className="text-gray-500 dark:text-gray-400 hover:text-emerald-600 transition-colors">Mis Mascotas</Link></li>
+              <li><Link to="/account" className="text-gray-500 dark:text-gray-400 hover:text-emerald-600 transition-colors">Mi Perfil</Link></li>
+            </ul>
+          </div>
+
+          {/* Soporte */}
+          <div>
+            <h4 className="font-black text-xs uppercase tracking-widest text-gray-900 dark:text-gray-300 mb-6">Soporte</h4>
+            <ul className="space-y-4 text-sm font-bold">
+              <li><Link to="/terms" className="text-gray-500 dark:text-gray-400 hover:text-emerald-600 transition-colors">Privacidad</Link></li>
+              <li><a href="mailto:soporte@pethealth.com" className="text-gray-500 dark:text-gray-400 hover:text-emerald-600 transition-colors">Contacto</a></li>
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-gray-100 mt-8 pt-8 text-center text-sm text-gray-500">
-          <p>&copy; {currentYear} Blue Team Alumnas. Todos los derechos reservados.</p>
+        <div className="border-t border-gray-100 dark:border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+          <p>&copy; {currentYear} Pet Health. Hecho con <Heart size={10} className="inline text-emerald-500 mx-1" /> en Santa Fe.</p>
+          <div className="flex gap-6">
+            <span className="text-gray-300 dark:text-gray-700">v1.0.0</span>
+          </div>
         </div>
       </div>
     </footer>

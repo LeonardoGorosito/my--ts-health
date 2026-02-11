@@ -1,50 +1,56 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import Login from '../pages/Login'
-import Register from '../pages/Register' 
+import AuthPage from '../pages/AuthPage' 
 import ProtectedRoute from '../components/ProtectedRoute'
 import MainLayout from '../components/MainLayout'
 import { useAuth } from '../context/AuthContext'
 import ForgotPassword from '../pages/ForgotPassword'
 import ResetPassword from '../pages/ResetPassword'
 import { PetsList } from '../pages/pets/PetList'
+import { PetProfile } from '../pages/pets/PetProfile' // <--- 1. IMPORTAR ESTO
 
-//  AuthGate ...
 function AuthGate({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
   if (loading) return <div className="p-6">Cargando...</div>
-  // Corregido: Redirigir a /pets
   if (user) return <Navigate to="/pets" replace />
   return <>{children}</> 
 }
 
 export function AppRouter() {
-  const { user } = useAuth(); // Para el catch-all inteligente
+  const { user } = useAuth(); 
 
   return (
     <Routes>
-      {/* 1. RUTAS PÚBLICAS */}
       <Route path="/" element={<Navigate to="/login" replace />} />
       
       <Route 
         path="/login" 
         element={
-          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-            <AuthGate><Login /></AuthGate>
-          </div>
+          <AuthGate>
+            <AuthPage initialRegister={false} />
+          </AuthGate>
         } 
       />
 
-      <Route path="/register" element={<AuthGate><Register /></AuthGate>} />
+      <Route 
+        path="/register" 
+        element={
+          <AuthGate>
+            <AuthPage initialRegister={true} />
+          </AuthGate>
+        } 
+      />
+
       <Route path="/forgot-password" element={<AuthGate><ForgotPassword /></AuthGate>} />
       <Route path="/reset-password" element={<AuthGate><ResetPassword /></AuthGate>} />
 
-      {/* 2. RUTAS PRIVADAS (CON NAVBAR) */}
       <Route element={<MainLayout />}>
-        {/* Corregido: Path unificado a /pets */}
+        {/* Lista de mascotas */}
         <Route path="/pets" element={<ProtectedRoute><PetsList /></ProtectedRoute>} />
+        
+        {/* 2. NUEVA RUTA: Perfil individual */}
+        <Route path="/pets/:id" element={<ProtectedRoute><PetProfile /></ProtectedRoute>} />
       </Route>
       
-      {/* 3. CATCH-ALL INTELIGENTE */}
       <Route 
         path="*" 
         element={<Navigate to={user ? "/pets" : "/login"} replace />} 
