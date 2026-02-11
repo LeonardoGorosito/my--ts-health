@@ -49,6 +49,8 @@ model Pet {
   medicalHistory MedicalRecord[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  attachments Attachment[]
 }
 
 model Vaccination {
@@ -68,4 +70,21 @@ model MedicalRecord {
   description String   @db.Text
   petId       String
   pet         Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  attachments Attachment[]
+}
+
+model Attachment {
+  id        String   @id @default(cuid())
+  url       String   // URL que te devuelve Cloudinary
+  fileType  String   // "image/png", "application/pdf", etc.
+  name      String   // Nombre original del archivo (ej: "Hemograma_2026.pdf")
+  createdAt DateTime @default(now())
+
+  // Relaciones
+  medicalRecordId String?
+  medicalRecord   MedicalRecord? @relation(fields: [medicalRecordId], references: [id])
+  
+  petId     String
+  pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
 }

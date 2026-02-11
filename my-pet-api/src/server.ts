@@ -5,11 +5,13 @@ import fastifyMultipart from '@fastify/multipart'
 import { ENV } from './env.js'
 import health from './routes/health.js'
 import auth from './routes/auth.js'
+import petRoutes from './routes/pets.js'
+// 1. IMPORTAR LA NUEVA RUTA DE SUBIDA (Asegúrate de haber creado el archivo)
+import { uploadRoutes } from './routes/upload.js' 
 
 const app = Fastify({ logger: true })
 
 // CORS
-
 await app.register(cors, { 
   origin: [
     'http://localhost:5173',
@@ -25,16 +27,19 @@ await app.register(jwt, { secret: ENV.JWT_SECRET })
 
 // 3. REGISTRAR MULTIPART (Para subir archivos)
 await app.register(fastifyMultipart, { 
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  // RECOMENDACIÓN: Subir a 10MB o 15MB para estudios médicos pesados
+  limits: { fileSize: 10 * 1024 * 1024 }, 
 })
-
-// --- NOTA: Ya NO usamos app.decorate('authenticate') aquí.
-// Usamos el hook importado en cada archivo de ruta.
 
 // 4. REGISTRAR RUTAS
 app.get('/', async () => { return { status: 'ok', server: 'My Pets Health API' } })
 
 await app.register(health)
 await app.register(auth, { prefix: '/auth' })
+app.register(petRoutes, { prefix: '/pets' })
+
+// 5. AQUÍ REGISTRAMOS LA RUTA DE UPLOAD
+// Esto habilita el endpoint: POST http://localhost:3000/upload
+app.register(uploadRoutes) 
 
 export default app
