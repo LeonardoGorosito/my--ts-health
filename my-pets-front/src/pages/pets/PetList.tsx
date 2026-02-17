@@ -5,6 +5,7 @@ import { PetCard } from '../../components/PetCard'
 import { AddPetModal } from '../../components/AddPetModal'
 import { useAuth } from '../../context/AuthContext'
 import { Plus } from 'lucide-react'
+import { Loader } from '../../components/Loader'
 
 export function PetsList() {
   const { user } = useAuth()
@@ -25,11 +26,7 @@ export function PetsList() {
   }
 
   // Pantalla de carga adaptada al dark mode
-  if (isLoading) return (
-    <div className="p-10 text-center font-bold text-gray-500 dark:text-gray-400 animate-pulse">
-      Cargando tus peludos...
-    </div>
-  )
+  if (isLoading) return <Loader text="Buscando tus peludos..." />
 
   return (
     <>
