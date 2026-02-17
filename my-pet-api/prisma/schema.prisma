@@ -18,73 +18,93 @@ enum Species {
 }
 
 model User {
-  id               String    @id @default(cuid())
-  email            String    @unique
-  passwordHash     String?
-  name             String
-  lastname         String
-  role             Role      @default(USER)
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  pets             Pet[]     // Relación: Un usuario tiene muchas mascotas
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String?
+  name         String
+  lastname     String
+  role         Role      @default(USER)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  pets         Pet[]     
 
   resetToken       String?   @unique
   resetTokenExpiry DateTime?
 }
 
 model Pet {
-  id            String    @id @default(cuid())
-  name          String
-  species       Species
-  breed         String?
-  gender        String?   // "Macho" o "Hembra"
-  birthDate     DateTime?
-  isCastrated   Boolean   @default(false)
-  specialNeeds  String?   // Para tu gatita ciega
-  imageUrl      String?   // Foto desde Cloudinary
-  ownerId       String
-  owner         User      @relation(fields: [ownerId], references: [id])
+  id           String    @id @default(cuid())
+  name         String
+  species      Species
+  breed        String?
+  gender       String?   
+  birthDate    DateTime?
   
-  vaccinations  Vaccination[]
+  // --- NUEVOS CAMPOS AGREGADOS ---
+  weight          String?   // Peso (ej: "5.4")
+  profileImageUrl String?   // Foto de perfil (reemplaza a imageUrl)
+  bannerImageUrl  String?   // Foto de portada (banner verde o imagen)
+  // -------------------------------
+
+  isCastrated  Boolean   @default(false)
+  specialNeeds String?   
+
+  ownerId      String
+  owner        User      @relation(fields: [ownerId], references: [id])
+   
+  vaccinations   Vaccination[]
   medicalHistory MedicalRecord[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   attachments Attachment[]
+  dewormings     Deworming[]
 }
 
 model Vaccination {
-  id              String   @id @default(cuid())
-  name            String   // Ej: "Antirrábica", "Triple Felina"
-  dateApplied     DateTime
-  nextDueDate     DateTime? 
-  notes           String?
-  petId           String
-  pet             Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  id          String    @id @default(cuid())
+  name        String    
+  dateApplied DateTime
+  nextDueDate DateTime? 
+  notes       String?
+  petId       String
+  pet         Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
 }
 
 model MedicalRecord {
-  id          String   @id @default(cuid())
-  date        DateTime @default(now())
-  title       String   
-  description String   @db.Text
+  id          String    @id @default(cuid())
+  date        DateTime  @default(now())
+  title       String    
+  description String    @db.Text
   petId       String
-  pet         Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  pet         Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
 
   attachments Attachment[]
 }
 
 model Attachment {
   id        String   @id @default(cuid())
-  url       String   // URL que te devuelve Cloudinary
-  fileType  String   // "image/png", "application/pdf", etc.
-  name      String   // Nombre original del archivo (ej: "Hemograma_2026.pdf")
+  url       String   
+  fileType  String   
+  name      String   
   createdAt DateTime @default(now())
 
-  // Relaciones
   medicalRecordId String?
   medicalRecord   MedicalRecord? @relation(fields: [medicalRecordId], references: [id])
-  
+   
   petId     String
   pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+model Deworming {
+  id          String   @id @default(cuid())
+  name        String   // Ej: "Bravecto", "Nexgard", "Total FLC"
+  dateApplied DateTime // Cuándo se la diste
+  nextDueDate DateTime? // Cuándo le toca la próxima (clave para las alertas)
+  type        String   // "INTERNA" (Pastilla) o "EXTERNA" (Pipeta/Collar)
+  
+  petId       String
+  pet         Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
 }

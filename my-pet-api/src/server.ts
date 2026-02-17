@@ -8,6 +8,10 @@ import auth from './routes/auth.js'
 import petRoutes from './routes/pets.js'
 // 1. IMPORTAR LA NUEVA RUTA DE SUBIDA (Asegúrate de haber creado el archivo)
 import { uploadRoutes } from './routes/upload.js' 
+import medicalRoutes from './routes/medical.js'
+import vaccineRoutes from './routes/vaccines.js'
+import dewormingRoutes from './routes/dewormings.js'
+import attachmentRoutes from './routes/attachments.js'
 
 const app = Fastify({ logger: true })
 
@@ -41,5 +45,21 @@ app.register(petRoutes, { prefix: '/pets' })
 // 5. AQUÍ REGISTRAMOS LA RUTA DE UPLOAD
 // Esto habilita el endpoint: POST http://localhost:3000/upload
 app.register(uploadRoutes) 
+
+// medicalRoutes
+
+app.register(medicalRoutes, { prefix: '/medical' }) // <--- Registrar con prefijo
+
+//vaccines
+
+app.register(vaccineRoutes, { prefix: '/vaccines' })
+
+// dewornings
+
+app.register(dewormingRoutes, { prefix: '/dewormings' })
+
+//attachments
+
+app.register(attachmentRoutes, { prefix: '/attachments' }) // <--- Registrar
 
 export default app
