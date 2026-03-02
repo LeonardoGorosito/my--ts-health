@@ -7,7 +7,8 @@ type User = {
   email: string; 
   name: string;
   lastname: string;
-  role: 'USER' | 'ADMIN'; // Cambiado STUDENT por USER
+  phone?: string | null; // <--- NUEVO: Agregamos el teléfono al tipo de usuario
+  role: 'USER' | 'ADMIN'; 
 }
 
 type AuthCtx = {
@@ -19,8 +20,9 @@ type AuthCtx = {
     name: string,
     lastname: string,
     email: string,
-    password: string
-  ) => Promise<void> // Simplificado: sin masters, age ni telegram
+    password: string,
+    phone?: string // <--- NUEVO: Aceptamos el teléfono como parámetro opcional
+  ) => Promise<void> 
 }
 
 const Ctx = createContext<AuthCtx | null>(null)
@@ -31,7 +33,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const t = localStorage.getItem('token')
-    if (!t) return setLoading(false)
+    if (!t) {
+      setLoading(false)
+      return
+    }
     api.get('/auth/me')
       .then(r => setUser(r.data))
       .catch(() => {
@@ -52,12 +57,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null)
   }
 
-  // 2. Registro simplificado para Pet Health
+  // 2. Registro actualizado para enviar el celular
   const register = async (
     name: string,
     lastname: string,
     email: string,
-    password: string
+    password: string,
+    phone?: string // <--- NUEVO: Lo recibimos acá
   ) => {
     setLoading(true);
     try {
@@ -65,7 +71,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         name, 
         lastname, 
         email, 
-        password 
+        password,
+        phone // <--- NUEVO: Lo enviamos a la API
       });
 
       localStorage.setItem('token', data.token); 

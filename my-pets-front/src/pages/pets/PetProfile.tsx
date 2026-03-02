@@ -17,7 +17,8 @@ import {
   Stethoscope, 
   Plus,
   Syringe,
-  Pill // <--- Asegurate de tener importado Pill
+  Pill,
+  QrCode // <--- Agregamos QrCode
 } from 'lucide-react'
 
 // Componentes
@@ -27,6 +28,7 @@ import { Loader } from '../../components/Loader'
 import { AddMedicalModal } from '../../components/AddMedicalModal' 
 import { AddVaccineModal } from '../../components/AddVaccineModal'
 import { AddDewormingModal } from '../../components/AddDewormingModal'
+import { PetQrModal } from '../../components/PetQrModal' // <--- Importamos el modal del QR
 
 // --- FUNCIÓN AUXILIAR: CALCULAR EDAD ---
 function getAge(dateString: string | undefined) {
@@ -40,6 +42,8 @@ function getAge(dateString: string | undefined) {
   if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) {
     years--
   }
+
+  // ¡Acá estaba el useState suelto! Lo borré de acá.
 
   if (years === 0) {
     const months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth())
@@ -83,7 +87,8 @@ export function PetProfile() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isMedicalModalOpen, setIsMedicalModalOpen] = useState(false)
   const [isVaccineModalOpen, setIsVaccineModalOpen] = useState(false)
-  const [isDewormingModalOpen, setIsDewormingModalOpen] = useState(false) // <--- CORREGIDO: Ahora está adentro
+  const [isDewormingModalOpen, setIsDewormingModalOpen] = useState(false) 
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false) // <--- CORREGIDO: Ahora está donde debe estar
 
   // 2. CARGAR DATOS
   const fetchPet = async () => {
@@ -100,8 +105,7 @@ export function PetProfile() {
 
   useEffect(() => { fetchPet() }, [id])
 
-  // 3. FUNCIONES DE ELIMINAR (Adentro para poder usar fetchPet)
-  
+  // 3. FUNCIONES DE ELIMINAR 
   const handleDeleteRecord = async (recordId: string) => {
     if (!window.confirm('¿Estás seguro de borrar este evento médico?')) return
     try {
@@ -135,13 +139,12 @@ export function PetProfile() {
     }
   }
 
-  // CORREGIDO: Movido adentro del componente
   const handleDeleteDeworming = async (id: string) => {
     if (!window.confirm('¿Borrar esta desparasitación?')) return
     try {
       await api.delete(`/dewormings/${id}`)
       toast.success('Eliminado')
-      fetchPet() // Ahora sí funciona porque está en el scope
+      fetchPet()
     } catch (e) { toast.error('Error al eliminar') }
   }
 
@@ -162,9 +165,26 @@ export function PetProfile() {
         <button onClick={() => navigate(-1)} className="absolute top-6 left-6 bg-black/20 hover:bg-black/40 text-white p-2 rounded-full backdrop-blur-sm transition-all z-10">
           <ArrowLeft size={20} />
         </button>
-        <button onClick={() => setIsEditModalOpen(true)} className="absolute top-6 right-6 bg-black/20 hover:bg-black/40 text-white p-2 px-4 rounded-full backdrop-blur-sm transition-all z-10 flex items-center gap-2 font-bold text-xs uppercase tracking-widest">
-            <Edit2 size={16} /> <span className="hidden md:inline">Editar Perfil</span>
-        </button>
+
+        {/* --- CONTENEDOR DE BOTONES (QR y Editar) --- */}
+        <div className="absolute top-6 right-6 flex items-center gap-3 z-10">
+          <button 
+              onClick={() => setIsQrModalOpen(true)}
+              className="bg-black/20 hover:bg-emerald-600 text-white p-2 md:px-4 rounded-full backdrop-blur-sm transition-all flex items-center gap-2 font-bold text-xs uppercase tracking-widest shadow-lg"
+              title="Ver Placa QR"
+          >
+              <QrCode size={16} /> 
+              <span className="hidden md:inline">Placa QR</span>
+          </button>
+
+          <button 
+              onClick={() => setIsEditModalOpen(true)} 
+              className="bg-black/20 hover:bg-black/40 text-white p-2 md:px-4 rounded-full backdrop-blur-sm transition-all flex items-center gap-2 font-bold text-xs uppercase tracking-widest shadow-lg"
+          >
+              <Edit2 size={16} /> 
+              <span className="hidden md:inline">Editar Perfil</span>
+          </button>
+        </div>
       </div>
 
       {/* CABECERA */}
@@ -473,7 +493,7 @@ export function PetProfile() {
                     {/* BOTÓN DE BORRAR ARCHIVO */}
                     <button 
                       onClick={(e) => {
-                        e.preventDefault() // Evita que se abra el archivo al hacer click en borrar
+                        e.preventDefault() 
                         handleDeleteAttachment(file.id)
                       }}
                       className="absolute top-2 right-2 bg-white dark:bg-black/50 hover:bg-red-50 text-gray-400 hover:text-red-500 p-1.5 rounded-lg shadow-sm border border-gray-100 dark:border-transparent transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
@@ -492,8 +512,10 @@ export function PetProfile() {
       <EditPetModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} petData={pet as any} onPetUpdated={fetchPet} />
       <AddMedicalModal isOpen={isMedicalModalOpen} onClose={() => setIsMedicalModalOpen(false)} petId={pet.id} onSuccess={fetchPet} />
       <AddVaccineModal isOpen={isVaccineModalOpen} onClose={() => setIsVaccineModalOpen(false)} petId={pet.id} onSuccess={fetchPet} />
-      {/* Modal nuevo */}
       <AddDewormingModal isOpen={isDewormingModalOpen} onClose={() => setIsDewormingModalOpen(false)} petId={pet.id} onSuccess={fetchPet} />
+      
+      {/* Modal nuevo del QR */}
+      <PetQrModal isOpen={isQrModalOpen} onClose={() => setIsQrModalOpen(false)} petId={pet.id} petName={pet.name} />
 
     </div>
   )

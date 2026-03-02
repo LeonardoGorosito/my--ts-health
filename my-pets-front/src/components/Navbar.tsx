@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { LayoutDashboard, Menu, X, ShieldCheck, Heart, Plus } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '../lib/axios'
+import { LayoutDashboard, Menu, X, ShieldCheck, Heart, Plus, Bell } from 'lucide-react'
 import { ProfileDropdown } from './ProfileDropdown'
 
 export default function Navbar() {
@@ -10,7 +12,43 @@ export default function Navbar() {
 
   const closeMenu = () => setIsOpen(false)
 
-  // CAMBIO CLAVE: Estilo "Sutil" en lugar de "Botón Sólido"
+  // 1. Buscamos las mascotas (React Query lo saca del caché si ya estamos en el Home)
+  const { data: pets } = useQuery({
+    queryKey: ['pets'],
+    queryFn: async () => {
+      const r = await api.get('/pets')
+      return r.data
+    },
+    enabled: !!user // Solo lo ejecutamos si el usuario ya inició sesión
+  })
+
+  // 2. Calculamos las notificaciones globalmente
+  const alertCount = useMemo(() => {
+    if (!pets) return 0
+    let count = 0
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    pets.forEach((pet: any) => {
+      // Contar vacunas por vencer (o vencidas)
+      pet.vaccinations?.forEach((v: any) => {
+        if (v.nextDueDate) {
+          const diff = Math.ceil((new Date(v.nextDueDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+          if (diff <= 15) count++
+        }
+      })
+      // Contar desparasitaciones por vencer (o vencidas)
+      pet.dewormings?.forEach((d: any) => {
+        if (d.nextDueDate) {
+          const diff = Math.ceil((new Date(d.nextDueDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+          if (diff <= 15) count++
+        }
+      })
+    })
+    return count
+  }, [pets])
+
+  // Estilos de los links
   const getNavLinkClass = ({ isActive }: { isActive: boolean }) =>
     `px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 border-2 ${
       isActive
@@ -18,14 +56,29 @@ export default function Navbar() {
         : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-gray-50 dark:hover:bg-zinc-900'
     }`
 
+  // Mini componente para no repetir el icono de la campana
+  const NotificationBell = () => (
+    <Link 
+      to="/pets" 
+      onClick={closeMenu}
+      className="relative p-2 text-gray-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-400 transition-colors"
+    >
+      <Bell size={22} />
+      {alertCount > 0 && (
+        <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm shadow-red-500/50 animate-pulse">
+          {alertCount}
+        </span>
+      )}
+    </Link>
+  )
+
   return (
     <nav className="bg-white dark:bg-bg-matte border-b border-gray-100 dark:border-gray-800 sticky top-0 z-50 transition-colors duration-300 backdrop-blur-md bg-white/80 dark:bg-bg-matte/90">
       <div className="mx-auto max-w-6xl px-4">
-        <div className="flex items-center justify-between h-20"> {/* Aumenté un poco la altura (h-20) para más aire */}
+        <div className="flex items-center justify-between h-20">
           
           {/* --- 1. LOGO --- */}
           <Link to="/pets" className="flex items-center gap-3 group" onClick={closeMenu}>
-            {/* Isotipo Animado */}
             <div className="relative flex flex-col items-center justify-center group-hover:scale-110 transition-transform duration-300">
               <div className="flex gap-0.5 mb-[2px]">
                  <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -46,8 +99,7 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* --- 2. LINKS DESKTOP (CENTRADOS Y SUTILES) --- */}
-          {/* Los moví un poco para que no se peguen tanto al logo */}
+          {/* --- 2. LINKS DESKTOP --- */}
           <div className="hidden md:flex items-center gap-2 ml-8">
             <NavLink to="/pets" className={getNavLinkClass}>
               <LayoutDashboard size={18} />
@@ -63,9 +115,13 @@ export default function Navbar() {
           </div>
 
           {/* --- 3. DERECHA (Dropdown o Login) --- */}
-          <div className="hidden md:flex items-center ml-auto">
+          <div className="hidden md:flex items-center ml-auto gap-3">
             {user ? (
-              <ProfileDropdown />
+              <>
+                <NotificationBell />
+                <div className="w-px h-6 bg-gray-200 dark:bg-zinc-800 mx-1"></div> {/* Separador sutil */}
+                <ProfileDropdown />
+              </>
             ) : (
               <Link 
                 to="/login" 
@@ -77,8 +133,13 @@ export default function Navbar() {
           </div>
 
           {/* --- 4. CONTROLES MOBILE --- */}
-          <div className="md:hidden flex items-center gap-4">
-            {user && <ProfileDropdown />}
+          <div className="md:hidden flex items-center gap-3">
+            {user && (
+              <>
+                <NotificationBell />
+                <ProfileDropdown />
+              </>
+            )}
             <button 
               onClick={() => setIsOpen(!isOpen)} 
               className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-xl transition-colors"

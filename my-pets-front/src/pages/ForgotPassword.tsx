@@ -2,11 +2,10 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Input } from '../components/Input'
-import { Button } from '../components/Button'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { api } from '../lib/axios'
+import { KeyRound, MailCheck, ArrowLeft } from 'lucide-react'
 
 const schema = z.object({ 
   email: z.string().email('Ingresa un email válido'), 
@@ -16,14 +15,13 @@ type FormData = z.infer<typeof schema>
 
 export default function ForgotPassword() {
   const [isEmailSent, setIsEmailSent] = useState(false)
-  const [lastEmail, setLastEmail] = useState('') // Guardamos el email aquí
-  const [countdown, setCountdown] = useState(0)  // Temporizador
+  const [lastEmail, setLastEmail] = useState('') 
+  const [countdown, setCountdown] = useState(0)  
   
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({ 
     resolver: zodResolver(schema) 
   })
 
-  // Efecto para bajar el contador
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(c => c - 1), 1000)
@@ -36,7 +34,7 @@ export default function ForgotPassword() {
       await api.post('/auth/forgot-password', { email: d.email })
       setLastEmail(d.email)
       setIsEmailSent(true)
-      setCountdown(60) // Iniciamos espera de 60s
+      setCountdown(60) 
       toast.success('Si el correo existe, recibirás un enlace.')
     } catch (error) {
       console.error(error)
@@ -46,85 +44,88 @@ export default function ForgotPassword() {
 
   const handleResend = async () => {
     if (countdown > 0) return
-    
     try {
-      // Reutilizamos el mismo endpoint
       await api.post('/auth/forgot-password', { email: lastEmail })
-      setCountdown(60) // Reiniciamos contador
+      setCountdown(60) 
       toast.success('Correo reenviado correctamente.')
     } catch (error) {
       toast.error('No se pudo reenviar el correo.')
     }
   }
 
+  // Input idéntico al del Login
+  const InputField = ({ ...props }) => (
+    <input 
+      className="bg-gray-100 border-none px-4 py-3 my-1.5 w-full rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition-all placeholder-gray-400 text-gray-800"
+      {...props}
+    />
+  )
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-blue-50 animate-in fade-in zoom-in duration-300">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 font-sans">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-[450px] p-10 text-center relative animate-in fade-in zoom-in duration-300">
           
-        <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11.536 19.464a2.56 2.56 0 01-1.071.707l-2.071.518 1.518-2.071a2.56 2.56 0 01.707-1.071l5.464-5.464A6 6 0 0121 9z" />
-            </svg>
+        <div className="text-center mb-6 flex flex-col items-center">
+          <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-4">
+            {isEmailSent ? <MailCheck size={32} className="text-emerald-500" /> : <KeyRound size={32} className="text-emerald-500" />}
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">Recuperar Acceso</h2>
+          <h2 className="text-3xl font-bold text-emerald-900">
+            {isEmailSent ? 'Revisa tu correo' : 'Recuperar Acceso'}
+          </h2>
         </div>
 
         {!isEmailSent ? (
           <>
-            <p className="text-center text-gray-600 mb-6 text-sm">
-              Ingresa tu correo electrónico y te enviaremos las instrucciones para restablecer tu contraseña.
+            <p className="text-sm text-gray-400 mb-8 leading-relaxed">
+              Ingresa el correo electrónico asociado a tu cuenta y te enviaremos las instrucciones para restablecer tu contraseña.
             </p>
 
-            <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Correo electrónico</label>
-                <Input type="email" {...register('email')} className="w-full" placeholder="tu@email.com" />
-                {errors.email && (<p className="mt-1.5 text-xs text-red-600">{errors.email.message}</p>)}
+            <form className="space-y-2 flex flex-col items-center" onSubmit={handleSubmit(onSubmit)}>
+              <div className="w-full">
+                <InputField type="email" {...register('email')} placeholder="Email (ej. tu@email.com)" />
+                {errors.email && (<p className="mt-1 text-xs text-red-500 text-left px-2">{errors.email.message}</p>)}
               </div>
 
-              <Button 
+              <button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors shadow-lg shadow-blue-600/20"
+                className="w-full mt-4 bg-emerald-600 text-white text-xs font-bold py-3.5 px-10 rounded-full uppercase tracking-wider hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/30 disabled:opacity-50"
               >
-                {isSubmitting ? 'Enviando...' : 'Enviar enlace'}
-              </Button>
+                {isSubmitting ? 'Enviando enlace...' : 'Enviar enlace'}
+              </button>
             </form>
           </>
         ) : (
           <div className="text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="bg-green-50 text-green-800 p-4 rounded-lg mb-6 text-sm border border-green-100">
-              <p className="font-bold mb-1">¡Correo enviado!</p>
-              <p>Revisa tu bandeja de entrada (y Spam) en los próximos minutos.</p>
-            </div>
+            <p className="text-sm text-gray-500 mb-8 leading-relaxed">
+              Hemos enviado un enlace a <strong className="text-gray-800">{lastEmail}</strong>. Revisa tu bandeja de entrada (y la carpeta de Spam) en los próximos minutos.
+            </p>
             
             {/* SECCIÓN DE REENVIAR */}
-            <div className="mb-6 space-y-3">
-                <p className="text-sm text-gray-500">¿No recibiste nada?</p>
-                
+            <div className="mb-6 space-y-3 bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">¿No recibiste nada?</p>
                 <button 
                     onClick={handleResend} 
                     disabled={countdown > 0}
-                    className={`text-sm font-medium px-4 py-2 rounded-md transition-colors ${
+                    className={`text-xs font-bold px-6 py-2.5 rounded-full uppercase tracking-wider transition-colors ${
                         countdown > 0 
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                        : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                        : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 shadow-sm'
                     }`}
                 >
                     {countdown > 0 ? `Reenviar en ${countdown}s` : 'Reenviar correo'}
                 </button>
             </div>
 
-            <button onClick={() => setIsEmailSent(false)} className="text-sm text-gray-400 hover:text-gray-600 hover:underline">
+            <button onClick={() => setIsEmailSent(false)} className="text-xs font-bold text-gray-400 hover:text-emerald-600 uppercase tracking-wider transition-colors">
               Probar con otro correo
             </button>
           </div>
         )}
 
         <div className="mt-8 pt-6 border-t border-gray-100 text-center">
-          <Link to="/login" className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+          <Link to="/login" className="inline-flex items-center text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-emerald-600 transition-colors">
+            <ArrowLeft size={14} className="mr-2" />
             Volver al inicio de sesión
           </Link>
         </div>

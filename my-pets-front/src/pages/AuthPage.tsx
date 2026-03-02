@@ -7,7 +7,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import '../index.css' 
 
-// --- SCHEMAS (Misma lógica que tenías) ---
+// --- SCHEMAS ---
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(4, 'Mínimo 4 caracteres')
@@ -17,6 +17,8 @@ const registerSchema = z.object({
   name: z.string().min(2, 'Nombre requerido'),
   lastname: z.string().min(2, 'Apellido requerido'),
   email: z.string().email('Email inválido'),
+  // NUEVO: Agregamos el teléfono como opcional
+  phone: z.string().optional(),
   password: z.string().min(6, 'Mínimo 6 caracteres'),
   passwordConfirm: z.string().min(6, 'Confirma tu contraseña'),
 }).superRefine(({ password, passwordConfirm }, ctx) => {
@@ -29,8 +31,6 @@ type LoginData = z.infer<typeof loginSchema>
 type RegisterData = z.infer<typeof registerSchema>
 
 export default function AuthPage({ initialRegister = false }: { initialRegister?: boolean }) {
-  // Estado para el slide: false = Login visible, true = Register visible
-
   const [isRegisterActive, setIsRegisterActive] = useState(initialRegister)
   const [showPassword, setShowPassword] = useState(false)
   
@@ -55,7 +55,7 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
   const onLogin = async (d: LoginData) => {
     try {
       await login(d.email.trim(), d.password)
-      nav('/account') // O donde redirijas
+      nav('/account') 
     } catch (e: any) {
       toast.error(e?.response?.data?.message || 'Credenciales inválidas')
     }
@@ -63,7 +63,8 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
 
   const onRegister = async (d: RegisterData) => {
     try {
-      await registerUser(d.name, d.lastname, d.email.trim(), d.password)
+      // NUEVO: Le pasamos el d.phone a la función del contexto
+      await registerUser(d.name, d.lastname, d.email.trim(), d.password, d.phone)
       toast.success('¡Cuenta creada! Bienvenido a Pet Health')
       nav('/account')
     } catch (e: any) {
@@ -71,10 +72,10 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
     }
   }
 
-  // Componente visual de Input reutilizable para limpiar el código
+  // Componente visual de Input reutilizable
   const InputField = ({ ...props }) => (
     <input 
-      className="bg-gray-100 border-none px-4 py-3 my-2 w-full rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition-all placeholder-gray-400 text-gray-800"
+      className="bg-gray-100 border-none px-4 py-3 my-1.5 w-full rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition-all placeholder-gray-400 text-gray-800"
       {...props}
     />
   )
@@ -90,16 +91,14 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
   )
 
   return (
-    // Fondo general de la página (Mate Dark)
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 font-sans">
       
-      {/* Contenedor Principal de la Tarjeta */}
       <div className={`container-auth bg-white rounded-3xl shadow-2xl w-full max-w-[900px] min-h-[600px] relative overflow-hidden ${isRegisterActive ? "right-panel-active" : ""}`}>
         
         {/* --- FORMULARIO DE REGISTRO (Sign Up) --- */}
         <div className="form-container sign-up-container bg-white p-10 flex flex-col items-center justify-center h-full text-center">
-          <form onSubmit={handleRegisterSubmit(onRegister)} className="w-full max-w-xs flex flex-col items-center">
-            <h1 className="text-3xl font-bold text-emerald-900 mb-4">Crear Cuenta</h1>
+          <form onSubmit={handleRegisterSubmit(onRegister)} className="w-full max-w-xs flex flex-col items-center mt-4">
+            <h1 className="text-3xl font-bold text-emerald-900 mb-2">Crear Cuenta</h1>
             <p className="text-sm text-gray-400 mb-4">Usa tu email para registrarte</p>
 
             {/* Inputs Grid para Nombre/Apellido */}
@@ -117,6 +116,13 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
             <div className="w-full">
                 <InputField type="email" placeholder="Email" {...regRegister('email')} />
                 {regErrors.email && <span className="text-xs text-red-500 block text-left">{regErrors.email.message}</span>}
+            </div>
+
+            {/* NUEVO: Input de Teléfono */}
+            <div className="w-full">
+                <InputField type="tel" placeholder="Celular (Ej: +54 9 342 123-4567)" {...regRegister('phone')} />
+                <span className="text-[10px] text-gray-400 block text-left ml-2 mb-1">Se usará para emergencias en tu placa QR.</span>
+                {regErrors.phone && <span className="text-xs text-red-500 block text-left">{regErrors.phone.message}</span>}
             </div>
 
             <div className="w-full relative">
@@ -144,7 +150,6 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
         <div className="form-container sign-in-container bg-white p-10 flex flex-col items-center justify-center h-full text-center">
           <form onSubmit={handleLoginSubmit(onLogin)} className="w-full max-w-xs flex flex-col items-center">
             <div className="mb-6 bg-emerald-100 p-3 rounded-full text-emerald-600">
-                {/* Icono de Pata o Logo */}
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.45 2.344-2.5"/><path d="M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.96-1.45-2.344-2.5"/><path d="M8 14v.5"/><path d="M16 14v.5"/><path d="M11.25 16.25h1.5L12 17l-.75-.75Z"/><path d="M4.42 11.247A4.335 4.335 0 0 1 6.938 10c.333.004.588.024.767.064.424.094.885.114 1.254.123h6.082c.49-.012.83-.029 1.254-.123.18-.04.435-.06.767-.064a4.335 4.335 0 0 1 2.518 1.247c-.828 2.05-3.002 4.154-4.88 5.626a5.27 5.27 0 0 1-5.4 0c-1.877-1.472-4.052-3.576-4.88-5.626Z"/></svg>
             </div>
             <h1 className="text-3xl font-bold text-emerald-900 mb-4">¡Hola de nuevo!</h1>

@@ -1,0 +1,142 @@
+import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { api } from '../../lib/axios'
+import { AlertCircle, Cat, Dog, Heart, Mail, User } from 'lucide-react'
+
+interface PublicPet {
+  name: string
+  species: 'CAT' | 'DOG'
+  breed: string | null
+  gender: string
+  specialNeeds: string | null
+  profileImageUrl: string | null
+  bannerImageUrl: string | null
+  owner: {
+    name: string
+    email: string
+  }
+}
+
+export function PublicPetProfile() {
+  const { id } = useParams()
+  const [pet, setPet] = useState<PublicPet | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchPublicPet = async () => {
+      try {
+        const res = await api.get(`/pets/public/${id}`)
+        setPet(res.data)
+      } catch (error) {
+        console.error('Error cargando mascota pública', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchPublicPet()
+  }, [id])
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black text-emerald-600">Cargando datos...</div>
+  
+  if (!pet) return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-black p-6 text-center">
+      <Heart size={48} className="text-gray-300 dark:text-gray-700 mb-4" />
+      <h1 className="text-2xl font-black text-gray-900 dark:text-white">Mascota no encontrada</h1>
+      <p className="text-gray-500 mt-2">Este código QR ya no es válido o la mascota fue eliminada.</p>
+    </div>
+  )
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-black pb-10 font-sans selection:bg-emerald-500/30">
+      
+      {/* Banner y Foto */}
+      <div 
+        className="h-64 bg-cover bg-center relative"
+        style={{ backgroundImage: pet.bannerImageUrl ? `url(${pet.bannerImageUrl})` : 'none' }}
+      >
+        {!pet.bannerImageUrl && (
+            <div className="absolute inset-0 bg-gradient-to-b from-emerald-500 to-emerald-800"></div>
+        )}
+        <div className="absolute -bottom-16 left-0 right-0 flex justify-center">
+          <div className="w-32 h-32 rounded-full bg-white dark:bg-zinc-900 p-1.5 shadow-xl overflow-hidden flex items-center justify-center border-4 border-white dark:border-zinc-900">
+             {pet.profileImageUrl ? (
+                <img src={pet.profileImageUrl} alt={pet.name} className="w-full h-full object-cover rounded-full" />
+             ) : (
+                <div className="text-emerald-500">
+                    {pet.species === 'CAT' ? <Cat size={48} /> : <Dog size={48} />}
+                </div>
+             )}
+          </div>
+        </div>
+      </div>
+
+      {/* Info Principal */}
+      <div className="mt-20 px-6 max-w-md mx-auto text-center">
+        <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-2">{pet.name}</h1>
+        <div className="flex justify-center items-center gap-2 text-sm font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-8">
+          <span>{pet.breed || 'Mestizo'}</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-zinc-700"></span>
+          <span>{pet.gender}</span>
+        </div>
+
+        {/* Alerta Médica (Súper importante si se pierde) */}
+        {pet.specialNeeds && (
+          <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-900/50 rounded-2xl p-5 mb-8 text-left animate-pulse shadow-lg shadow-red-500/10">
+            <h3 className="font-black text-red-700 dark:text-red-400 flex items-center gap-2 mb-2 uppercase tracking-wide text-sm">
+              <AlertCircle size={18} /> Atención Médica
+            </h3>
+            <p className="text-red-900 dark:text-red-300 text-sm font-medium leading-relaxed">
+              {pet.specialNeeds}
+            </p>
+          </div>
+        )}
+
+        {/* Tarjeta de Contacto */}
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-zinc-800 text-left">
+          <h2 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-6 border-b border-gray-100 dark:border-zinc-800 pb-3">
+            Información de Contacto
+          </h2>
+          
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-full text-emerald-600 dark:text-emerald-400">
+                <User size={20} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Dueño/a</p>
+                <p className="font-bold text-gray-900 dark:text-white">{pet.owner.name}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-full text-emerald-600 dark:text-emerald-400">
+                <Mail size={20} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Email</p>
+                <a href={`mailto:${pet.owner.email}`} className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
+                  {pet.owner.email}
+                </a>
+              </div>
+            </div>
+            
+            {/* Botón de acción rápida */}
+            <a 
+              href={`mailto:${pet.owner.email}?subject=¡Encontré a ${pet.name}!&body=Hola ${pet.owner.name}, encontré a tu mascota.`}
+              className="mt-6 w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-colors shadow-lg shadow-emerald-900/20"
+            >
+              Contactar al Dueño
+            </a>
+          </div>
+        </div>
+
+        <div className="mt-12 opacity-50 flex flex-col items-center">
+          <Heart size={20} className="text-gray-400 mb-2" />
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+            Generado por PetHealth
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
