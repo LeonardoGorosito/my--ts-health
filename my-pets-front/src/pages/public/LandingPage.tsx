@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { Syringe, FileText, QrCode, Heart, Stethoscope, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
