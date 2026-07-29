@@ -30,15 +30,21 @@ export default async function petRoutes(app: FastifyInstance) {
   }
 
   // 1. LISTAR (GET /pets)
-  app.get('/', { preHandler: [authenticate] }, async (req) => {
-    return await prisma.pet.findMany({
-      where: { ownerId: req.user.sub },
-      orderBy: { createdAt: 'desc' },
-      include: {
-        vaccinations: true,
-        dewormings: true
-      }
-    })
+  app.get('/', { preHandler: [authenticate] }, async (req, reply) => {
+    try {
+      const pets = await prisma.pet.findMany({
+        where: { ownerId: req.user.sub },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          vaccinations: true,
+          dewormings: true
+        }
+      })
+      return reply.send(pets)
+    } catch (error) {
+      req.log.error(error)
+      return reply.status(500).send({ message: 'Error al obtener las mascotas' })
+    }
   })
 
   // 2. CREAR (POST /pets)
@@ -90,20 +96,25 @@ export default async function petRoutes(app: FastifyInstance) {
 
   // 3. VER PERFIL (GET /pets/:id)
   app.get('/:id', { preHandler: [authenticate] }, async (req, reply) => {
-    const { id } = req.params as { id: string }
-    
-    const pet = await prisma.pet.findFirst({
-      where: { id, ownerId: req.user.sub },
-      include: {
-        vaccinations: true,
-        medicalHistory: { orderBy: { date: 'desc' } },
-        attachments: { orderBy: { createdAt: 'desc' } },
-        dewormings: { orderBy: { dateApplied: 'desc' } } 
-      }
-    })
+    try {
+      const { id } = req.params as { id: string }
+      
+      const pet = await prisma.pet.findFirst({
+        where: { id, ownerId: req.user.sub },
+        include: {
+          vaccinations: true,
+          medicalHistory: { orderBy: { date: 'desc' } },
+          attachments: { orderBy: { createdAt: 'desc' } },
+          dewormings: { orderBy: { dateApplied: 'desc' } } 
+        }
+      })
 
-    if (!pet) return reply.status(404).send({ message: 'Mascota no encontrada' })
-    return pet
+      if (!pet) return reply.status(404).send({ message: 'Mascota no encontrada' })
+      return reply.send(pet)
+    } catch (error) {
+      req.log.error(error)
+      return reply.status(500).send({ message: 'Error al obtener la mascota' })
+    }
   })
 
   // 4. EDITAR (PUT /pets/:id)
@@ -113,7 +124,7 @@ export default async function petRoutes(app: FastifyInstance) {
     const existingPet = await prisma.pet.findUnique({ where: { id, ownerId: req.user.sub } })
     if (!existingPet) {
       const parts = req.parts()
-      for await (const part of parts) { await part.toBuffer() } 
+      for await (const part of parts) { await (part as any).toBuffer?.() } 
       return reply.status(404).send({ message: 'Mascota no encontrada' })
     }
 
@@ -127,20 +138,35 @@ export default async function petRoutes(app: FastifyInstance) {
         } else if (part.fieldname === 'bannerImage') {
           data.bannerImageUrl = await uploadToCloudinary(part, 'banners', id)
         } else {
-          await part.toBuffer() 
+          await (part as any).toBuffer?.() 
         }
       } else {
-        if (part.fieldname === 'isCastrated') data[part.fieldname] = (part.value === 'true')
-        else data[part.fieldname] = part.value
+        if (['isCastrated', 'showPhonePublicly', 'showAddressPublicly'].includes(part.fieldname)) {
+          data[part.fieldname] = (part.value === 'true')
+        } else {
+          data[part.fieldname] = part.value
+        }
       }
     }
 
     try {
       if (data.birthDate) data.birthDate = new Date(data.birthDate)
 
+      const { phone, address, ...petData } = data
+
+      if (phone !== undefined || address !== undefined) {
+        await prisma.user.update({
+          where: { id: req.user.sub },
+          data: {
+            ...(phone !== undefined && { phone }),
+            ...(address !== undefined && { address })
+          }
+        })
+      }
+
       const updatedPet = await prisma.pet.update({
         where: { id },
-        data: { ...data }
+        data: { ...petData }
       })
       return reply.send(updatedPet)
     } catch (error) {
@@ -196,23 +222,28 @@ export default async function petRoutes(app: FastifyInstance) {
   // 6. PLACA PÚBLICA (GET /pets/public/:id) - ¡SIN AUTH Y ADENTRO DE LA FUNCIÓN!
   // =========================================================================
   app.get('/public/:id', async (req, reply) => {
-    const { id } = req.params as { id: string }
-    
-    const pet = await prisma.pet.findUnique({
-      where: { id },
-      include: {
-        owner: {
-          select: {
-            name: true,
-            email: true,
-            phone: true,
+    try {
+      const { id } = req.params as { id: string }
+      
+      const pet = await prisma.pet.findUnique({
+        where: { id },
+        include: {
+          owner: {
+            select: {
+              name: true,
+              email: true,
+              phone: true,
+            }
           }
         }
-      }
-    })
+      })
 
-    if (!pet) return reply.status(404).send({ message: 'Mascota no encontrada' })
-    return pet
+      if (!pet) return reply.status(404).send({ message: 'Mascota no encontrada' })
+      return reply.send(pet)
+    } catch (error) {
+      req.log.error(error)
+      return reply.status(500).send({ message: 'Error al obtener la mascota pública' })
+    }
   })
 
 } // <--- ESTA ES LA LLAVE QUE CIERRA LA FUNCIÓN PRINCIPAL (petRoutes)

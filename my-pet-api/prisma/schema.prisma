@@ -1,10 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  passwordHash     String?
+  name             String
+  lastname         String
+  role             Role      @default(USER)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  resetToken       String?   @unique
+  resetTokenExpiry DateTime?
+  phone            String?
+  address          String?
+  pets             Pet[]
+}
+
+model Pet {
+  id              String          @id @default(cuid())
+  name            String
+  species         Species
+  breed           String?
+  gender          String?
+  birthDate       DateTime?
+  isCastrated     Boolean         @default(false)
+  specialNeeds    String?
+  ownerId         String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  bannerImageUrl      String?
+  profileImageUrl     String?
+  weight              String?
+  showPhonePublicly   Boolean         @default(false)
+  showAddressPublicly Boolean         @default(false)
+  attachments         Attachment[]
+  dewormings      Deworming[]
+  medicalHistory  MedicalRecord[]
+  owner           User            @relation(fields: [ownerId], references: [id])
+  vaccinations    Vaccination[]
+}
+
+model Vaccination {
+  id          String    @id @default(cuid())
+  name        String
+  dateApplied DateTime
+  nextDueDate DateTime?
+  notes       String?
+  petId       String
+  pet         Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+model MedicalRecord {
+  id          String       @id @default(cuid())
+  date        DateTime     @default(now())
+  title       String
+  description String
+  petId       String
+  attachments Attachment[]
+  pet         Pet          @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+model Attachment {
+  id              String         @id @default(cuid())
+  url             String
+  fileType        String
+  name            String
+  createdAt       DateTime       @default(now())
+  medicalRecordId String?
+  petId           String
+  medicalRecord   MedicalRecord? @relation(fields: [medicalRecordId], references: [id])
+  pet             Pet            @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+model Deworming {
+  id          String    @id @default(cuid())
+  name        String
+  dateApplied DateTime
+  nextDueDate DateTime?
+  type        String
+  petId       String
+  createdAt   DateTime  @default(now())
+  pet         Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
 }
 
 enum Role {
@@ -15,97 +98,4 @@ enum Role {
 enum Species {
   CAT
   DOG
-}
-
-model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  passwordHash String?
-  name         String
-  lastname     String
-  phone    String?
-  role         Role      @default(USER)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  pets         Pet[]     
-
-  resetToken       String?   @unique
-  resetTokenExpiry DateTime?
-}
-
-model Pet {
-  id           String    @id @default(cuid())
-  name         String
-  species      Species
-  breed        String?
-  gender       String?   
-  birthDate    DateTime?
-  
-  // --- NUEVOS CAMPOS AGREGADOS ---
-  weight          String?   // Peso (ej: "5.4")
-  profileImageUrl String?   // Foto de perfil (reemplaza a imageUrl)
-  bannerImageUrl  String?   // Foto de portada (banner verde o imagen)
-  // -------------------------------
-
-  isCastrated  Boolean   @default(false)
-  specialNeeds String?   
-
-  ownerId      String
-  owner        User      @relation(fields: [ownerId], references: [id])
-   
-  vaccinations   Vaccination[]
-  medicalHistory MedicalRecord[]
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-
-  attachments Attachment[]
-  dewormings     Deworming[]
-}
-
-model Vaccination {
-  id          String    @id @default(cuid())
-  name        String    
-  dateApplied DateTime
-  nextDueDate DateTime? 
-  notes       String?
-  petId       String
-  pet         Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
-}
-
-model MedicalRecord {
-  id          String    @id @default(cuid())
-  date        DateTime  @default(now())
-  title       String    
-  description String    @db.Text
-  petId       String
-  pet         Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
-
-  attachments Attachment[]
-}
-
-model Attachment {
-  id        String   @id @default(cuid())
-  url       String   
-  fileType  String   
-  name      String   
-  createdAt DateTime @default(now())
-
-  medicalRecordId String?
-  medicalRecord   MedicalRecord? @relation(fields: [medicalRecordId], references: [id])
-   
-  petId     String
-  pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
-}
-
-model Deworming {
-  id          String   @id @default(cuid())
-  name        String   // Ej: "Bravecto", "Nexgard", "Total FLC"
-  dateApplied DateTime // Cuándo se la diste
-  nextDueDate DateTime? // Cuándo le toca la próxima (clave para las alertas)
-  type        String   // "INTERNA" (Pastilla) o "EXTERNA" (Pipeta/Collar)
-  
-  petId       String
-  pet         Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
-
-  createdAt   DateTime @default(now())
 }

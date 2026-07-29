@@ -12,6 +12,7 @@ import medicalRoutes from './routes/medical.js'
 import vaccineRoutes from './routes/vaccines.js'
 import dewormingRoutes from './routes/dewormings.js'
 import attachmentRoutes from './routes/attachments.js'
+import publicRoutes from './routes/public.js'
 
 const app = Fastify({ logger: true })
 
@@ -61,5 +62,8 @@ app.register(dewormingRoutes, { prefix: '/dewormings' })
 //attachments
 
 app.register(attachmentRoutes, { prefix: '/attachments' }) // <--- Registrar
+
+// public
+app.register(publicRoutes, { prefix: '/api/public' })
 
 export default app

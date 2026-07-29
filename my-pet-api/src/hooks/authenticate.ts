@@ -5,6 +5,6 @@ export async function authenticate(req: FastifyRequest, reply: FastifyReply) {
     await req.jwtVerify()
   } catch (err) {
     req.log.warn('Fallo de autenticación')
-    return reply.code(401).send({ message: 'No autorizado' })
+    return reply.status(401).send({ message: 'No autorizado' })
   }
 }
