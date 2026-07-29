@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Card } from './Card'
 import { Cat, Dog, Heart, ArrowRight } from 'lucide-react'
 
@@ -14,6 +14,14 @@ type PetCardProps = {
 }
 
 export function PetCard({ pet }: PetCardProps) {
+  const navigate = useNavigate();
+
+  const handleViewProfile = (e: React.MouseEvent) => {
+    e.preventDefault();
+    console.log('Clic en mascota:', pet.id);
+    navigate(`/app/pets/${pet.id}`);
+  };
+
   return (
     <Card className="p-5 bg-white dark:bg-bg-card border-l-4 border-emerald-500 dark:border-emerald-600 shadow-sm hover:shadow-xl dark:hover:shadow-none transition-all duration-300">
       
@@ -50,13 +58,13 @@ export function PetCard({ pet }: PetCardProps) {
       </div>
 
       <div className="mt-6">
-        <Link 
-          to={`/pets/${pet.id}`} 
+        <button 
+          onClick={handleViewProfile}
           className="group w-full flex items-center justify-center gap-2 text-[10px] uppercase font-black py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all shadow-md shadow-emerald-900/10"
         >
           Ver Perfil Completo 
           <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-        </Link>
+        </button>
       </div>
     </Card>
   )

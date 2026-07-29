@@ -17,6 +17,10 @@ const addPetSchema = z.object({
   weight: z.string().optional().default(''),
   isCastrated: z.boolean().default(false),
   specialNeeds: z.string().optional().default(''),
+  phone: z.string().optional().default(''),
+  address: z.string().optional().default(''),
+  showPhoneOnQr: z.boolean().default(false),
+  showAddressOnQr: z.boolean().default(false),
 })
 
 type AddPetFormData = z.infer<typeof addPetSchema>
@@ -94,19 +98,19 @@ export function AddPetModal({ isOpen, onClose, onPetAdded }: AddPetModalProps) {
     }
   }
 
-  const onSubmit = async (data: AddPetFormData) => {
-    setIsLoading(true)
-    try {
-      // Usamos FormData para enviar imágenes + datos
-      const formData = new FormData()
-      
-      // Agregar campos de texto
-      Object.entries(data).forEach(([key, value]) => {
-         if (value !== undefined && value !== null) {
-            formData.append(key, typeof value === 'boolean' ? value.toString() : value)
-         }
-      })
-      formData.append('species', selectedSpecies)
+    const onSubmit = async (data: AddPetFormData) => {
+        setIsLoading(true)
+        try {
+          // Usamos FormData para enviar imágenes + datos
+          const formData = new FormData()
+          
+          // Agregar campos de texto
+          Object.entries(data).forEach(([key, value]) => {
+             if (value !== undefined && value !== null) {
+                formData.append(key, typeof value === 'boolean' ? String(value) : value)
+             }
+          })
+          formData.append('species', selectedSpecies)
 
       // Agregar imágenes si existen
       if (profileImage) formData.append('profileImage', profileImage)
@@ -208,6 +212,34 @@ export function AddPetModal({ isOpen, onClose, onPetAdded }: AddPetModalProps) {
                         className="w-full bg-gray-50 dark:bg-bg-matte border-2 border-transparent focus:border-emerald-600 dark:text-gray-100 rounded-2xl transition-all font-bold text-sm"
                     />
                     </div>
+
+                    <div>
+                    <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Teléfono (Opcional)</label>
+                    <Input
+                        type="text"
+                        placeholder="Ej: +54 342 1234567"
+                        {...register('phone')}
+                        className="w-full bg-gray-50 dark:bg-bg-matte border-2 border-transparent focus:border-emerald-600 dark:text-gray-100 rounded-2xl transition-all font-bold text-sm"
+                    />
+                    </div>
+                    <label className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-bg-matte rounded-2xl cursor-pointer group transition-all border-2 border-transparent hover:border-emerald-600/30">
+                        <input type="checkbox" {...register('showPhoneOnQr')} className="w-5 h-5 rounded-lg accent-emerald-600 cursor-pointer" />
+                        <span className="text-xs font-black uppercase tracking-widest text-gray-600 dark:text-gray-300">¿Mostrar teléfono en el QR público?</span>
+                    </label>
+
+                    <div>
+                    <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Dirección (Opcional)</label>
+                    <Input
+                        type="text"
+                        placeholder="Ej: San Martín 2020, Santa Fe Capital"
+                        {...register('address')}
+                        className="w-full bg-gray-50 dark:bg-bg-matte border-2 border-transparent focus:border-emerald-600 dark:text-gray-100 rounded-2xl transition-all font-bold text-sm"
+                    />
+                    </div>
+                    <label className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-bg-matte rounded-2xl cursor-pointer group transition-all border-2 border-transparent hover:border-emerald-600/30">
+                        <input type="checkbox" {...register('showAddressOnQr')} className="w-5 h-5 rounded-lg accent-emerald-600 cursor-pointer" />
+                        <span className="text-xs font-black uppercase tracking-widest text-gray-600 dark:text-gray-300">¿Mostrar dirección en el QR público?</span>
+                    </label>
                 </div>
 
                 {/* Especie */}
@@ -239,10 +271,10 @@ export function AddPetModal({ isOpen, onClose, onPetAdded }: AddPetModalProps) {
                     <div className="relative">
                         <select
                         {...register('gender')}
-                        className="w-full px-4 py-3 bg-gray-50 dark:bg-bg-matte dark:text-gray-100 border-2 border-transparent focus:border-emerald-600 rounded-2xl font-bold text-sm outline-none transition-all appearance-none cursor-pointer"
+                        className="w-full px-4 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-emerald-600 rounded-2xl font-bold text-sm outline-none transition-all appearance-none cursor-pointer"
                         >
-                        <option value="Macho">Macho</option>
-                        <option value="Hembra">Hembra</option>
+                        <option value="Macho" className="text-gray-900 bg-white dark:text-white dark:bg-gray-800">Macho</option>
+                        <option value="Hembra" className="text-gray-900 bg-white dark:text-white dark:bg-gray-800">Hembra</option>
                         </select>
                     </div>
                     </div>

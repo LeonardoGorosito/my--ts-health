@@ -13,9 +13,11 @@ import ResetPassword from '../pages/ResetPassword'
 // --- 3. PÁGINAS PRIVADAS (App Principal) ---
 import { PetsList } from '../pages/pets/PetList'
 import { PetProfile } from '../pages/pets/PetProfile'
+import { PetQrPage } from '../pages/pets/PetQrPage'
 
 // --- 4. PÁGINAS PÚBLICAS ---
 import { PublicPetProfile } from '../pages/public/PublicPetProfile' 
+import LandingPage from '../pages/public/LandingPage'
 
 // ------------------------------------------------------------------
 // COMPONENTE BARRERA: Evita que un usuario logueado vuelva al Login
@@ -24,7 +26,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
   
   if (loading) return <div className="p-6 text-emerald-600 font-bold text-center mt-20">Cargando...</div>
-  if (user) return <Navigate to="/pets" replace /> // Si ya entró, lo mandamos a sus mascotas
+  if (user) return <Navigate to="/app" replace /> // Si ya entró, lo mandamos a la app
   
   return <>{children}</> 
 }
@@ -37,8 +39,8 @@ export function AppRouter() {
 
   return (
     <Routes>
-      {/* --- REDIRECCIÓN INICIAL --- */}
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      {/* --- RUTA RAÍZ PÚBLICA --- */}
+      <Route path="/" element={<LandingPage />} />
       
       {/* =================================================================
           ZONA DE AUTENTICACIÓN (Solo para visitantes)
@@ -58,21 +60,22 @@ export function AppRouter() {
           ZONA PRIVADA (Requiere iniciar sesión)
           ================================================================= */}
       {/* Todo lo que esté acá adentro tendrá el Navbar superior (MainLayout) */}
-      <Route element={<MainLayout />}>
-        
+      <Route path="/app" element={<MainLayout />}>
         {/* Lista de todas las mascotas del usuario */}
-        <Route path="/pets" element={<ProtectedRoute><PetsList /></ProtectedRoute>} />
+        <Route index element={<ProtectedRoute><PetsList /></ProtectedRoute>} />
         
+        {/* QR Code Page */}
+        <Route path="qr" element={<ProtectedRoute><PetQrPage /></ProtectedRoute>} />
+
         {/* Perfil detallado de una mascota en particular */}
-        <Route path="/pets/:id" element={<ProtectedRoute><PetProfile /></ProtectedRoute>} />
-        
+        <Route path="pets/:id" element={<ProtectedRoute><PetProfile /></ProtectedRoute>} />
       </Route>
       
       {/* --- RUTA SALVAVIDAS (Catch-all) --- */}
       {/* Si alguien escribe una URL que no existe, lo mandamos a un lugar seguro */}
       <Route 
         path="*" 
-        element={<Navigate to={user ? "/pets" : "/login"} replace />} 
+        element={<Navigate to={user ? "/app" : "/"} replace />} 
       />
     </Routes>
   )

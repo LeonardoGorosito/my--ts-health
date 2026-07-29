@@ -59,7 +59,7 @@ export default function Navbar() {
   // Mini componente para no repetir el icono de la campana
   const NotificationBell = () => (
     <Link 
-      to="/pets" 
+      to="/app" 
       onClick={closeMenu}
       className="relative p-2 text-gray-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-400 transition-colors"
     >
@@ -78,7 +78,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-20">
           
           {/* --- 1. LOGO --- */}
-          <Link to="/pets" className="flex items-center gap-3 group" onClick={closeMenu}>
+          <Link to="/app" className="flex items-center gap-3 group" onClick={closeMenu}>
             <div className="relative flex flex-col items-center justify-center group-hover:scale-110 transition-transform duration-300">
               <div className="flex gap-0.5 mb-[2px]">
                  <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -101,7 +101,7 @@ export default function Navbar() {
 
           {/* --- 2. LINKS DESKTOP --- */}
           <div className="hidden md:flex items-center gap-2 ml-8">
-            <NavLink to="/pets" className={getNavLinkClass}>
+            <NavLink to="/app" end className={getNavLinkClass}>
               <LayoutDashboard size={18} />
               Mis Mascotas
             </NavLink>
@@ -154,7 +154,8 @@ export default function Navbar() {
       {isOpen && (
         <div className="md:hidden bg-white dark:bg-bg-matte border-t border-gray-100 dark:border-gray-800 p-4 space-y-2 shadow-2xl animate-in slide-in-from-top duration-300">
           <NavLink 
-            to="/pets" 
+            to="/app"
+            end
             className={({ isActive }) => `flex items-center gap-3 p-4 rounded-2xl font-bold transition-colors ${
                 isActive ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50'
             }`}

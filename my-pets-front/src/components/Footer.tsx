@@ -26,7 +26,7 @@ export default function Footer() {
           <div>
             <h4 className="font-black text-xs uppercase tracking-widest text-gray-900 dark:text-gray-300 mb-6">Explorar</h4>
             <ul className="space-y-4 text-sm font-bold">
-              <li><Link to="/pets" className="text-gray-500 dark:text-gray-400 hover:text-emerald-600 transition-colors">Mis Mascotas</Link></li>
+              <li><Link to="/app" className="text-gray-500 dark:text-gray-400 hover:text-emerald-600 transition-colors">Mis Mascotas</Link></li>
               <li><Link to="/account" className="text-gray-500 dark:text-gray-400 hover:text-emerald-600 transition-colors">Mi Perfil</Link></li>
             </ul>
           </div>

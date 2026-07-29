@@ -26,8 +26,26 @@ export function PetsList() {
   const { data: pets, isLoading } = useQuery({
     queryKey: ['pets'],
     queryFn: async () => {
-      const r = await api.get('/pets')
-      return r.data
+      console.log('🐾 Iniciando petición GET a /pets...')
+      try {
+        const r = await api.get('/pets')
+        console.log('✅ Respuesta completa del backend:', r)
+        console.log('📦 Payload (r.data):', r.data)
+        
+        // Manejo seguro por si el backend devuelve un objeto { pets: [...] } o similar
+        let data = r.data
+        if (data && !Array.isArray(data)) {
+          if (Array.isArray(data.pets)) data = data.pets
+          else if (Array.isArray(data.data)) data = data.data
+        }
+        
+        const finalPets = Array.isArray(data) ? data : []
+        console.log('🐕 Mascotas a renderizar (array validado):', finalPets)
+        return finalPets
+      } catch (error) {
+        console.error('❌ Error al fetchear mascotas:', error)
+        throw error
+      }
     }
   })
 
@@ -107,7 +125,7 @@ export function PetsList() {
         </header>
 
         {/* --- PANEL DE ALERTAS --- */}
-        {pets?.length > 0 && (
+        {(pets?.length ?? 0) > 0 && (
           <div className="mb-10">
             <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-4 flex items-center gap-2">
               <BellRing size={16} /> Notificaciones
@@ -173,10 +191,10 @@ export function PetsList() {
         </div>
 
         {/* ESTADO VACÍO */}
-        {pets?.length === 0 && (
+        {(!pets || pets.length === 0) && (
           <div className="text-center py-20 bg-gray-50 dark:bg-bg-card rounded-3xl border-2 border-dashed border-gray-200 dark:border-gray-800">
             <p className="text-gray-500 dark:text-gray-400 mb-6 font-medium text-lg">
-              Todavía no tenés mascotas registradas.
+              No tienes mascotas registradas.
             </p>
             <button 
               onClick={() => setIsModalOpen(true)}

@@ -9,7 +9,8 @@ import {
   Sun, 
   Moon, 
   LogOut, 
-  ChevronRight 
+  ChevronRight,
+  QrCode
 } from 'lucide-react'
 
 export function ProfileDropdown() {
@@ -53,6 +54,7 @@ export function ProfileDropdown() {
           <MenuLink to="/account" icon={<User size={18} />} label="Mi Perfil" onClick={() => setIsOpen(false)} />
           <MenuLink to="/settings" icon={<Settings size={18} />} label="Configuración" onClick={() => setIsOpen(false)} />
           <MenuLink to="/devices" icon={<Monitor size={18} />} label="Dispositivos" onClick={() => setIsOpen(false)} />
+          <MenuLink to="/mis-mascotas/qr" icon={<QrCode size={18} />} label="Código QR Mascotas" onClick={() => setIsOpen(false)} />
         </div>
 
         <div className="my-2 border-t border-gray-100 dark:border-neutral-800" />

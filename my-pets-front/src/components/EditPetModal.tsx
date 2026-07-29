@@ -18,6 +18,10 @@ const editPetSchema = z.object({
   weight: z.string().optional(),
   isCastrated: z.boolean(),
   specialNeeds: z.string().optional(),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  showPhonePublicly: z.boolean().optional(),
+  showAddressPublicly: z.boolean().optional(),
 })
 
 type EditPetFormData = z.infer<typeof editPetSchema>
@@ -107,7 +111,7 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData }: EditPet
       await api.delete(`/pets/${petData.id}`)
       toast.success('Mascota eliminada correctamente')
       handleClose()
-      navigate('/pets')
+      navigate('/app')
     } catch (error) {
       toast.error('Error al eliminar la mascota')
       console.error(error)
@@ -121,7 +125,7 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData }: EditPet
       const formData = new FormData()
       Object.entries(data).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
-            formData.append(key, typeof value === 'boolean' ? value.toString() : value)
+            formData.append(key, typeof value === 'boolean' ? String(value) : value)
         }
       })
       formData.append('species', selectedSpecies)
@@ -203,6 +207,34 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData }: EditPet
                         <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Raza</label>
                         <Input type="text" {...register('breed')} className="w-full bg-gray-50 dark:bg-bg-matte border-2 border-transparent focus:border-emerald-600 dark:text-gray-100 rounded-2xl transition-all font-bold text-sm" />
                     </div>
+
+                    <div>
+                    <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Teléfono (Opcional)</label>
+                    <Input
+                        type="text"
+                        placeholder="Ej: +54 342 1234567"
+                        {...register('phone')}
+                        className="w-full bg-gray-50 dark:bg-bg-matte border-2 border-transparent focus:border-emerald-600 dark:text-gray-100 rounded-2xl transition-all font-bold text-sm"
+                    />
+                    </div>
+                    <label className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-bg-matte rounded-2xl cursor-pointer group transition-all border-2 border-transparent hover:border-emerald-600/30">
+                        <input type="checkbox" {...register('showPhonePublicly')} className="w-5 h-5 rounded-lg accent-emerald-600 cursor-pointer" />
+                        <span className="text-xs font-black uppercase tracking-widest text-gray-600 dark:text-gray-300">¿Mostrar teléfono en el QR público?</span>
+                    </label>
+
+                    <div>
+                    <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Dirección (Opcional)</label>
+                    <Input
+                        type="text"
+                        placeholder="Ej: San Martín 2020, Santa Fe Capital"
+                        {...register('address')}
+                        className="w-full bg-gray-50 dark:bg-bg-matte border-2 border-transparent focus:border-emerald-600 dark:text-gray-100 rounded-2xl transition-all font-bold text-sm"
+                    />
+                    </div>
+                    <label className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-bg-matte rounded-2xl cursor-pointer group transition-all border-2 border-transparent hover:border-emerald-600/30">
+                        <input type="checkbox" {...register('showAddressPublicly')} className="w-5 h-5 rounded-lg accent-emerald-600 cursor-pointer" />
+                        <span className="text-xs font-black uppercase tracking-widest text-gray-600 dark:text-gray-300">¿Mostrar dirección en el QR público?</span>
+                    </label>
                 </div>
 
                 <div>

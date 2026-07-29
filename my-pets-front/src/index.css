@@ -25,112 +25,156 @@ html, body {
 
 /* index.css o Auth.css */
 
-/* Animaciones para el Auth Sliding Card */
+/* --- Mobile First --- */
 .container-auth {
   position: relative;
+  width: 100%;
+  min-height: auto;
   overflow: hidden;
-  min-height: 600px; /* Altura de la tarjeta */
+  display: flex;
+  flex-direction: column;
 }
 
 .form-container {
-  position: absolute;
-  top: 0;
-  height: 100%;
-  transition: all 0.6s ease-in-out;
-}
-
-.sign-in-container {
-  left: 0;
-  width: 50%;
-  z-index: 2;
+  width: 100%;
+  transition: all 0.3s ease-in-out;
 }
 
 .sign-up-container {
-  left: 0;
-  width: 50%;
-  opacity: 0;
-  z-index: 1;
+  display: none;
 }
-
-/* Estado Activo (Cuando vamos a Registrarse) */
-.container-auth.right-panel-active .sign-in-container {
-  transform: translateX(100%);
-}
-
-.container-auth.right-panel-active .sign-up-container {
-  transform: translateX(100%);
-  opacity: 1;
-  z-index: 5;
-  animation: show 0.6s;
-}
-
-@keyframes show {
-  0%, 49.99% { opacity: 0; z-index: 1; }
-  50%, 100% { opacity: 1; z-index: 5; }
-}
-
-/* El Panel de Color (Overlay) */
-.overlay-container {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 50%;
-  height: 100%;
-  overflow: hidden;
-  transition: transform 0.6s ease-in-out;
-  z-index: 100;
-}
-
-.container-auth.right-panel-active .overlay-container {
-  transform: translateX(-100%);
-}
-
-.overlay {
-  background: linear-gradient(to right, #10b981, #047857); /* Emerald-500 to Emerald-700 */
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: 0 0;
-  color: #FFFFFF;
-  position: relative;
-  left: -100%;
-  height: 100%;
-  width: 200%;
-  transform: translateX(0);
-  transition: transform 0.6s ease-in-out;
-}
-
-.container-auth.right-panel-active .overlay {
-  transform: translateX(50%);
-}
-
-.overlay-panel {
-  position: absolute;
+.sign-in-container {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  padding: 0 40px;
-  text-align: center;
-  top: 0;
-  height: 100%;
-  width: 50%;
-  transform: translateX(0);
-  transition: transform 0.6s ease-in-out;
 }
 
-.overlay-left {
-  transform: translateX(-20%);
+/* En mobile usamos display none/flex para alternar */
+.container-auth.right-panel-active .sign-in-container {
+  display: none;
+}
+.container-auth.right-panel-active .sign-up-container {
+  display: flex;
+  opacity: 1;
+  animation: fadeIn 0.4s;
 }
 
-.container-auth.right-panel-active .overlay-left {
-  transform: translateX(0);
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-.overlay-right {
-  right: 0;
-  transform: translateX(0);
+.overlay-container {
+  display: none;
 }
 
-.container-auth.right-panel-active .overlay-right {
-  transform: translateX(20%);
+/* --- Desktop (Animaciones Sliding Card) --- */
+@media (min-width: 768px) {
+  .container-auth {
+    min-height: 600px;
+    display: block;
+  }
+
+  .form-container {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    transition: all 0.6s ease-in-out;
+    display: flex !important; /* Forzamos flex para sobreescribir el display:none de mobile */
+  }
+
+  .sign-in-container {
+    left: 0;
+    width: 50%;
+    z-index: 2;
+  }
+
+  .sign-up-container {
+    left: 0;
+    width: 50%;
+    opacity: 0;
+    z-index: 1;
+  }
+
+  .container-auth.right-panel-active .sign-in-container {
+    transform: translateX(100%);
+    opacity: 0; /* Ocultamos detrás en md */
+  }
+
+  .container-auth.right-panel-active .sign-up-container {
+    transform: translateX(100%);
+    opacity: 1;
+    z-index: 5;
+    animation: show 0.6s;
+  }
+
+  @keyframes show {
+    0%, 49.99% { opacity: 0; z-index: 1; }
+    50%, 100% { opacity: 1; z-index: 5; }
+  }
+
+  /* El Panel de Color (Overlay) */
+  .overlay-container {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+    transition: transform 0.6s ease-in-out;
+    z-index: 100;
+  }
+
+  .container-auth.right-panel-active .overlay-container {
+    transform: translateX(-100%);
+  }
+
+  .overlay {
+    background: linear-gradient(to right, #10b981, #047857); /* Emerald-500 to Emerald-700 */
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: 0 0;
+    color: #FFFFFF;
+    position: relative;
+    left: -100%;
+    height: 100%;
+    width: 200%;
+    transform: translateX(0);
+    transition: transform 0.6s ease-in-out;
+  }
+
+  .container-auth.right-panel-active .overlay {
+    transform: translateX(50%);
+  }
+
+  .overlay-panel {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 0 40px;
+    text-align: center;
+    top: 0;
+    height: 100%;
+    width: 50%;
+    transform: translateX(0);
+    transition: transform 0.6s ease-in-out;
+  }
+
+  .overlay-left {
+    transform: translateX(-20%);
+  }
+
+  .container-auth.right-panel-active .overlay-left {
+    transform: translateX(0);
+  }
+
+  .overlay-right {
+    right: 0;
+    transform: translateX(0);
+  }
+
+  .container-auth.right-panel-active .overlay-right {
+    transform: translateX(20%);
+  }
 }
