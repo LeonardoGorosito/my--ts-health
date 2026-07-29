@@ -1,8 +1,9 @@
 import QRCode from 'react-qr-code';
 import { ExternalLink } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+// import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/axios';
 import { Loader } from '../../components/Loader';
+import { useEffect, useState } from 'react';
 
 type Pet = {
   id: string;
@@ -13,7 +14,7 @@ export function PetQrPage() {
 //  const { user } = useAuth();
   
   const [pets, setPets] = useState<Pet[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);useState
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
 
   useEffect(() => {
