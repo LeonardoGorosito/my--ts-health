@@ -14,6 +14,9 @@ import ResetPassword from '../pages/ResetPassword'
 import { PetsList } from '../pages/pets/PetList'
 import { PetProfile } from '../pages/pets/PetProfile'
 import { PetQrPage } from '../pages/pets/PetQrPage'
+import  UserProfile  from '../pages/UserProfile'
+import { Settings } from '../pages/Settings'
+import { Devices } from '../pages/Devices'
 
 // --- 4. PÁGINAS PÚBLICAS ---
 import { PublicPetProfile } from '../pages/public/PublicPetProfile' 
@@ -69,6 +72,13 @@ export function AppRouter() {
 
         {/* Perfil detallado de una mascota en particular */}
         <Route path="pets/:id" element={<ProtectedRoute><PetProfile /></ProtectedRoute>} />
+      </Route>
+
+      {/* Otras rutas con el Layout Principal */}
+      <Route element={<MainLayout />}>
+        <Route path="/perfil" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+        <Route path="/configuracion" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/dispositivos" element={<ProtectedRoute><Devices /></ProtectedRoute>} />
       </Route>
       
       {/* --- RUTA SALVAVIDAS (Catch-all) --- */}

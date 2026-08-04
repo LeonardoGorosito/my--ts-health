@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useDarkMode } from '../hooks/useDarkMode'
 import { 
@@ -10,7 +10,8 @@ import {
   Moon, 
   LogOut, 
   ChevronRight,
-  QrCode
+  QrCode,
+  LayoutDashboard
 } from 'lucide-react'
 
 export function ProfileDropdown() {
@@ -51,10 +52,11 @@ export function ProfileDropdown() {
         
         {/* Links de Usuario */}
         <div className="space-y-1">
-          <MenuLink to="/account" icon={<User size={18} />} label="Mi Perfil" onClick={() => setIsOpen(false)} />
-          <MenuLink to="/settings" icon={<Settings size={18} />} label="Configuración" onClick={() => setIsOpen(false)} />
-          <MenuLink to="/devices" icon={<Monitor size={18} />} label="Dispositivos" onClick={() => setIsOpen(false)} />
-          <MenuLink to="/mis-mascotas/qr" icon={<QrCode size={18} />} label="Código QR Mascotas" onClick={() => setIsOpen(false)} />
+          <MenuLink to="/app" icon={<LayoutDashboard size={18} />} label="Mis Mascotas" onClick={() => setIsOpen(false)} />
+          <MenuLink to="/perfil" icon={<User size={18} />} label="Mi Perfil" onClick={() => setIsOpen(false)} />
+          <MenuLink to="/configuracion" icon={<Settings size={18} />} label="Configuración" onClick={() => setIsOpen(false)} />
+          <MenuLink to="/dispositivos" icon={<Monitor size={18} />} label="Dispositivos" onClick={() => setIsOpen(false)} />
+          <MenuLink to="/app/qr" icon={<QrCode size={18} />} label="Código QR Mascotas" onClick={() => setIsOpen(false)} />
         </div>
 
         <div className="my-2 border-t border-gray-100 dark:border-neutral-800" />
@@ -76,18 +78,22 @@ export function ProfileDropdown() {
         <div className="my-2 border-t border-gray-100 dark:border-neutral-800" />
 
         {/* INFO DE CUENTA ACTUAL (Estilo imagen 006) */}
-        <div className="px-4 py-3 flex items-center justify-between group cursor-default">
+        <Link 
+          to="/perfil" 
+          onClick={() => setIsOpen(false)}
+          className="px-4 py-3 flex items-center justify-between group cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors rounded-xl block"
+        >
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center text-emerald-600 font-bold">
               {user?.name?.[0]}
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col text-left">
               <span className="text-xs font-black text-gray-900 dark:text-gray-100 leading-none">{user?.name}</span>
               <span className="text-[9px] font-bold text-gray-400 truncate w-32 uppercase tracking-tighter mt-1">{user?.email}</span>
             </div>
           </div>
           <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-        </div>
+        </Link>
 
         <div className="my-2 border-t border-gray-100 dark:border-neutral-800" />
 
@@ -106,17 +112,22 @@ export function ProfileDropdown() {
 
 // Subcomponente para los links
 function MenuLink({ to, icon, label, onClick }: { to: string, icon: any, label: string, onClick: () => void }) {
+  const navigate = useNavigate();
   return (
-    <Link
-      to={to}
-      onClick={onClick}
-      className="flex items-center justify-between p-3 rounded-2xl text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all group"
+    <button
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onClick();
+        navigate(to);
+      }}
+      className="w-full flex items-center justify-between p-3 rounded-2xl text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all group"
     >
       <div className="flex items-center gap-3">
         {icon}
         <span className="text-sm font-bold uppercase tracking-widest text-[10px]">{label}</span>
       </div>
       <ChevronRight size={14} className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-    </Link>
+    </button>
   )
 }
