@@ -8,19 +8,27 @@ datasource db {
 }
 
 model User {
-  id               String    @id @default(cuid())
-  email            String    @unique
-  passwordHash     String?
-  name             String
-  lastname         String
-  role             Role      @default(USER)
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  resetToken       String?   @unique
-  resetTokenExpiry DateTime?
-  phone            String?
-  address          String?
-  pets             Pet[]
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  passwordHash          String?
+  name                  String
+  lastname              String
+  role                  Role      @default(USER)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  phone                 String?
+  address               String?
+  
+  // --- NUEVOS CAMPOS PARA VERIFICACIÓN DE EMAIL ---
+  isVerified            Boolean   @default(false)
+  verificationCode      String?
+  verificationCodeExpiry DateTime?
+
+  // --- CAMPOS PARA RECUPERAR CONTRASEÑA (los usaremos para el código de 6 dígitos) ---
+  resetToken            String?   @unique
+  resetTokenExpiry      DateTime?
+  
+  pets                  Pet[]
 }
 
 model Pet {
