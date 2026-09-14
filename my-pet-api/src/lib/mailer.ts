@@ -1,10 +1,12 @@
-import { Resend } from 'resend'
+import { Resend } from 'resend';
+// Si usás process.env directamente:
+// const apiKey = process.env.RESEND_API_KEY;
 
-// Toma la API key de tu archivo .env
-export const resend = new Resend(process.env.RESEND_API_KEY)
+// Si usás tu archivo env.ts (como vi en tu server.ts):
+import { ENV } from '../env.js'; 
+const apiKey = ENV.RESEND_API_KEY;
 
-// Resend te da este correo de prueba gratis ('onboarding@resend.dev') que solo puede 
-// enviar correos a la misma dirección con la que te creaste la cuenta de Resend.
-// ¡Ideal para probar ahora mismo!
-export const MAIL_FROM = 'PetHealth <soporte@oethealth.com>'
+export const resend = new Resend(apiKey);
 
+// ESTE ES EL REMITENTE MÁGICO DE PRUEBA
+export const MAIL_FROM = 'onboarding@resend.dev';

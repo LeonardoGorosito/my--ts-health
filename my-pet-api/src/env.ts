@@ -13,4 +13,5 @@ export const ENV = {
   PORT: Number(process.env.PORT || 3000),
   FRONTEND_URL: required('FRONTEND_URL'),
   JWT_SECRET: required('JWT_SECRET'),
+  RESEND_API_KEY: required('RESEND_API_KEY'), // 👇 LÍNEA AGREGADA
 }
