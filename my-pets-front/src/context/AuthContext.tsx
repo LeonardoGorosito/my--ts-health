@@ -1,13 +1,12 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { api } from '../lib/axios'
 
-// 1. Tipos actualizados al nuevo Schema
 type User = { 
   id: string; 
   email: string; 
   name: string;
   lastname: string;
-  phone?: string | null; // <--- NUEVO: Agregamos el teléfono al tipo de usuario
+  phone?: string | null; 
   role: 'USER' | 'ADMIN'; 
 }
 
@@ -21,15 +20,16 @@ type AuthCtx = {
     lastname: string,
     email: string,
     password: string,
-    phone?: string // <--- NUEVO: Aceptamos el teléfono como parámetro opcional
+    phone?: string 
   ) => Promise<void> 
+  verifyEmail: (email: string, code: string) => Promise<void>
 }
 
 const Ctx = createContext<AuthCtx | null>(null)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true) // <-- Este loading es SOLO para cuando abrís la app
 
   useEffect(() => {
     const t = localStorage.getItem('token')
@@ -57,35 +57,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null)
   }
 
-  // 2. Registro actualizado para enviar el celular
-  const register = async (
-    name: string,
-    lastname: string,
-    email: string,
-    password: string,
-    phone?: string // <--- NUEVO: Lo recibimos acá
-  ) => {
-    setLoading(true);
-    try {
-      const { data } = await api.post('/auth/register', { 
-        name, 
-        lastname, 
-        email, 
-        password,
-        phone // <--- NUEVO: Lo enviamos a la API
-      });
-
-      localStorage.setItem('token', data.token); 
-      const me = await api.get('/auth/me');
-      setUser(me.data);
-    } catch (error) {
-      throw error; 
-    } finally {
-      setLoading(false);
-    }
+  // CORRECCIÓN: Le sacamos el setLoading() global para que no te desmonte la pantalla
+  const register = async (name: string, lastname: string, email: string, password: string, phone?: string) => {
+    await api.post('/auth/register', { name, lastname, email, password, phone });
   }
 
-  const value = useMemo(() => ({ user, loading, login, logout, register }), [user, loading])
+  // CORRECCIÓN: Le sacamos el setLoading() global
+  const verifyEmail = async (email: string, code: string) => {
+    const { data } = await api.post('/auth/verify-email', { email, code });
+    localStorage.setItem('token', data.token);
+    const me = await api.get('/auth/me');
+    setUser(me.data);
+  }
+
+  const value = useMemo(() => ({ user, loading, login, logout, register, verifyEmail }), [user, loading])
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
 

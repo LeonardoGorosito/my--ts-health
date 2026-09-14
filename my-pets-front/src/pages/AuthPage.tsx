@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -7,7 +7,6 @@ import { useNavigate, Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import '../index.css' 
 
-// --- SCHEMAS ---
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(4, 'Mínimo 4 caracteres')
@@ -17,7 +16,6 @@ const registerSchema = z.object({
   name: z.string().min(2, 'Nombre requerido'),
   lastname: z.string().min(2, 'Apellido requerido'),
   email: z.string().email('Email inválido'),
-  // NUEVO: Agregamos el teléfono como opcional
   phone: z.string().optional(),
   password: z.string().min(6, 'Mínimo 6 caracteres'),
   passwordConfirm: z.string().min(6, 'Confirma tu contraseña'),
@@ -34,45 +32,87 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
   const [isRegisterActive, setIsRegisterActive] = useState(initialRegister)
   const [showPassword, setShowPassword] = useState(false)
   
-  const { login, register: registerUser } = useAuth()
+  // ESTADOS PARA LA VERIFICACIÓN OTP
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [registeredEmail, setRegisteredEmail] = useState('')
+  const [otp, setOtp] = useState(['', '', '', '', '', ''])
+  const [verifyLoading, setVerifyLoading] = useState(false)
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([])
+  
+  const { login, register: registerUser, verifyEmail } = useAuth()
   const nav = useNavigate()
 
-  // --- FORMULARIO LOGIN ---
   const { 
     register: regLogin, 
     handleSubmit: handleLoginSubmit, 
     formState: { errors: loginErrors, isSubmitting: loginLoading } 
   } = useForm<LoginData>({ resolver: zodResolver(loginSchema) })
 
-  // --- FORMULARIO REGISTER ---
   const { 
     register: regRegister, 
     handleSubmit: handleRegisterSubmit, 
     formState: { errors: regErrors, isSubmitting: registerLoading } 
   } = useForm<RegisterData>({ resolver: zodResolver(registerSchema) })
 
-  // --- HANDLERS ---
   const onLogin = async (d: LoginData) => {
     try {
       await login(d.email.trim(), d.password)
       nav('/account') 
     } catch (e: any) {
+      if (e?.response?.status === 403 && e?.response?.data?.message === 'PENDING_VERIFICATION') {
+        setRegisteredEmail(e.response.data.email || d.email.trim())
+        setIsVerifying(true)
+        toast.info('Debes verificar tu cuenta primero')
+        return
+      }
       toast.error(e?.response?.data?.message || 'Credenciales inválidas')
     }
   }
 
   const onRegister = async (d: RegisterData) => {
     try {
-      // NUEVO: Le pasamos el d.phone a la función del contexto
       await registerUser(d.name, d.lastname, d.email.trim(), d.password, d.phone)
-      toast.success('¡Cuenta creada! Bienvenido a Pet Health')
-      nav('/account')
+      setRegisteredEmail(d.email.trim())
+      setIsVerifying(true)
+      toast.success('Revisa tu correo para obtener el código')
     } catch (e: any) {
       toast.error(e?.response?.data?.message || 'Error al registrarse')
     }
   }
 
-  // Componente visual de Input reutilizable
+  const handleOtpChange = (index: number, value: string) => {
+    if (!/^\d*$/.test(value)) return; 
+    const newOtp = [...otp];
+    newOtp[index] = value.substring(value.length - 1);
+    setOtp(newOtp);
+    if (value && index < 5) {
+      otpRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const onVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = otp.join('');
+    if (code.length !== 6) return toast.error('Ingresa los 6 dígitos');
+    
+    setVerifyLoading(true);
+    try {
+      await verifyEmail(registeredEmail, code);
+      toast.success('¡Cuenta verificada! Bienvenido');
+      nav('/account');
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || 'Código inválido o expirado');
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
+
   const InputField = ({ ...props }) => (
     <input 
       className="bg-gray-100 border-none px-4 py-3 my-1.5 w-full rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition-all placeholder-gray-400 text-gray-800"
@@ -90,18 +130,72 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
      </button>
   )
 
+  // =========================================
+  // VISTA 1: VERIFICACIÓN (SOLO CUADRADITOS)
+  // =========================================
+  if (isVerifying) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 font-sans">
+        <div className="bg-white p-8 md:p-10 rounded-3xl shadow-2xl w-full max-w-[450px] text-center animate-in zoom-in duration-300">
+          <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><path d="M22 13V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h8"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/><path d="m16 19 2 2 4-4"/></svg>
+          </div>
+          
+          <h2 className="text-3xl font-bold text-emerald-900 mb-2">Verifica tu email</h2>
+          <p className="text-sm text-gray-500 mb-8">
+            Ingresa el código de 6 dígitos que enviamos a <strong className="text-gray-800">{registeredEmail}</strong>
+          </p>
+
+          <form onSubmit={onVerify} className="flex flex-col items-center">
+            <div className="flex gap-2 sm:gap-3 mb-8 justify-center w-full">
+              {otp.map((digit, index) => (
+                <input
+                  key={index}
+                  ref={(el) => { otpRefs.current[index] = el; }}
+                  type="text"
+                  inputMode="numeric"
+                  value={digit}
+                  onChange={(e) => handleOtpChange(index, e.target.value)}
+                  onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                  className="w-10 h-12 sm:w-12 sm:h-14 text-center text-xl font-bold rounded-xl border border-gray-200 bg-gray-50 outline-none focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all text-gray-900"
+                />
+              ))}
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={verifyLoading}
+              className="w-full bg-emerald-600 text-white text-xs font-bold py-4 px-10 rounded-full uppercase tracking-wider hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/30 disabled:opacity-50"
+            >
+              {verifyLoading ? 'Verificando...' : 'Confirmar código'}
+            </button>
+            
+            <button 
+              type="button" 
+              onClick={() => setIsVerifying(false)}
+              className="mt-6 text-xs text-gray-400 font-bold uppercase tracking-wider hover:text-emerald-600 transition-colors"
+            >
+              Volver al inicio de sesión
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================================
+  // VISTA 2: LOGIN / REGISTRO NORMAL
+  // =========================================
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 font-sans">
-      
       <div className={`container-auth bg-white rounded-3xl shadow-2xl w-full max-w-[900px] md:min-h-[600px] relative overflow-hidden ${isRegisterActive ? "right-panel-active" : ""}`}>
         
-        {/* --- FORMULARIO DE REGISTRO (Sign Up) --- */}
+        {/* --- FORMULARIO DE REGISTRO --- */}
         <div className="form-container sign-up-container bg-white p-8 md:p-10 flex flex-col items-center justify-center h-full text-center py-12 md:py-10">
           <form onSubmit={handleRegisterSubmit(onRegister)} className="w-full max-w-xs flex flex-col items-center mt-4">
             <h1 className="text-3xl font-bold text-emerald-900 mb-2">Crear Cuenta</h1>
             <p className="text-sm text-gray-400 mb-4">Usa tu email para registrarte</p>
 
-            {/* Inputs Grid para Nombre/Apellido */}
             <div className="flex gap-2 w-full">
               <div className="w-1/2">
                 <InputField type="text" placeholder="Nombre" {...regRegister('name')} />
@@ -118,9 +212,8 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
                 {regErrors.email && <span className="text-xs text-red-500 block text-left">{regErrors.email.message}</span>}
             </div>
 
-            {/* NUEVO: Input de Teléfono */}
             <div className="w-full">
-                <InputField type="tel" placeholder="Celular (Ej: +54 9 342 123-4567)" {...regRegister('phone')} />
+                <InputField type="tel" placeholder="Celular (Ej: +54 9...)" {...regRegister('phone')} />
                 <span className="text-[10px] text-gray-400 block text-left ml-2 mb-1">Se usará para emergencias en tu placa QR.</span>
                 {regErrors.phone && <span className="text-xs text-red-500 block text-left">{regErrors.phone.message}</span>}
             </div>
@@ -150,7 +243,7 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
           </form>
         </div>
 
-        {/* --- FORMULARIO DE LOGIN (Sign In) --- */}
+        {/* --- FORMULARIO DE LOGIN --- */}
         <div className="form-container sign-in-container bg-white p-8 md:p-10 flex flex-col items-center justify-center h-full text-center py-12 md:py-10">
           <form onSubmit={handleLoginSubmit(onLogin)} className="w-full max-w-xs flex flex-col items-center">
             <div className="mb-6 bg-emerald-100 p-3 rounded-full text-emerald-600">
@@ -187,11 +280,9 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
           </form>
         </div>
 
-        {/* --- OVERLAY (Panel deslizante) --- */}
+        {/* --- OVERLAY --- */}
         <div className="overlay-container">
           <div className="overlay bg-gradient-to-r from-emerald-500 to-teal-700">
-            
-            {/* Panel Izquierdo (Visible cuando estamos en Register, invita al Login) */}
             <div className="overlay-panel overlay-left">
               <h1 className="text-3xl font-bold text-white mb-4">¿Ya tienes cuenta?</h1>
               <p className="text-sm font-light text-emerald-50 mb-8 leading-relaxed">
@@ -205,7 +296,6 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
               </button>
             </div>
 
-            {/* Panel Derecho (Visible cuando estamos en Login, invita al Register) */}
             <div className="overlay-panel overlay-right">
               <h1 className="text-3xl font-bold text-white mb-4">¿Eres nuevo aquí?</h1>
               <p className="text-sm font-light text-emerald-50 mb-8 leading-relaxed">
@@ -218,7 +308,6 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
                 Registrarse
               </button>
             </div>
-
           </div>
         </div>
 
