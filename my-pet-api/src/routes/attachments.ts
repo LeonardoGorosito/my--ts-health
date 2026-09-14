@@ -57,7 +57,8 @@ export default async function attachmentRoutes(app: FastifyInstance) {
         data: {
           name: uploadedFile.original_filename || 'Archivo sin nombre',
           url: uploadedFile.secure_url,
-          type: uploadedFile.format || 'file',
+          // 👇 ESTA ES LA LÍNEA CORREGIDA (antes decía "type:") 👇
+          fileType: uploadedFile.format || 'file', 
           petId: petId
         }
       })
