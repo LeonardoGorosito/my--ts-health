@@ -224,26 +224,72 @@ export default async function petRoutes(app: FastifyInstance) {
   app.get('/public/:id', async (req, reply) => {
     try {
       const { id } = req.params as { id: string }
-      
+
       const pet = await prisma.pet.findUnique({
         where: { id },
         include: {
-          owner: {
-            select: {
-              name: true,
-              email: true,
-              phone: true,
-            }
-          }
+          owner: { select: { name: true, email: true, phone: true, address: true } }
         }
       })
 
       if (!pet) return reply.status(404).send({ message: 'Mascota no encontrada' })
-      return reply.send(pet)
+
+      // Solo devolvemos lo que la placa necesita (nada de ownerId, fechas internas, etc.)
+      // El teléfono se muestra si el dueño lo habilitó, o mientras la mascota esté perdida
+      // (al activar el modo perdida el dueño acepta mostrarlo: es la forma más rápida de contacto)
+      const showPhone = pet.showPhonePublicly || pet.isLost
+      return reply.send({
+        id: pet.id,
+        name: pet.name,
+        species: pet.species,
+        breed: pet.breed,
+        gender: pet.gender,
+        specialNeeds: pet.specialNeeds,
+        profileImageUrl: pet.profileImageUrl,
+        bannerImageUrl: pet.bannerImageUrl,
+        isLost: pet.isLost,
+        lostSince: pet.lostSince,
+        lostMessage: pet.lostMessage,
+        owner: {
+          name: pet.owner.name,
+          email: pet.owner.email,
+          phone: showPhone ? pet.owner.phone : null,
+          address: pet.showAddressPublicly ? pet.owner.address : null
+        }
+      })
     } catch (error) {
       req.log.error(error)
       return reply.status(500).send({ message: 'Error al obtener la mascota pública' })
     }
+  })
+
+  // =========================================================================
+  // 7. MODO PERDIDA (PUT /pets/:id/lost) - Activa o desactiva el aviso en la placa QR
+  // =========================================================================
+  const lostSchema = z.object({
+    isLost: z.boolean(),
+    lostMessage: z.string().trim().max(500, 'Máximo 500 caracteres').optional()
+  })
+
+  app.put('/:id/lost', { preHandler: [authenticate] }, async (req, reply) => {
+    const { id } = req.params as { id: string }
+    const parsed = lostSchema.safeParse(req.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ message: parsed.error.issues[0]?.message ?? 'Datos inválidos' })
+    }
+    const { isLost, lostMessage } = parsed.data
+
+    const pet = await prisma.pet.findUnique({ where: { id, ownerId: req.user.sub } })
+    if (!pet) return reply.status(404).send({ message: 'Mascota no encontrada' })
+
+    const updated = await prisma.pet.update({
+      where: { id },
+      data: isLost
+        // Si ya estaba perdida conservamos la fecha original; solo se actualiza el mensaje
+        ? { isLost: true, lostSince: pet.lostSince ?? new Date(), lostMessage: lostMessage || null }
+        : { isLost: false, lostSince: null, lostMessage: null }
+    })
+    return reply.send(updated)
   })
 
 } // <--- ESTA ES LA LLAVE QUE CIERRA LA FUNCIÓN PRINCIPAL (petRoutes)

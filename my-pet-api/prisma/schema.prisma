@@ -18,6 +18,11 @@ model User {
   updatedAt             DateTime  @updatedAt
   phone                 String?
   address               String?
+
+  // --- CONTACTOS DE EMERGENCIA (pantalla Mi Perfil) ---
+  vetName               String?
+  vetPhone              String?
+  emergencyPhone        String?
   
   // --- NUEVOS CAMPOS PARA VERIFICACIÓN DE EMAIL ---
   isVerified            Boolean   @default(false)
@@ -48,6 +53,10 @@ model Pet {
   weight              String?
   showPhonePublicly   Boolean         @default(false)
   showAddressPublicly Boolean         @default(false)
+  // --- MODO MASCOTA PERDIDA ---
+  isLost              Boolean         @default(false)
+  lostSince           DateTime?
+  lostMessage         String?
   attachments         Attachment[]
   dewormings      Deworming[]
   medicalHistory  MedicalRecord[]

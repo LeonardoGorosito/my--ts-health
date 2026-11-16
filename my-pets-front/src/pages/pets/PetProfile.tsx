@@ -18,7 +18,8 @@ import {
   Plus,
   Syringe,
   Pill,
-  QrCode // <--- Agregamos QrCode
+  QrCode, // <--- Agregamos QrCode
+  Siren
 } from 'lucide-react'
 
 // Componentes
@@ -29,6 +30,7 @@ import { AddMedicalModal } from '../../components/AddMedicalModal'
 import { AddVaccineModal } from '../../components/AddVaccineModal'
 import { AddDewormingModal } from '../../components/AddDewormingModal'
 import { PetQrModal } from '../../components/PetQrModal' // <--- Importamos el modal del QR
+import { LostModeModal } from '../../components/LostModeModal'
 
 // --- FUNCIÓN AUXILIAR: CALCULAR EDAD ---
 function getAge(dateString: string | undefined) {
@@ -69,7 +71,15 @@ interface PetDetail {
   vaccinations: any[] 
   medicalHistory: any[] 
   dewormings: any[]
+  isLost: boolean
+  lostSince?: string | null
+  lostMessage?: string | null
 }
+
+// Registros editables (lo que necesitan los modales en modo edición)
+type MedicalItem = { id: string; title: string; description: string; date: string }
+type VaccineItem = { id: string; name: string; dateApplied: string; nextDueDate?: string | null }
+type DewormingItem = VaccineItem & { type: 'INTERNA' | 'EXTERNA' }
 
 // ------------------------------------------------------------------
 // EL COMPONENTE EMPIEZA AQUÍ
@@ -89,6 +99,16 @@ export function PetProfile() {
   const [isVaccineModalOpen, setIsVaccineModalOpen] = useState(false)
   const [isDewormingModalOpen, setIsDewormingModalOpen] = useState(false) 
   const [isQrModalOpen, setIsQrModalOpen] = useState(false) // <--- CORREGIDO: Ahora está donde debe estar
+  const [isLostModalOpen, setIsLostModalOpen] = useState(false)
+
+  // Registro que se está editando (null = el modal crea uno nuevo)
+  const [editingMedical, setEditingMedical] = useState<MedicalItem | null>(null)
+  const [editingVaccine, setEditingVaccine] = useState<VaccineItem | null>(null)
+  const [editingDeworming, setEditingDeworming] = useState<DewormingItem | null>(null)
+
+  const openMedicalModal = (record: MedicalItem | null = null) => { setEditingMedical(record); setIsMedicalModalOpen(true) }
+  const openVaccineModal = (record: VaccineItem | null = null) => { setEditingVaccine(record); setIsVaccineModalOpen(true) }
+  const openDewormingModal = (record: DewormingItem | null = null) => { setEditingDeworming(record); setIsDewormingModalOpen(true) }
 
   // 2. CARGAR DATOS
   const fetchPet = async () => {
@@ -162,16 +182,27 @@ export function PetProfile() {
         {!pet.bannerImageUrl && (
             <div className="absolute inset-0 bg-gradient-to-b from-emerald-500 to-emerald-700 dark:from-emerald-600 dark:to-emerald-800"></div>
         )}
-        <button onClick={() => navigate(-1)} className="absolute top-6 left-6 bg-black/20 hover:bg-black/40 text-white p-2 rounded-full backdrop-blur-sm transition-all z-10">
-          <ArrowLeft size={20} />
+        <button onClick={() => navigate(-1)} aria-label="Volver" className="absolute top-6 left-6 bg-black/20 hover:bg-black/40 text-white p-2 rounded-full backdrop-blur-sm transition-all z-10">
+          <ArrowLeft size={20} aria-hidden="true" />
         </button>
 
         {/* --- CONTENEDOR DE BOTONES (QR y Editar) --- */}
         <div className="absolute top-6 right-6 flex items-center gap-3 z-10">
           <button 
+              onClick={() => setIsLostModalOpen(true)}
+              className={`${pet.isLost ? 'bg-red-600 hover:bg-red-500 animate-pulse' : 'bg-black/20 hover:bg-red-600'} text-white p-2 md:px-4 rounded-full backdrop-blur-sm transition-all flex items-center gap-2 font-bold text-xs uppercase tracking-widest shadow-lg`}
+              title={pet.isLost ? 'Gestionar aviso de mascota perdida' : 'Reportar como perdida'}
+              aria-label={pet.isLost ? 'Gestionar aviso de mascota perdida' : 'Reportar como perdida'}
+          >
+              <Siren size={16} aria-hidden="true" /> 
+              <span className="hidden md:inline">{pet.isLost ? 'Perdida' : 'Se perdió'}</span>
+          </button>
+
+          <button 
               onClick={() => setIsQrModalOpen(true)}
               className="bg-black/20 hover:bg-emerald-600 text-white p-2 md:px-4 rounded-full backdrop-blur-sm transition-all flex items-center gap-2 font-bold text-xs uppercase tracking-widest shadow-lg"
               title="Ver Placa QR"
+              aria-label="Ver placa QR"
           >
               <QrCode size={16} /> 
               <span className="hidden md:inline">Placa QR</span>
@@ -179,6 +210,7 @@ export function PetProfile() {
 
           <button 
               onClick={() => setIsEditModalOpen(true)} 
+              aria-label="Editar perfil"
               className="bg-black/20 hover:bg-black/40 text-white p-2 md:px-4 rounded-full backdrop-blur-sm transition-all flex items-center gap-2 font-bold text-xs uppercase tracking-widest shadow-lg"
           >
               <Edit2 size={16} /> 
@@ -219,6 +251,21 @@ export function PetProfile() {
           </div>
         </div>
       </div>
+
+      {/* AVISO DE MASCOTA PERDIDA */}
+      {pet.isLost && (
+        <div className="px-6 mb-8">
+          <button
+            type="button"
+            onClick={() => setIsLostModalOpen(true)}
+            className="w-full bg-red-600 hover:bg-red-500 text-white px-5 py-3 rounded-2xl flex flex-wrap items-center justify-center gap-2 text-sm font-bold transition-colors shadow-lg shadow-red-900/20"
+          >
+            <Siren size={18} aria-hidden="true" />
+            {pet.name} está marcada/o como perdida/o{pet.lostSince ? ` desde el ${new Date(pet.lostSince).toLocaleDateString()}` : ''}. La placa QR muestra el aviso.
+            <span className="underline">Gestionar</span>
+          </button>
+        </div>
+      )}
 
       {/* TABS */}
       <div className="px-6 border-b border-gray-200 dark:border-zinc-800 mb-8 transition-colors">
@@ -274,10 +321,11 @@ export function PetProfile() {
                       <Pill size={20} className="text-blue-500" /> Desparasitación
                    </h3>
                    <button 
-                     onClick={() => setIsDewormingModalOpen(true)}
+                     onClick={() => openDewormingModal()}
+                     aria-label="Agregar desparasitación"
                      className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-lg shadow-blue-900/20"
                    >
-                     <Plus size={16} />
+                     <Plus size={16} aria-hidden="true" />
                    </button>
                </div>
 
@@ -330,10 +378,18 @@ export function PetProfile() {
                                ) : null}
                                
                                <button 
+                                 onClick={() => openDewormingModal(d)}
+                                 aria-label={`Editar desparasitación ${d.name}`}
+                                 className="text-gray-300 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 p-2 rounded-lg transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                               >
+                                 <Edit2 size={14} aria-hidden="true" />
+                               </button>
+                               <button 
                                  onClick={() => handleDeleteDeworming(d.id)}
+                                 aria-label={`Eliminar desparasitación ${d.name}`}
                                  className="text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
                                >
-                                 <Trash2 size={14} />
+                                 <Trash2 size={14} aria-hidden="true" />
                                </button>
                              </div>
                           </div>
@@ -349,8 +405,8 @@ export function PetProfile() {
                    <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
                       <Syringe size={20} className="text-emerald-500" /> Calendario Vacunas
                    </h3>
-                   <button onClick={() => setIsVaccineModalOpen(true)} className="w-8 h-8 flex items-center justify-center rounded-full bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-lg shadow-emerald-900/20">
-                     <Plus size={16} />
+                   <button onClick={() => openVaccineModal()} aria-label="Agregar vacuna" className="w-8 h-8 flex items-center justify-center rounded-full bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-lg shadow-emerald-900/20">
+                     <Plus size={16} aria-hidden="true" />
                    </button>
                </div>
 
@@ -400,11 +456,20 @@ export function PetProfile() {
                                )}
                                
                                <button 
+                                  onClick={() => openVaccineModal(v)}
+                                  aria-label={`Editar vacuna ${v.name}`}
+                                  className="text-gray-300 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 p-2 rounded-lg transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                                  title="Editar vacuna"
+                               >
+                                  <Edit2 size={14} aria-hidden="true" />
+                               </button>
+                               <button 
                                   onClick={() => handleDeleteVaccine(v.id)}
+                                  aria-label={`Eliminar vacuna ${v.name}`}
                                   className="text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
                                   title="Eliminar vacuna"
                                   >
-                                  <Trash2 size={14} />
+                                  <Trash2 size={14} aria-hidden="true" />
                               </button>
                              </div>
                           </div>
@@ -421,7 +486,7 @@ export function PetProfile() {
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Linea de Tiempo</h2>
-              <button onClick={() => setIsMedicalModalOpen(true)} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-lg shadow-emerald-900/20">
+              <button onClick={() => openMedicalModal()} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-lg shadow-emerald-900/20">
                 <Plus size={16} /> Agregar Evento
               </button>
             </div>
@@ -442,9 +507,14 @@ export function PetProfile() {
                     <div className="flex-1">
                        <div className="flex justify-between items-start">
                           <h3 className="font-bold text-gray-900 dark:text-white text-lg">{record.title}</h3>
-                          <button onClick={() => handleDeleteRecord(record.id)} className="text-gray-300 hover:text-red-500 transition-colors p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
-                            <Trash2 size={16} />
+                          <div className="flex items-center">
+                          <button onClick={() => openMedicalModal(record)} aria-label={`Editar registro ${record.title}`} className="text-gray-300 hover:text-emerald-600 transition-colors p-2 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg">
+                            <Edit2 size={16} aria-hidden="true" />
                           </button>
+                          <button onClick={() => handleDeleteRecord(record.id)} aria-label={`Eliminar registro ${record.title}`} className="text-gray-300 hover:text-red-500 transition-colors p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
+                            <Trash2 size={16} aria-hidden="true" />
+                          </button>
+                          </div>
                        </div>
                        <p className="text-gray-600 dark:text-gray-400 text-sm mt-2 leading-relaxed">{record.description}</p>
                     </div>
@@ -498,8 +568,9 @@ export function PetProfile() {
                       }}
                       className="absolute top-2 right-2 bg-white dark:bg-black/50 hover:bg-red-50 text-gray-400 hover:text-red-500 p-1.5 rounded-lg shadow-sm border border-gray-100 dark:border-transparent transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
                       title="Eliminar archivo"
+                      aria-label={`Eliminar archivo ${file.name}`}
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={14} aria-hidden="true" />
                     </button>
                   </div>
                 ))}
@@ -510,11 +581,12 @@ export function PetProfile() {
       </div>
 
       <EditPetModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} petData={pet as any} onPetUpdated={fetchPet} />
-      <AddMedicalModal isOpen={isMedicalModalOpen} onClose={() => setIsMedicalModalOpen(false)} petId={pet.id} onSuccess={fetchPet} />
-      <AddVaccineModal isOpen={isVaccineModalOpen} onClose={() => setIsVaccineModalOpen(false)} petId={pet.id} onSuccess={fetchPet} />
-      <AddDewormingModal isOpen={isDewormingModalOpen} onClose={() => setIsDewormingModalOpen(false)} petId={pet.id} onSuccess={fetchPet} />
+      <AddMedicalModal isOpen={isMedicalModalOpen} onClose={() => setIsMedicalModalOpen(false)} petId={pet.id} record={editingMedical} onSuccess={fetchPet} />
+      <AddVaccineModal isOpen={isVaccineModalOpen} onClose={() => setIsVaccineModalOpen(false)} petId={pet.id} record={editingVaccine} onSuccess={fetchPet} />
+      <AddDewormingModal isOpen={isDewormingModalOpen} onClose={() => setIsDewormingModalOpen(false)} petId={pet.id} record={editingDeworming} onSuccess={fetchPet} />
       
       {/* Modal nuevo del QR */}
+      <LostModeModal isOpen={isLostModalOpen} onClose={() => setIsLostModalOpen(false)} pet={pet} onSuccess={fetchPet} />
       <PetQrModal isOpen={isQrModalOpen} onClose={() => setIsQrModalOpen(false)} petId={pet.id} petName={pet.name} />
 
     </div>

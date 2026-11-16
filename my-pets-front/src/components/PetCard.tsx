@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { Card } from './Card'
-import { Cat, Dog, Heart, ArrowRight } from 'lucide-react'
+import { Cat, Dog, Heart, ArrowRight, Siren } from 'lucide-react'
 
 type PetCardProps = {
   pet: {
@@ -10,6 +10,7 @@ type PetCardProps = {
     breed?: string | null
     isCastrated: boolean
     profileImageUrl?: string | null // <--- Agregamos esto para leer la foto
+    isLost?: boolean
   }
 }
 
@@ -50,6 +51,12 @@ export function PetCard({ pet }: PetCardProps) {
             <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">{pet.breed || 'Mestizo'}</p>
           </div>
         </div>
+
+        {pet.isLost && (
+          <span className="flex items-center gap-1 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg animate-pulse">
+            <Siren size={12} aria-hidden="true" /> Perdida
+          </span>
+        )}
       </div>
 
       <div className="mt-6 flex items-center gap-2 border-t border-gray-50 dark:border-gray-800/50 pt-4 text-xs font-bold text-gray-600 dark:text-gray-400">

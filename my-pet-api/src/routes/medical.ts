@@ -58,4 +58,29 @@ export default async function medicalRoutes(app: FastifyInstance) {
     await prisma.medicalRecord.delete({ where: { id } })
     return reply.send({ message: 'Registro eliminado' })
   })
+
+  // EDITAR (PUT /:id) — mismo esquema que el alta, sin petId
+  app.put('/:id', { preHandler: [authenticate] }, async (req, reply) => {
+    const { id } = req.params as { id: string }
+    const parsed = medicalRecordSchema.omit({ petId: true }).safeParse(req.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ message: parsed.error.issues[0]?.message ?? 'Datos inválidos' })
+    }
+    const data = parsed.data
+
+    const existing = await prisma.medicalRecord.findUnique({ where: { id }, include: { pet: true } })
+    if (!existing || existing.pet.ownerId !== req.user.sub) {
+      return reply.status(404).send({ message: 'No encontrado' })
+    }
+
+    const updated = await prisma.medicalRecord.update({
+      where: { id },
+      data: {
+        title: data.title,
+        description: data.description,
+        ...(data.date ? { date: new Date(data.date) } : {})
+      }
+    })
+    return reply.send(updated)
+  })
 }

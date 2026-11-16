@@ -1,13 +1,28 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { api } from '../lib/axios'
 
-type User = { 
+export type User = { 
   id: string; 
   email: string; 
   name: string;
   lastname: string;
   phone?: string | null; 
+  address?: string | null;
+  vetName?: string | null;
+  vetPhone?: string | null;
+  emergencyPhone?: string | null;
   role: 'USER' | 'ADMIN'; 
+}
+
+// Campos editables desde "Mi Perfil" (PUT /auth/me)
+export type ProfileUpdate = {
+  name: string;
+  lastname: string;
+  phone?: string;
+  address?: string;
+  vetName?: string;
+  vetPhone?: string;
+  emergencyPhone?: string;
 }
 
 type AuthCtx = {
@@ -23,6 +38,7 @@ type AuthCtx = {
     phone?: string 
   ) => Promise<void> 
   verifyEmail: (email: string, code: string) => Promise<void>
+  updateProfile: (data: ProfileUpdate) => Promise<void>
 }
 
 const Ctx = createContext<AuthCtx | null>(null)
@@ -70,7 +86,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(me.data);
   }
 
-  const value = useMemo(() => ({ user, loading, login, logout, register, verifyEmail }), [user, loading])
+  // Guarda el perfil y actualiza el usuario en memoria (no toca el loading global)
+  const updateProfile = async (data: ProfileUpdate) => {
+    const { data: me } = await api.put('/auth/me', data);
+    setUser(me);
+  }
+
+  const value = useMemo(() => ({ user, loading, login, logout, register, verifyEmail, updateProfile }), [user, loading])
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
 

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -17,18 +17,35 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>
 
-export function AddDewormingModal({ isOpen, onClose, petId, onSuccess }: any) {
+// Fecha ISO del backend -> valor de <input type="date">
+const toInputDate = (iso?: string | null) => (iso ? iso.slice(0, 10) : '')
+
+export function AddDewormingModal({ isOpen, onClose, petId, onSuccess, record }: any) {
   const [loading, setLoading] = useState(false)
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { type: 'EXTERNA' }
+    defaultValues: { name: '', date: '', nextDueDate: '', type: 'EXTERNA' }
   })
+
+  // Con `record` el modal edita un registro existente; sin él, crea uno nuevo
+  const isEdit = Boolean(record)
+
+  // Cada vez que se abre, cargamos los datos del registro (o limpiamos el formulario)
+  useEffect(() => {
+    if (!isOpen) return
+    reset(record ? { name: record.name, date: toInputDate(record.dateApplied), nextDueDate: toInputDate(record.nextDueDate), type: record.type === 'INTERNA' ? 'INTERNA' : 'EXTERNA' } : { name: '', date: '', nextDueDate: '', type: 'EXTERNA' })
+  }, [isOpen, record, reset])
 
   const onSubmit = async (data: FormData) => {
     setLoading(true)
     try {
-      await api.post('/dewormings', { ...data, petId })
-      toast.success('Desparasitación registrada')
+      if (isEdit) {
+        await api.put(`/dewormings/${record.id}`, data)
+        toast.success('Desparasitación actualizada')
+      } else {
+        await api.post('/dewormings', { ...data, petId })
+        toast.success('Desparasitación registrada')
+      }
       reset()
       onSuccess()
       onClose()
@@ -46,15 +63,15 @@ export function AddDewormingModal({ isOpen, onClose, petId, onSuccess }: any) {
       <div className="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-2xl shadow-xl w-full max-w-md p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2">
-            <Pill className="text-blue-500" /> Nueva Desparasitación
+            <Pill className="text-blue-500" /> {isEdit ? 'Editar Desparasitación' : 'Nueva Desparasitación'}
           </h2>
-          <button onClick={onClose}><X className="text-gray-400" /></button>
+          <button type="button" onClick={onClose} aria-label="Cerrar"><X aria-hidden="true" className="text-gray-400" /></button>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-gray-500 mb-1">Producto / Marca</label>
-            <Input placeholder="Ej: Bravecto, Pipeta Power, Total FLC..." {...register('name')} />
+            <label htmlFor="deworming-name" className="block text-xs font-bold text-gray-500 mb-1">Producto / Marca</label>
+            <Input placeholder="Ej: Bravecto, Pipeta Power, Total FLC..." id="deworming-name" {...register('name')} />
             {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
           </div>
 
@@ -78,12 +95,12 @@ export function AddDewormingModal({ isOpen, onClose, petId, onSuccess }: any) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-                <label className="block text-xs font-bold text-gray-500 mb-1">Aplicación</label>
-                <Input type="date" {...register('date')} />
+                <label htmlFor="deworming-date" className="block text-xs font-bold text-gray-500 mb-1">Aplicación</label>
+                <Input type="date" id="deworming-date" {...register('date')} />
             </div>
             <div>
-                <label className="block text-xs font-bold text-blue-600 mb-1">Próxima Dosis</label>
-                <Input type="date" {...register('nextDueDate')} />
+                <label htmlFor="deworming-nextDueDate" className="block text-xs font-bold text-blue-600 mb-1">Próxima Dosis</label>
+                <Input type="date" id="deworming-nextDueDate" {...register('nextDueDate')} />
             </div>
           </div>
 

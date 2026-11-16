@@ -38,6 +38,22 @@ const resetPasswordSchema = z.object({
   newPassword: z.string().min(6)
 })
 
+// Campos del usuario que devuelve /auth/me (nunca el hash ni los códigos)
+const meSelect = {
+  id: true, email: true, name: true, lastname: true, phone: true, address: true,
+  vetName: true, vetPhone: true, emergencyPhone: true, role: true
+} as const
+
+const updateMeSchema = z.object({
+  name: z.string().trim().min(2, 'El nombre es muy corto'),
+  lastname: z.string().trim().min(2, 'El apellido es muy corto'),
+  phone: z.string().max(30).optional(),
+  address: z.string().max(200).optional(),
+  vetName: z.string().max(100).optional(),
+  vetPhone: z.string().max(30).optional(),
+  emergencyPhone: z.string().max(30).optional(),
+})
+
 // --- LÍMITES DE INTENTOS POR IP ---
 // Rutas que mandan email: pocos intentos para no gastar cuota de Resend
 const emailLimit = { config: { rateLimit: { max: 5, timeWindow: '15 minutes' } } }
@@ -154,12 +170,29 @@ export default async function auth(app: FastifyInstance) {
             return reply.code(401).send({ message: 'Credenciales inválidas' })
         }       
         
-        if (!user.isVerified) {
-            return reply.code(403).send({ message: 'PENDING_VERIFICATION', email: user.email })
-        }
-
+        // Primero la contraseña: así no se revela si la cuenta existe ni se mandan emails a cuentas ajenas
         const ok = await bcrypt.compare(body.password, user.passwordHash)        
         if (!ok) return reply.code(401).send({ message: 'Credenciales inválidas' })
+
+        // Cuenta sin verificar: generamos un código nuevo (el anterior pudo haber vencido) y lo reenviamos
+        if (!user.isVerified) {
+            const otp = generateOTP()
+            await prisma.user.update({
+                where: { id: user.id },
+                data: {
+                    verificationCode: otp,
+                    verificationCodeExpiry: new Date(Date.now() + 15 * 60 * 1000) // 15 mins
+                }
+            })
+            logDevCode('verificación', user.email, otp)
+            await resend.emails.send({
+                from: MAIL_FROM,
+                to: user.email,
+                subject: 'Verifica tu cuenta en Pet Health',
+                html: `<p>Tu código de verificación es: <strong style="font-size:24px;">${otp}</strong></p><p>Este código expira en 15 minutos.</p>`
+            })
+            return reply.code(403).send({ message: 'PENDING_VERIFICATION', email: user.email })
+        }
 
         const token = app.jwt.sign({ sub: user.id, role: user.role, email: user.email })
         return { token }   
@@ -241,7 +274,28 @@ export default async function auth(app: FastifyInstance) {
     app.get('/me', { preHandler: [authenticate] }, async (req: any) => { 
         const me = await prisma.user.findUnique({ 
             where: { id: req.user.sub }, 
-            select: { id: true, email: true, name: true, lastname: true, phone: true, role: true } 
+            select: meSelect
+        })
+        return me
+    })
+
+    // ==========================================================
+    // ACTUALIZAR MI PERFIL (PUT /auth/me)
+    // ==========================================================
+    app.put('/me', { preHandler: [authenticate] }, async (req: any, reply) => {
+        const parsed = updateMeSchema.safeParse(req.body)
+        if (!parsed.success) {
+            return reply.code(400).send({ message: parsed.error.issues[0]?.message ?? 'Datos inválidos' })
+        }
+        // Los campos opcionales vacíos se guardan como null
+        const { name, lastname, ...rest } = parsed.data
+        const optional = Object.fromEntries(
+            Object.entries(rest).map(([k, v]) => [k, v?.trim() ? v.trim() : null])
+        )
+        const me = await prisma.user.update({
+            where: { id: req.user.sub },
+            data: { name: name.trim(), lastname: lastname.trim(), ...optional },
+            select: meSelect
         })
         return me
     })

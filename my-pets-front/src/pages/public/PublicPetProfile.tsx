@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '../../lib/axios'
 // NUEVO: Agregamos el ícono Phone
-import { AlertCircle, Cat, Dog, Heart, Mail, User, Phone } from 'lucide-react'
+import { AlertCircle, Cat, Dog, Heart, Mail, User, Phone, Siren } from 'lucide-react'
 
 // NUEVO: Agregamos el phone al interface del dueño
 interface PublicPet {
@@ -13,12 +13,19 @@ interface PublicPet {
   specialNeeds: string | null
   profileImageUrl: string | null
   bannerImageUrl: string | null
+  isLost: boolean
+  lostSince: string | null
+  lostMessage: string | null
   owner: {
     name: string
     email: string
     phone: string | null 
   }
 }
+
+// Link de WhatsApp con mensaje prellenado (el número va sin símbolos)
+const whatsappUrl = (phone: string, text: string) =>
+  `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(text)}`
 
 export function PublicPetProfile() {
   const { id } = useParams()
@@ -51,6 +58,42 @@ export function PublicPetProfile() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black pb-10 font-sans selection:bg-emerald-500/30">
+
+      {/* AVISO DE MASCOTA PERDIDA (arriba de todo, es lo primero que tiene que ver quien escanea) */}
+      {pet.isLost && (
+        <div role="alert" className="bg-red-600 text-white px-6 py-6 text-center">
+          <div className="max-w-md mx-auto">
+            <p className="flex items-center justify-center gap-2 text-2xl font-black uppercase tracking-wide">
+              <Siren size={28} aria-hidden="true" className="animate-pulse" /> ¡Estoy perdida/o!
+            </p>
+            <p className="mt-2 text-sm font-medium text-red-50">
+              Si me encontraste, por favor avisale a mi familia.
+              {pet.lostSince && <> Me perdí el <strong>{new Date(pet.lostSince).toLocaleDateString()}</strong>.</>}
+            </p>
+            {pet.lostMessage && (
+              <p className="mt-4 bg-white/10 rounded-xl p-4 text-sm text-left whitespace-pre-line">{pet.lostMessage}</p>
+            )}
+            {pet.owner.phone && (
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                <a
+                  href={`tel:${pet.owner.phone}`}
+                  className="flex items-center justify-center gap-2 bg-white text-red-600 py-3 rounded-xl font-black uppercase tracking-wide text-sm"
+                >
+                  <Phone size={18} aria-hidden="true" /> Llamar
+                </a>
+                <a
+                  href={whatsappUrl(pet.owner.phone, `¡Hola ${pet.owner.name}! Encontré a ${pet.name}.`)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-center gap-2 bg-[#25D366] text-white py-3 rounded-xl font-black uppercase tracking-wide text-sm"
+                >
+                  WhatsApp
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       
       {/* Banner y Foto */}
       <div 
@@ -141,7 +184,7 @@ export function PublicPetProfile() {
             {/* NUEVO: Botón de acción rápida inteligente (WhatsApp si hay teléfono, Email si no) */}
             {pet.owner.phone ? (
               <a 
-                href={`https://wa.me/${pet.owner.phone.replace(/[^0-9]/g, '')}?text=¡Hola ${pet.owner.name}! Encontré a tu mascota ${pet.name}.`}
+                href={whatsappUrl(pet.owner.phone, `¡Hola ${pet.owner.name}! Encontré a tu mascota ${pet.name}.`)}
                 target="_blank"
                 rel="noreferrer"
                 className="mt-6 w-full flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1DA851] text-white py-4 rounded-xl font-black uppercase tracking-widest transition-colors shadow-lg shadow-[#25D366]/20"

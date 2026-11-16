@@ -56,4 +56,30 @@ export default async function dewormingRoutes(app: FastifyInstance) {
     await prisma.deworming.delete({ where: { id } })
     return reply.send({ message: 'Eliminado correctamente' })
   })
+
+  // EDITAR (PUT /:id) — mismo esquema que el alta, sin petId
+  app.put('/:id', { preHandler: [authenticate] }, async (req, reply) => {
+    const { id } = req.params as { id: string }
+    const parsed = dewormingSchema.omit({ petId: true }).safeParse(req.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ message: parsed.error.issues[0]?.message ?? 'Datos inválidos' })
+    }
+    const data = parsed.data
+
+    const existing = await prisma.deworming.findUnique({ where: { id }, include: { pet: true } })
+    if (!existing || existing.pet.ownerId !== req.user.sub) {
+      return reply.status(404).send({ message: 'No encontrado' })
+    }
+
+    const updated = await prisma.deworming.update({
+      where: { id },
+      data: {
+        name: data.name,
+        dateApplied: new Date(data.date),
+        nextDueDate: data.nextDueDate ? new Date(data.nextDueDate) : null,
+        type: data.type
+      }
+    })
+    return reply.send(updated)
+  })
 }
