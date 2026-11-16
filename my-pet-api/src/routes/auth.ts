@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt'
 import { prisma } from '../db.js'
 import { authenticate } from '../hooks/authenticate.js'
 // IMPORTANTE: Asegurate de tener tu resend configurado en este archivo
-import { resend, MAIL_FROM } from '../lib/mailer.js'
+import { resend, MAIL_FROM, logDevCode } from '../lib/mailer.js'
 
 // --- HELPER PARA CÓDIGOS DE 6 DÍGITOS ---
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString()
@@ -38,12 +38,19 @@ const resetPasswordSchema = z.object({
   newPassword: z.string().min(6)
 })
 
+// --- LÍMITES DE INTENTOS POR IP ---
+// Rutas que mandan email: pocos intentos para no gastar cuota de Resend
+const emailLimit = { config: { rateLimit: { max: 5, timeWindow: '15 minutes' } } }
+// Rutas que validan contraseña o código de 6 dígitos: frenan la fuerza bruta
+const codeLimit = { config: { rateLimit: { max: 10, timeWindow: '15 minutes' } } }
+const loginLimit = { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }
+
 export default async function auth(app: FastifyInstance) {
     
     // ==========================================================
     // 1. REGISTRO (Crea cuenta inactiva y envía código)
     // ==========================================================
-    app.post('/register', async (req, reply) => { 
+    app.post('/register', emailLimit, async (req, reply) => { 
         try {
             const body = registerSchema.parse(req.body)
             const existingUser = await prisma.user.findUnique({ where: { email: body.email } })
@@ -59,6 +66,7 @@ export default async function auth(app: FastifyInstance) {
                             verificationCodeExpiry: new Date(Date.now() + 15 * 60 * 1000) // 15 mins
                         }
                     })
+                    logDevCode('verificación', body.email, otp)
                     await resend.emails.send({
                         from: MAIL_FROM,
                         to: body.email,
@@ -87,6 +95,7 @@ export default async function auth(app: FastifyInstance) {
                 }
             })
 
+            logDevCode('verificación', body.email, otp)
             await resend.emails.send({
                 from: MAIL_FROM,
                 to: body.email,
@@ -104,7 +113,7 @@ export default async function auth(app: FastifyInstance) {
     // ==========================================================
     // 2. VERIFICAR EMAIL (Recibe el código y activa la cuenta)
     // ==========================================================
-    app.post('/verify-email', async (req, reply) => {
+    app.post('/verify-email', codeLimit, async (req, reply) => {
         try {
             const body = verifySchema.parse(req.body)
             const user = await prisma.user.findUnique({ where: { email: body.email } })
@@ -137,7 +146,7 @@ export default async function auth(app: FastifyInstance) {
     // ==========================================================
     // 3. LOGIN (Solo deja entrar si isVerified es true)
     // ==========================================================
-    app.post('/login', async (req, reply) => { 
+    app.post('/login', loginLimit, async (req, reply) => { 
         const body = loginSchema.parse(req.body)
         const user = await prisma.user.findUnique({ where: { email: body.email } })
         
@@ -159,7 +168,7 @@ export default async function auth(app: FastifyInstance) {
     // ==========================================================
     // 4. FORGOT PASSWORD (Genera código de recuperación)
     // ==========================================================
-    app.post('/forgot-password', async (req, reply) => {
+    app.post('/forgot-password', emailLimit, async (req, reply) => {
         try {
             const body = forgotPasswordSchema.parse(req.body)
             const user = await prisma.user.findUnique({ where: { email: body.email } })
@@ -178,6 +187,7 @@ export default async function auth(app: FastifyInstance) {
                 }
             })
 
+            logDevCode('recuperación', user.email, otp)
             await resend.emails.send({
                 from: MAIL_FROM,
                 to: user.email,
@@ -194,7 +204,7 @@ export default async function auth(app: FastifyInstance) {
     // ==========================================================
     // 5. RESET PASSWORD (Verifica código y cambia clave)
     // ==========================================================
-    app.post('/reset-password', async (req, reply) => {
+    app.post('/reset-password', codeLimit, async (req, reply) => {
         try {
             const body = resetPasswordSchema.parse(req.body)
             const user = await prisma.user.findUnique({ where: { email: body.email } })

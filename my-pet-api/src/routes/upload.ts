@@ -2,22 +2,31 @@ import { FastifyInstance } from 'fastify';
 import cloudinary from '../lib/cloudinary.js'; 
 import { prisma } from '../db.js';
 import { z } from 'zod';
+import { authenticate } from '../hooks/authenticate.js';
 
 export async function uploadRoutes(app: FastifyInstance) {
   
   // POST /upload?petId=xxxx
-  app.post('/upload', async (req, reply) => {
-    // 1. Obtener el archivo del request
-    const data = await req.file();
-    
-    if (!data) {
-      return reply.status(400).send({ message: 'No se envió ningún archivo' });
-    }
-
-    // Validar que venga el ID de la mascota (lo pedimos por Query Param para facilitar)
-    const { petId } = req.query as { petId: string };
+  // Requiere login y que la mascota sea del usuario
+  app.post('/upload', { preHandler: [authenticate] }, async (req, reply) => {
+    // 1. Validar que venga el ID de la mascota (lo pedimos por Query Param para facilitar)
+    const { petId } = req.query as { petId?: string };
     if (!petId) {
       return reply.status(400).send({ message: 'Falta el petId en la URL' });
+    }
+
+    // 2. Verificar que la mascota pertenezca al usuario ANTES de subir nada a Cloudinary
+    const pet = await prisma.pet.findUnique({
+      where: { id: petId, ownerId: req.user.sub }
+    });
+    if (!pet) {
+      return reply.status(403).send({ message: 'No autorizado' });
+    }
+
+    // 3. Obtener el archivo del request
+    const data = await req.file();
+    if (!data) {
+      return reply.status(400).send({ message: 'No se envió ningún archivo' });
     }
 
     try {

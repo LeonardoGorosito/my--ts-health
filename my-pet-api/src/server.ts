@@ -2,6 +2,7 @@ import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import jwt from '@fastify/jwt'
 import fastifyMultipart from '@fastify/multipart'
+import rateLimit from '@fastify/rate-limit'
 import { ENV } from './env.js'
 import health from './routes/health.js'
 import auth from './routes/auth.js'
@@ -14,7 +15,8 @@ import dewormingRoutes from './routes/dewormings.js'
 import attachmentRoutes from './routes/attachments.js'
 import publicRoutes from './routes/public.js'
 
-const app = Fastify({ logger: true })
+// trustProxy: en Vercel la IP real del cliente viene en X-Forwarded-For (necesario para el rate limit)
+const app = Fastify({ logger: true, trustProxy: true })
 
 // CORS
 await app.register(cors, { 
@@ -29,6 +31,15 @@ await app.register(cors, {
 
 // 2. REGISTRAR JWT
 await app.register(jwt, { secret: ENV.JWT_SECRET })
+
+// RATE LIMIT: global: false => solo aplica a las rutas que definan config.rateLimit (ver routes/auth.ts)
+await app.register(rateLimit, {
+  global: false,
+  errorResponseBuilder: (_req, ctx) => ({
+    statusCode: 429,
+    message: `Demasiados intentos. Probá de nuevo en ${ctx.after}.`,
+  }),
+})
 
 // 3. REGISTRAR MULTIPART (Para subir archivos)
 await app.register(fastifyMultipart, { 
