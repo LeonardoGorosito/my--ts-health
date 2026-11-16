@@ -18,10 +18,19 @@ import attachmentRoutes from './routes/attachments.js'
 const app = Fastify({ logger: true, trustProxy: true })
 
 // CORS
+// FRONTEND_URL admite varias URLs separadas por coma (ej: "https://mi-app.vercel.app,https://midominio.com")
+const frontendOrigins = ENV.FRONTEND_URL
+  .split(',')
+  .map((url) => url.trim().replace(/\/+$/, '')) // sin espacios ni "/" final: el navegador manda el origin sin barra
+  .filter(Boolean)
+
 await app.register(cors, { 
   origin: [
+    ...frontendOrigins,
     'http://localhost:5173',
-    "http://localhost:5174"    
+    "http://localhost:5174",
+    // Solo en desarrollo: permite abrir el front desde la red local (ej: probar el QR con el celular)
+    ...(process.env.NODE_ENV === 'development' ? [/^http:\/\/192\.168\.\d{1,3}\.\d{1,3}:\d+$/] : [])
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
