@@ -11,7 +11,12 @@ export type User = {
   vetName?: string | null;
   vetPhone?: string | null;
   emergencyPhone?: string | null;
+  emailReminders?: boolean;
   role: 'USER' | 'ADMIN'; 
+}
+
+export type Preferences = {
+  emailReminders: boolean;
 }
 
 // Campos editables desde "Mi Perfil" (PUT /auth/me)
@@ -39,6 +44,7 @@ type AuthCtx = {
   ) => Promise<void> 
   verifyEmail: (email: string, code: string) => Promise<void>
   updateProfile: (data: ProfileUpdate) => Promise<void>
+  updatePreferences: (data: Preferences) => Promise<void>
 }
 
 const Ctx = createContext<AuthCtx | null>(null)
@@ -92,7 +98,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(me);
   }
 
-  const value = useMemo(() => ({ user, loading, login, logout, register, verifyEmail, updateProfile }), [user, loading])
+  const updatePreferences = async (data: Preferences) => {
+    const { data: me } = await api.put('/auth/me/preferences', data);
+    setUser(me);
+  }
+
+  const value = useMemo(() => ({ user, loading, login, logout, register, verifyEmail, updateProfile, updatePreferences }), [user, loading])
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
 

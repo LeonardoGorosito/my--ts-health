@@ -41,7 +41,7 @@ const resetPasswordSchema = z.object({
 // Campos del usuario que devuelve /auth/me (nunca el hash ni los códigos)
 const meSelect = {
   id: true, email: true, name: true, lastname: true, phone: true, address: true,
-  vetName: true, vetPhone: true, emergencyPhone: true, role: true
+  vetName: true, vetPhone: true, emergencyPhone: true, emailReminders: true, role: true
 } as const
 
 const updateMeSchema = z.object({
@@ -52,6 +52,10 @@ const updateMeSchema = z.object({
   vetName: z.string().max(100).optional(),
   vetPhone: z.string().max(30).optional(),
   emergencyPhone: z.string().max(30).optional(),
+})
+
+const preferencesSchema = z.object({
+  emailReminders: z.boolean(),
 })
 
 // --- LÍMITES DE INTENTOS POR IP ---
@@ -274,6 +278,20 @@ export default async function auth(app: FastifyInstance) {
     app.get('/me', { preHandler: [authenticate] }, async (req: any) => { 
         const me = await prisma.user.findUnique({ 
             where: { id: req.user.sub }, 
+            select: meSelect
+        })
+        return me
+    })
+
+    // ==========================================================
+    // PREFERENCIAS (PUT /auth/me/preferences)
+    // ==========================================================
+    app.put('/me/preferences', { preHandler: [authenticate] }, async (req: any, reply) => {
+        const parsed = preferencesSchema.safeParse(req.body)
+        if (!parsed.success) return reply.code(400).send({ message: 'Datos inválidos' })
+        const me = await prisma.user.update({
+            where: { id: req.user.sub },
+            data: parsed.data,
             select: meSelect
         })
         return me

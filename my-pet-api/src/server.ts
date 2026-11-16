@@ -13,6 +13,7 @@ import medicalRoutes from './routes/medical.js'
 import vaccineRoutes from './routes/vaccines.js'
 import dewormingRoutes from './routes/dewormings.js'
 import attachmentRoutes from './routes/attachments.js'
+import cronRoutes from './routes/cron.js'
 
 // trustProxy: en Vercel la IP real del cliente viene en X-Forwarded-For (necesario para el rate limit)
 const app = Fastify({ logger: true, trustProxy: true })
@@ -81,6 +82,9 @@ app.register(dewormingRoutes, { prefix: '/dewormings' })
 //attachments
 
 app.register(attachmentRoutes, { prefix: '/attachments' }) // <--- Registrar
+
+// cron (recordatorios diarios, lo llama Vercel Cron)
+app.register(cronRoutes)
 
 
 export default app

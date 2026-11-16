@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../db.js'
 import { authenticate } from '../hooks/authenticate.js'
+import { sameDate } from '../lib/dates.js'
 
 export default async function dewormingRoutes(app: FastifyInstance) {
   
@@ -77,7 +78,9 @@ export default async function dewormingRoutes(app: FastifyInstance) {
         name: data.name,
         dateApplied: new Date(data.date),
         nextDueDate: data.nextDueDate ? new Date(data.nextDueDate) : null,
-        type: data.type
+        type: data.type,
+        // Si cambió la próxima dosis, el recordatorio vuelve a quedar pendiente
+        ...(sameDate(existing.nextDueDate, data.nextDueDate) ? {} : { reminderSentAt: null })
       }
     })
     return reply.send(updated)
