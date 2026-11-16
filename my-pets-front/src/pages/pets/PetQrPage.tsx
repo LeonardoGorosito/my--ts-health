@@ -197,15 +197,15 @@ export function PetQrPage() {
                     <div className="grid grid-cols-3 gap-4">
                       <div className="flex flex-col items-center gap-1">
                         <label className="text-[10px] font-bold text-gray-500 uppercase">Borde</label>
-                        <input type="color" value={tagColor} onChange={(e) => setTagColor(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0 p-0 bg-transparent" />
+                        <input type="color" aria-label="Color del borde" value={tagColor} onChange={(e) => setTagColor(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0 p-0 bg-transparent" />
                       </div>
                       <div className="flex flex-col items-center gap-1">
                         <label className="text-[10px] font-bold text-gray-500 uppercase">Fondo</label>
-                        <input type="color" value={tagBg} onChange={(e) => setTagBg(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0 p-0 bg-transparent" />
+                        <input type="color" aria-label="Color de fondo" value={tagBg} onChange={(e) => setTagBg(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0 p-0 bg-transparent" />
                       </div>
                       <div className="flex flex-col items-center gap-1">
                         <label className="text-[10px] font-bold text-gray-500 uppercase">Texto/QR</label>
-                        <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0 p-0 bg-transparent" />
+                        <input type="color" aria-label="Color del texto y QR" value={textColor} onChange={(e) => setTextColor(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0 p-0 bg-transparent" />
                       </div>
                     </div>
                   </div>

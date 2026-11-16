@@ -1,16 +1,29 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Syringe, FileText, QrCode, Heart, Stethoscope, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
+// El video de fondo solo se carga en pantallas medianas o grandes y si el usuario
+// no pidió reducir movimiento. En celulares se muestra la imagen estática (poster).
+function shouldPlayHeroVideo() {
+  if (typeof window === 'undefined' || !window.matchMedia) return false;
+  return (
+    window.matchMedia('(min-width: 768px)').matches &&
+    !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+}
+
 export default function LandingPage() {
+  const [playVideo] = useState(shouldPlayHeroVideo);
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 flex flex-col font-sans">
       {/* Header / Navbar */}
       <header className="px-6 py-4 flex justify-between items-center max-w-7xl mx-auto w-full">
         <div className="flex items-center gap-2">
-          <Heart className="w-8 h-8 text-emerald-600 dark:text-emerald-500" />
+          <Heart aria-hidden="true" className="w-8 h-8 text-emerald-600 dark:text-emerald-500" />
           <span className="text-xl font-bold tracking-tight">Pet Health</span>
         </div>
-        <nav className="flex items-center gap-4">
+        <nav aria-label="Acceso" className="flex items-center gap-4">
           <Link 
             to="/login" 
             className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium px-4 py-2 transition-colors"
@@ -30,7 +43,32 @@ export default function LandingPage() {
         {/* Hero Section */}
         <section className="relative overflow-hidden">
           {/* Background Video */}
-          <video src="/video/video_cat_dog.mp4" autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover z-0" />
+          {playVideo ? (
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              poster="/img/hero-poster.jpg"
+              aria-hidden="true"
+              className="absolute inset-0 w-full h-full object-cover z-0"
+            >
+              <source src="/video/hero.webm" type="video/webm" />
+              <source src="/video/hero.mp4" type="video/mp4" />
+            </video>
+          ) : (
+            <picture>
+              <source srcSet="/img/hero-poster.webp" type="image/webp" />
+              <img
+                src="/img/hero-poster.jpg"
+                alt=""
+                width={1280}
+                height={720}
+                fetchPriority="high"
+                className="absolute inset-0 w-full h-full object-cover z-0"
+              />
+            </picture>
+          )}
           
           {/* Dark Overlay */}
           <div className="absolute inset-0 bg-black/60 z-10"></div>
@@ -158,11 +196,18 @@ export default function LandingPage() {
               </div>
               <div className="flex-1 w-full bg-gray-50 dark:bg-gray-800/50 rounded-[2rem] aspect-[4/3] flex items-center justify-center shadow-inner overflow-hidden relative border border-gray-100 dark:border-gray-800">
                 {/* Imagen del Gato con QR */}
-                <img 
-                  src="/img/cat_qr.jpg"  
-                  alt="Gato con chapita QR" 
-                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                />
+                <picture className="w-full h-full">
+                  <source srcSet="/img/cat_qr.webp" type="image/webp" />
+                  <img
+                    src="/img/cat_qr.jpg"
+                    alt="Gato con una chapita QR en el collar"
+                    width={1024}
+                    height={559}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105 motion-reduce:transition-none motion-reduce:hover:scale-100"
+                  />
+                </picture>
               </div>
             </div>
 
@@ -184,11 +229,18 @@ export default function LandingPage() {
               </div>
               <div className="flex-1 w-full bg-gray-50 dark:bg-gray-800/50 rounded-[2rem] aspect-[4/3] flex items-center justify-center shadow-inner overflow-hidden relative border border-gray-100 dark:border-gray-800">
                 {/* Imagen del Perro con Historia Clínica */}
-                <img 
-                  src="/img/dog_historial.jpg" 
-                  alt="Perro con historia clínica" 
-                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                />
+                <picture className="w-full h-full">
+                  <source srcSet="/img/dog_historial.webp" type="image/webp" />
+                  <img
+                    src="/img/dog_historial.jpg"
+                    alt="Perro junto a su historia clínica"
+                    width={1024}
+                    height={559}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105 motion-reduce:transition-none motion-reduce:hover:scale-100"
+                  />
+                </picture>
               </div>
             </div>
 

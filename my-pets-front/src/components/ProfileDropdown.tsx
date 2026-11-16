@@ -36,7 +36,10 @@ export function ProfileDropdown() {
       {/* TRIGGER: El Avatar */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 focus:outline-none group"
+        aria-label="Menú de usuario"
+        aria-expanded={isOpen}
+        aria-haspopup="true"
+        className="flex items-center gap-2 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 group"
       >
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-white transition-all ${isOpen ? 'ring-2 ring-emerald-500' : ''} bg-emerald-600 shadow-lg shadow-emerald-900/20 group-hover:scale-105`}>
           {user?.name?.[0].toUpperCase()}
@@ -47,7 +50,7 @@ export function ProfileDropdown() {
       <div className={`
         absolute right-0 mt-3 w-72 p-2 rounded-3xl shadow-2xl dropdown-bounce z-50
         bg-white dark:bg-bg-card border border-gray-100 dark:border-neutral-800
-        ${isOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'}
+        ${isOpen ? 'visible opacity-100 scale-100 translate-y-0' : 'invisible opacity-0 scale-95 -translate-y-2 pointer-events-none'}
       `}>
         
         {/* Links de Usuario */}
@@ -69,6 +72,9 @@ export function ProfileDropdown() {
           </div>
           <button 
             onClick={toggle}
+            role="switch"
+            aria-checked={isDark}
+            aria-label="Modo oscuro"
             className={`w-10 h-5 rounded-full transition-colors relative ${isDark ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-neutral-700'}`}
           >
             <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isDark ? 'left-6' : 'left-1'}`} />

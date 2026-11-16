@@ -15,26 +15,16 @@ export function PetsList() {
   const { data: pets, isLoading } = useQuery({
     queryKey: ['pets'],
     queryFn: async () => {
-      console.log('🐾 Iniciando petición GET a /pets...')
-      try {
-        const r = await api.get('/pets')
-        console.log('✅ Respuesta completa del backend:', r)
-        console.log('📦 Payload (r.data):', r.data)
-        
-        // Manejo seguro por si el backend devuelve un objeto { pets: [...] } o similar
-        let data = r.data
-        if (data && !Array.isArray(data)) {
-          if (Array.isArray(data.pets)) data = data.pets
-          else if (Array.isArray(data.data)) data = data.data
-        }
-        
-        const finalPets = Array.isArray(data) ? data : []
-        console.log('🐕 Mascotas a renderizar (array validado):', finalPets)
-        return finalPets
-      } catch (error) {
-        console.error('❌ Error al fetchear mascotas:', error)
-        throw error
+      const r = await api.get('/pets')
+
+      // Manejo seguro por si el backend devuelve un objeto { pets: [...] } o similar
+      let data = r.data
+      if (data && !Array.isArray(data)) {
+        if (Array.isArray(data.pets)) data = data.pets
+        else if (Array.isArray(data.data)) data = data.data
       }
+
+      return Array.isArray(data) ? data : []
     }
   })
 
@@ -64,7 +54,7 @@ export function PetsList() {
             onClick={() => setIsModalOpen(true)}
             className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-emerald-900/20 dark:shadow-none transition-all flex items-center gap-2 group whitespace-nowrap"
           >
-            <Plus size={20} className="group-hover:rotate-90 transition-transform" />
+            <Plus size={20} aria-hidden="true" className="group-hover:rotate-90 transition-transform motion-reduce:transition-none" />
             Agregar Mascota
           </button>
         </header>

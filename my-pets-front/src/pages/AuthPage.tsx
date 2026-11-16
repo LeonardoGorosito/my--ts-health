@@ -1,15 +1,18 @@
 import { useState, useRef } from 'react'
+import type { InputHTMLAttributes, Ref } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useAuth } from '../context/AuthContext' 
+import { isAxiosError } from 'axios'
+import { useAuth } from '../context/AuthContext'
 import { useNavigate, Link } from 'react-router-dom'
 import { toast } from 'sonner'
-import '../index.css' 
 
+// En el login solo exigimos que haya contraseña: la regla de longitud mínima
+// la impone el registro (y el backend). Así no bloqueamos cuentas viejas.
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
-  password: z.string().min(4, 'Mínimo 4 caracteres')
+  password: z.string().min(1, 'Ingresá tu contraseña')
 })
 
 const registerSchema = z.object({
@@ -27,6 +30,44 @@ const registerSchema = z.object({
 
 type LoginData = z.infer<typeof loginSchema>
 type RegisterData = z.infer<typeof registerSchema>
+
+type ApiErrorBody = { message?: string; email?: string }
+
+function getApiError(e: unknown) {
+  if (!isAxiosError<ApiErrorBody>(e)) return { status: undefined, data: undefined }
+  return { status: e.response?.status, data: e.response?.data }
+}
+
+// Definidos fuera de AuthPage para que no se vuelvan a crear en cada render
+// (si no, los inputs se desmontan y pierden el foco, p. ej. al mostrar la contraseña).
+type InputFieldProps = InputHTMLAttributes<HTMLInputElement> & { ref?: Ref<HTMLInputElement> }
+
+function InputField(props: InputFieldProps) {
+  return (
+    <input
+      className="bg-gray-100 border-none px-4 py-3 my-1.5 w-full rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition-all placeholder-gray-500 text-gray-800"
+      {...props}
+    />
+  )
+}
+
+function EyeIcon({ visible, onClick }: { visible: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+      aria-pressed={visible}
+      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-emerald-600"
+    >
+      {visible ? (
+        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+      ) : (
+        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7c.68 0 1.356-.06 2-.17"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+      )}
+    </button>
+  )
+}
 
 export default function AuthPage({ initialRegister = false }: { initialRegister?: boolean }) {
   const [isRegisterActive, setIsRegisterActive] = useState(initialRegister)
@@ -57,15 +98,16 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
   const onLogin = async (d: LoginData) => {
     try {
       await login(d.email.trim(), d.password)
-      nav('/account') 
-    } catch (e: any) {
-      if (e?.response?.status === 403 && e?.response?.data?.message === 'PENDING_VERIFICATION') {
-        setRegisteredEmail(e.response.data.email || d.email.trim())
+      nav('/app')
+    } catch (e) {
+      const { status, data } = getApiError(e)
+      if (status === 403 && data?.message === 'PENDING_VERIFICATION') {
+        setRegisteredEmail(data.email || d.email.trim())
         setIsVerifying(true)
         toast.info('Debes verificar tu cuenta primero')
         return
       }
-      toast.error(e?.response?.data?.message || 'Credenciales inválidas')
+      toast.error(data?.message || 'Credenciales inválidas')
     }
   }
 
@@ -75,8 +117,8 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
       setRegisteredEmail(d.email.trim())
       setIsVerifying(true)
       toast.success('Revisa tu correo para obtener el código')
-    } catch (e: any) {
-      toast.error(e?.response?.data?.message || 'Error al registrarse')
+    } catch (e) {
+      toast.error(getApiError(e).data?.message || 'Error al registrarse')
     }
   }
 
@@ -105,30 +147,13 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
     try {
       await verifyEmail(registeredEmail, code);
       toast.success('¡Cuenta verificada! Bienvenido');
-      nav('/account');
-    } catch (e: any) {
-      toast.error(e?.response?.data?.message || 'Código inválido o expirado');
+      nav('/app');
+    } catch (e) {
+      toast.error(getApiError(e).data?.message || 'Código inválido o expirado');
     } finally {
       setVerifyLoading(false);
     }
   };
-
-  const InputField = ({ ...props }) => (
-    <input 
-      className="bg-gray-100 border-none px-4 py-3 my-1.5 w-full rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition-all placeholder-gray-400 text-gray-800"
-      {...props}
-    />
-  )
-
-  const EyeIcon = ({ visible, onClick }: { visible: boolean, onClick: () => void }) => (
-     <button type="button" onClick={onClick} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-emerald-600">
-        {visible ? (
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-        ) : (
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7c.68 0 1.356-.06 2-.17"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
-        )}
-     </button>
-  )
 
   // =========================================
   // VISTA 1: VERIFICACIÓN (SOLO CUADRADITOS)
@@ -154,6 +179,8 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
                   ref={(el) => { otpRefs.current[index] = el; }}
                   type="text"
                   inputMode="numeric"
+                  autoComplete={index === 0 ? 'one-time-code' : 'off'}
+                  aria-label={`Dígito ${index + 1} de 6`}
                   value={digit}
                   onChange={(e) => handleOtpChange(index, e.target.value)}
                   onKeyDown={(e) => handleOtpKeyDown(index, e)}
@@ -198,36 +225,36 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
 
             <div className="flex gap-2 w-full">
               <div className="w-1/2">
-                <InputField type="text" placeholder="Nombre" {...regRegister('name')} />
-                {regErrors.name && <span className="text-xs text-red-500 block text-left">{regErrors.name.message}</span>}
+                <InputField type="text" placeholder="Nombre" aria-label="Nombre" autoComplete="given-name" aria-invalid={!!regErrors.name} aria-describedby={regErrors.name ? 'reg-name-error' : undefined} {...regRegister('name')} />
+                {regErrors.name && <span id="reg-name-error" role="alert" className="text-xs text-red-600 block text-left">{regErrors.name.message}</span>}
               </div>
               <div className="w-1/2">
-                <InputField type="text" placeholder="Apellido" {...regRegister('lastname')} />
-                {regErrors.lastname && <span className="text-xs text-red-500 block text-left">{regErrors.lastname.message}</span>}
+                <InputField type="text" placeholder="Apellido" aria-label="Apellido" autoComplete="family-name" aria-invalid={!!regErrors.lastname} aria-describedby={regErrors.lastname ? 'reg-lastname-error' : undefined} {...regRegister('lastname')} />
+                {regErrors.lastname && <span id="reg-lastname-error" role="alert" className="text-xs text-red-600 block text-left">{regErrors.lastname.message}</span>}
               </div>
             </div>
 
             <div className="w-full">
-                <InputField type="email" placeholder="Email" {...regRegister('email')} />
-                {regErrors.email && <span className="text-xs text-red-500 block text-left">{regErrors.email.message}</span>}
+                <InputField type="email" placeholder="Email" aria-label="Email" autoComplete="email" aria-invalid={!!regErrors.email} aria-describedby={regErrors.email ? 'reg-email-error' : undefined} {...regRegister('email')} />
+                {regErrors.email && <span id="reg-email-error" role="alert" className="text-xs text-red-600 block text-left">{regErrors.email.message}</span>}
             </div>
 
             <div className="w-full">
-                <InputField type="tel" placeholder="Celular (Ej: +54 9...)" {...regRegister('phone')} />
-                <span className="text-[10px] text-gray-400 block text-left ml-2 mb-1">Se usará para emergencias en tu placa QR.</span>
-                {regErrors.phone && <span className="text-xs text-red-500 block text-left">{regErrors.phone.message}</span>}
+                <InputField type="tel" placeholder="Celular (Ej: +54 9...)" aria-label="Celular" autoComplete="tel" aria-describedby="reg-phone-hint" {...regRegister('phone')} />
+                <span id="reg-phone-hint" className="text-xs text-gray-500 block text-left ml-2 mb-1">Se usará para emergencias en tu placa QR.</span>
+                {regErrors.phone && <span role="alert" className="text-xs text-red-600 block text-left">{regErrors.phone.message}</span>}
             </div>
 
             <div className="w-full relative">
-                <InputField type={showPassword ? "text" : "password"} placeholder="Contraseña" {...regRegister('password')} />
+                <InputField type={showPassword ? "text" : "password"} placeholder="Contraseña" aria-label="Contraseña" autoComplete="new-password" aria-invalid={!!regErrors.password} aria-describedby={regErrors.password ? 'reg-password-error' : undefined} {...regRegister('password')} />
                 <EyeIcon visible={showPassword} onClick={() => setShowPassword(!showPassword)} />
             </div>
-            {regErrors.password && <span className="text-xs text-red-500 block text-left w-full">{regErrors.password.message}</span>}
+            {regErrors.password && <span id="reg-password-error" role="alert" className="text-xs text-red-600 block text-left w-full">{regErrors.password.message}</span>}
 
             <div className="w-full relative">
-                <InputField type={showPassword ? "text" : "password"} placeholder="Confirmar pass" {...regRegister('passwordConfirm')} />
+                <InputField type={showPassword ? "text" : "password"} placeholder="Confirmar contraseña" aria-label="Confirmar contraseña" autoComplete="new-password" aria-invalid={!!regErrors.passwordConfirm} aria-describedby={regErrors.passwordConfirm ? 'reg-password-confirm-error' : undefined} {...regRegister('passwordConfirm')} />
             </div>
-            {regErrors.passwordConfirm && <span className="text-xs text-red-500 block text-left w-full">{regErrors.passwordConfirm.message}</span>}
+            {regErrors.passwordConfirm && <span id="reg-password-confirm-error" role="alert" className="text-xs text-red-600 block text-left w-full">{regErrors.passwordConfirm.message}</span>}
             
             <button 
                 type="submit" 
@@ -252,15 +279,15 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
             <h1 className="text-3xl font-bold text-emerald-900 mb-4">¡Hola de nuevo!</h1>
             
             <div className="w-full">
-                <InputField type="email" placeholder="Email" {...regLogin('email')} />
-                {loginErrors.email && <span className="text-xs text-red-500 block text-left">{loginErrors.email.message}</span>}
+                <InputField type="email" placeholder="Email" aria-label="Email" autoComplete="email" aria-invalid={!!loginErrors.email} aria-describedby={loginErrors.email ? 'login-email-error' : undefined} {...regLogin('email')} />
+                {loginErrors.email && <span id="login-email-error" role="alert" className="text-xs text-red-600 block text-left">{loginErrors.email.message}</span>}
             </div>
-            
+
             <div className="w-full relative">
-                <InputField type={showPassword ? "text" : "password"} placeholder="Contraseña" {...regLogin('password')} />
+                <InputField type={showPassword ? "text" : "password"} placeholder="Contraseña" aria-label="Contraseña" autoComplete="current-password" aria-invalid={!!loginErrors.password} aria-describedby={loginErrors.password ? 'login-password-error' : undefined} {...regLogin('password')} />
                 <EyeIcon visible={showPassword} onClick={() => setShowPassword(!showPassword)} />
             </div>
-            {loginErrors.password && <span className="text-xs text-red-500 block text-left w-full">{loginErrors.password.message}</span>}
+            {loginErrors.password && <span id="login-password-error" role="alert" className="text-xs text-red-600 block text-left w-full">{loginErrors.password.message}</span>}
 
             <Link to="/forgot-password" className="text-xs text-gray-500 my-4 hover:text-emerald-600 transition-colors border-b border-transparent hover:border-emerald-600">
               ¿Olvidaste tu contraseña?

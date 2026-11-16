@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /app
+Disallow: /perfil
+Disallow: /configuracion
+Disallow: /dispositivos
+Disallow: /reset-password
+
+# DOMINIO: reemplazar https://tu-dominio.com por el dominio real
+Sitemap: https://tu-dominio.com/sitemap.xml

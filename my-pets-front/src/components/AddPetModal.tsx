@@ -110,7 +110,6 @@ export function AddPetModal({ isOpen, onClose, onPetAdded }: AddPetModalProps) {
                 formData.append(key, typeof value === 'boolean' ? String(value) : value)
              }
           })
-          formData.append('species', selectedSpecies)
 
       // Agregar imágenes si existen
       if (profileImage) formData.append('profileImage', profileImage)
@@ -154,7 +153,7 @@ export function AddPetModal({ isOpen, onClose, onPetAdded }: AddPetModalProps) {
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
                     <ImageIcon className="text-white/70 group-hover:text-white transition-colors z-10" size={32} />
                     <span className="absolute bottom-2 right-4 text-[10px] font-bold text-white/50 uppercase tracking-widest">Banner (Opcional)</span>
-                    <input type="file" ref={bannerInputRef} onChange={(e) => handleImageChange(e, 'banner')} className="hidden" accept="image/*" />
+                    <input type="file" aria-label="Elegir imagen de portada" ref={bannerInputRef} onChange={(e) => handleImageChange(e, 'banner')} className="hidden" accept="image/*" />
                 </div>
 
                 {/* Foto Perfil */}
@@ -173,12 +172,12 @@ export function AddPetModal({ isOpen, onClose, onPetAdded }: AddPetModalProps) {
                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
                             <Camera className="text-white opacity-0 group-hover:opacity-100 transition-opacity" size={24} />
                          </div>
-                        <input type="file" ref={profileInputRef} onChange={(e) => handleImageChange(e, 'profile')} className="hidden" accept="image/*" />
+                        <input type="file" aria-label="Elegir foto de perfil" ref={profileInputRef} onChange={(e) => handleImageChange(e, 'profile')} className="hidden" accept="image/*" />
                     </div>
                 </div>
 
                 {/* Botón Cerrar */}
-                <button type="button" onClick={handleClose} className="absolute top-4 right-4 p-2 bg-black/20 hover:bg-black/40 text-white rounded-full backdrop-blur-sm transition-colors z-20">
+                <button type="button" onClick={handleClose} aria-label="Cerrar" className="absolute top-4 right-4 p-2 bg-black/20 hover:bg-black/40 text-white rounded-full backdrop-blur-sm transition-colors z-20">
                     <X size={20} />
                 </button>
             </div>
@@ -193,32 +192,32 @@ export function AddPetModal({ isOpen, onClose, onPetAdded }: AddPetModalProps) {
                 {/* Nombre y Raza */}
                 <div className="space-y-4">
                     <div>
-                    <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Nombre</label>
+                    <label htmlFor="add-pet-name" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Nombre</label>
                     <Input
                         type="text"
                         placeholder="Ej: Halu"
-                        {...register('name')}
+                        id="add-pet-name" {...register('name')}
                         className="w-full bg-gray-50 dark:bg-bg-matte border-2 border-transparent focus:border-emerald-600 dark:text-gray-100 rounded-2xl transition-all font-bold"
                     />
                     {errors.name && <p className="mt-1 text-xs font-bold text-red-500">{errors.name.message}</p>}
                     </div>
 
                     <div>
-                    <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Raza (Opcional)</label>
+                    <label htmlFor="add-pet-breed" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Raza (Opcional)</label>
                     <Input
                         type="text"
                         placeholder="Ej: Siamés, Golden Retriever..."
-                        {...register('breed')}
+                        id="add-pet-breed" {...register('breed')}
                         className="w-full bg-gray-50 dark:bg-bg-matte border-2 border-transparent focus:border-emerald-600 dark:text-gray-100 rounded-2xl transition-all font-bold text-sm"
                     />
                     </div>
 
                     <div>
-                    <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Teléfono (Opcional)</label>
+                    <label htmlFor="add-pet-phone" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Teléfono (Opcional)</label>
                     <Input
                         type="text"
                         placeholder="Ej: +54 342 1234567"
-                        {...register('phone')}
+                        id="add-pet-phone" {...register('phone')}
                         className="w-full bg-gray-50 dark:bg-bg-matte border-2 border-transparent focus:border-emerald-600 dark:text-gray-100 rounded-2xl transition-all font-bold text-sm"
                     />
                     </div>
@@ -228,11 +227,11 @@ export function AddPetModal({ isOpen, onClose, onPetAdded }: AddPetModalProps) {
                     </label>
 
                     <div>
-                    <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Dirección (Opcional)</label>
+                    <label htmlFor="add-pet-address" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Dirección (Opcional)</label>
                     <Input
                         type="text"
                         placeholder="Ej: San Martín 2020, Santa Fe Capital"
-                        {...register('address')}
+                        id="add-pet-address" {...register('address')}
                         className="w-full bg-gray-50 dark:bg-bg-matte border-2 border-transparent focus:border-emerald-600 dark:text-gray-100 rounded-2xl transition-all font-bold text-sm"
                     />
                     </div>
@@ -267,10 +266,10 @@ export function AddPetModal({ isOpen, onClose, onPetAdded }: AddPetModalProps) {
                 {/* Grid: Género, Peso, Nacimiento */}
                 <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-1">
-                    <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Género</label>
+                    <label htmlFor="add-pet-gender" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Género</label>
                     <div className="relative">
                         <select
-                        {...register('gender')}
+                        id="add-pet-gender" {...register('gender')}
                         className="w-full px-4 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-2 border-transparent focus:border-emerald-600 rounded-2xl font-bold text-sm outline-none transition-all appearance-none cursor-pointer"
                         >
                         <option value="Macho" className="text-gray-900 bg-white dark:text-white dark:bg-gray-800">Macho</option>
@@ -280,20 +279,20 @@ export function AddPetModal({ isOpen, onClose, onPetAdded }: AddPetModalProps) {
                     </div>
                     
                     <div className="col-span-1">
-                    <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Peso (kg)</label>
+                    <label htmlFor="add-pet-weight" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Peso (kg)</label>
                     <Input 
                         type="text" 
                         placeholder="Ej: 5.4"
-                        {...register('weight')} 
+                        id="add-pet-weight" {...register('weight')} 
                         className="bg-gray-50 dark:bg-bg-matte border-transparent focus:border-emerald-600 rounded-2xl text-sm font-bold dark:text-gray-100" 
                     />
                     </div>
 
                     <div className="col-span-2">
-                    <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Nacimiento</label>
+                    <label htmlFor="add-pet-birthDate" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Nacimiento</label>
                     <Input 
                         type="date" 
-                        {...register('birthDate')}
+                        id="add-pet-birthDate" {...register('birthDate')}
                         className="bg-gray-50 dark:bg-bg-matte border-transparent focus:border-emerald-600 rounded-2xl text-sm font-bold dark:text-gray-100 w-full" 
                     />
                     </div>
@@ -308,10 +307,10 @@ export function AddPetModal({ isOpen, onClose, onPetAdded }: AddPetModalProps) {
                 </label>
 
                 <div>
-                    <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Notas de salud</label>
+                    <label htmlFor="add-pet-specialNeeds" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Notas de salud</label>
                     <textarea
                     placeholder="Baja visión, alergias, medicación..."
-                    {...register('specialNeeds')}
+                    id="add-pet-specialNeeds" {...register('specialNeeds')}
                     className="w-full px-4 py-3 bg-gray-50 dark:bg-bg-matte dark:text-gray-100 border-2 border-transparent focus:border-emerald-600 rounded-2xl text-sm font-bold min-h-[80px] outline-none transition-all resize-none"
                     />
                 </div>

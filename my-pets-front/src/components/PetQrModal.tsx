@@ -38,8 +38,9 @@ export function PetQrModal({ isOpen, onClose, petId, petName }: PetQrModalProps)
               onClick={() => setShowSettings(true)} 
               className="text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
               title="Configurar diseño"
+              aria-label="Configurar diseño"
             >
-              <Settings size={22} />
+              <Settings size={22} aria-hidden="true" />
             </button>
           )}
           <button 
@@ -47,9 +48,10 @@ export function PetQrModal({ isOpen, onClose, petId, petName }: PetQrModalProps)
               setShowSettings(false); // Reiniciamos la vista al cerrar
               onClose();
             }} 
+            aria-label="Cerrar"
             className="text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
           >
-            <X size={24} />
+            <X size={24} aria-hidden="true" />
           </button>
         </div>
 
@@ -58,9 +60,10 @@ export function PetQrModal({ isOpen, onClose, petId, petName }: PetQrModalProps)
           {showSettings && (
             <button 
               onClick={() => setShowSettings(false)} 
+              aria-label="Volver"
               className="absolute left-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
             >
-              <ChevronLeft size={24} />
+              <ChevronLeft size={24} aria-hidden="true" />
             </button>
           )}
           <h2 className="text-xl font-black text-gray-900 dark:text-white text-center">
@@ -117,15 +120,15 @@ export function PetQrModal({ isOpen, onClose, petId, petName }: PetQrModalProps)
                 <div className="grid grid-cols-3 gap-4">
                   <div className="flex flex-col items-center gap-1">
                     <label className="text-[10px] font-bold text-gray-500 uppercase">Borde</label>
-                    <input type="color" value={tagColor} onChange={(e) => setTagColor(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0 p-0 bg-transparent" />
+                    <input type="color" aria-label="Color del borde" value={tagColor} onChange={(e) => setTagColor(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0 p-0 bg-transparent" />
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <label className="text-[10px] font-bold text-gray-500 uppercase">Fondo</label>
-                    <input type="color" value={tagBg} onChange={(e) => setTagBg(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0 p-0 bg-transparent" />
+                    <input type="color" aria-label="Color de fondo" value={tagBg} onChange={(e) => setTagBg(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0 p-0 bg-transparent" />
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <label className="text-[10px] font-bold text-gray-500 uppercase">Texto/QR</label>
-                    <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0 p-0 bg-transparent" />
+                    <input type="color" aria-label="Color del texto y QR" value={textColor} onChange={(e) => setTextColor(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0 p-0 bg-transparent" />
                   </div>
                 </div>
               </div>

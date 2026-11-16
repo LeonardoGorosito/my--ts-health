@@ -87,12 +87,12 @@ npm run preview
 
 ## Variables de entorno
 
-- Si el proyecto consume una API, añade la variable para la URL base, p. ej. `VITE_API_BASE_URL` en un archivo `.env` o en la plataforma de despliegue.
+- Si el proyecto consume una API, añade la variable para la URL base, p. ej. `VITE_API_URL` en un archivo `.env` o en la plataforma de despliegue.
 
 Ejemplo `.env`:
 
 ```
-VITE_API_BASE_URL=https://api.my-pets.example
+VITE_API_URL=https://api.my-pets.example
 ```
 
 ## Despliegue

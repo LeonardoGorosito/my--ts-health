@@ -128,7 +128,6 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData }: EditPet
             formData.append(key, typeof value === 'boolean' ? String(value) : value)
         }
       })
-      formData.append('species', selectedSpecies)
       if (profileImage) formData.append('profileImage', profileImage)
       if (bannerImage) formData.append('bannerImage', bannerImage)
 
@@ -185,7 +184,7 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData }: EditPet
                         <input type="file" ref={profileInputRef} onChange={(e) => handleImageChange(e, 'profile')} className="hidden" accept="image/*" />
                     </div>
                 </div>
-                <button type="button" onClick={handleClose} className="absolute top-4 right-4 p-2 bg-black/20 hover:bg-black/40 text-white rounded-full backdrop-blur-sm transition-colors z-20">
+                <button type="button" onClick={handleClose} aria-label="Cerrar" className="absolute top-4 right-4 p-2 bg-black/20 hover:bg-black/40 text-white rounded-full backdrop-blur-sm transition-colors z-20">
                     <X size={20} />
                 </button>
             </div>
@@ -199,21 +198,21 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData }: EditPet
                 {/* Campos idénticos al de Agregar */}
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Nombre</label>
-                        <Input type="text" {...register('name')} className="w-full bg-gray-50 dark:bg-bg-matte border-2 border-transparent focus:border-emerald-600 dark:text-gray-100 rounded-2xl transition-all font-bold" />
+                        <label htmlFor="edit-pet-name" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Nombre</label>
+                        <Input type="text" id="edit-pet-name" {...register('name')} className="w-full bg-gray-50 dark:bg-bg-matte border-2 border-transparent focus:border-emerald-600 dark:text-gray-100 rounded-2xl transition-all font-bold" />
                         {errors.name && <p className="mt-1 text-xs font-bold text-red-500">{errors.name.message}</p>}
                     </div>
                     <div>
-                        <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Raza</label>
-                        <Input type="text" {...register('breed')} className="w-full bg-gray-50 dark:bg-bg-matte border-2 border-transparent focus:border-emerald-600 dark:text-gray-100 rounded-2xl transition-all font-bold text-sm" />
+                        <label htmlFor="edit-pet-breed" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Raza</label>
+                        <Input type="text" id="edit-pet-breed" {...register('breed')} className="w-full bg-gray-50 dark:bg-bg-matte border-2 border-transparent focus:border-emerald-600 dark:text-gray-100 rounded-2xl transition-all font-bold text-sm" />
                     </div>
 
                     <div>
-                    <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Teléfono (Opcional)</label>
+                    <label htmlFor="edit-pet-phone" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Teléfono (Opcional)</label>
                     <Input
                         type="text"
                         placeholder="Ej: +54 342 1234567"
-                        {...register('phone')}
+                        id="edit-pet-phone" {...register('phone')}
                         className="w-full bg-gray-50 dark:bg-bg-matte border-2 border-transparent focus:border-emerald-600 dark:text-gray-100 rounded-2xl transition-all font-bold text-sm"
                     />
                     </div>
@@ -223,11 +222,11 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData }: EditPet
                     </label>
 
                     <div>
-                    <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Dirección (Opcional)</label>
+                    <label htmlFor="edit-pet-address" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Dirección (Opcional)</label>
                     <Input
                         type="text"
                         placeholder="Ej: San Martín 2020, Santa Fe Capital"
-                        {...register('address')}
+                        id="edit-pet-address" {...register('address')}
                         className="w-full bg-gray-50 dark:bg-bg-matte border-2 border-transparent focus:border-emerald-600 dark:text-gray-100 rounded-2xl transition-all font-bold text-sm"
                     />
                     </div>
@@ -250,19 +249,19 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData }: EditPet
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Género</label>
-                        <select {...register('gender')} className="w-full px-4 py-3 bg-gray-50 dark:bg-bg-matte dark:text-gray-100 border-2 border-transparent focus:border-emerald-600 rounded-2xl font-bold text-sm outline-none appearance-none">
+                        <label htmlFor="edit-pet-gender" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Género</label>
+                        <select id="edit-pet-gender" {...register('gender')} className="w-full px-4 py-3 bg-gray-50 dark:bg-bg-matte dark:text-gray-100 border-2 border-transparent focus:border-emerald-600 rounded-2xl font-bold text-sm outline-none appearance-none">
                             <option value="Macho">Macho</option>
                             <option value="Hembra">Hembra</option>
                         </select>
                     </div>
                     <div>
-                        <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Peso (kg)</label>
-                        <Input type="text" {...register('weight')} className="bg-gray-50 dark:bg-bg-matte border-transparent focus:border-emerald-600 rounded-2xl text-sm font-bold dark:text-gray-100" />
+                        <label htmlFor="edit-pet-weight" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Peso (kg)</label>
+                        <Input type="text" id="edit-pet-weight" {...register('weight')} className="bg-gray-50 dark:bg-bg-matte border-transparent focus:border-emerald-600 rounded-2xl text-sm font-bold dark:text-gray-100" />
                     </div>
                     <div className="col-span-2">
-                        <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Nacimiento</label>
-                        <Input type="date" {...register('birthDate')} className="bg-gray-50 dark:bg-bg-matte border-transparent focus:border-emerald-600 rounded-2xl text-sm font-bold dark:text-gray-100 w-full" />
+                        <label htmlFor="edit-pet-birthDate" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Nacimiento</label>
+                        <Input type="date" id="edit-pet-birthDate" {...register('birthDate')} className="bg-gray-50 dark:bg-bg-matte border-transparent focus:border-emerald-600 rounded-2xl text-sm font-bold dark:text-gray-100 w-full" />
                     </div>
                 </div>
 
@@ -275,8 +274,8 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData }: EditPet
                 </label>
 
                 <div>
-                    <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Notas de salud</label>
-                    <textarea {...register('specialNeeds')} className="w-full px-4 py-3 bg-gray-50 dark:bg-bg-matte dark:text-gray-100 border-2 border-transparent focus:border-emerald-600 rounded-2xl text-sm font-bold min-h-[80px] outline-none resize-none" />
+                    <label htmlFor="edit-pet-specialNeeds" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Notas de salud</label>
+                    <textarea id="edit-pet-specialNeeds" {...register('specialNeeds')} className="w-full px-4 py-3 bg-gray-50 dark:bg-bg-matte dark:text-gray-100 border-2 border-transparent focus:border-emerald-600 rounded-2xl text-sm font-bold min-h-[80px] outline-none resize-none" />
                 </div>
 
                 <div className="flex gap-3 pt-4 border-t border-gray-100 dark:border-zinc-800">

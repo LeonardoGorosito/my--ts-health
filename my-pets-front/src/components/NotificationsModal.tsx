@@ -23,9 +23,10 @@ export function NotificationsModal({ isOpen, onClose, alerts }: NotificationsMod
             </h2>
             <button 
               onClick={onClose}
+              aria-label="Cerrar notificaciones"
               className="p-2 bg-gray-100 dark:bg-zinc-800 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 rounded-full transition-colors"
             >
-              <X size={20} />
+              <X size={20} aria-hidden="true" />
             </button>
           </div>
           
