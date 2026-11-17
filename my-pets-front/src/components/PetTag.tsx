@@ -76,7 +76,7 @@ export function PetTag({
             className={`font-bold uppercase mt-0.5 tracking-widest ${currentSize.brand}`}
             style={{ color: color }}
           >
-            Pet Health
+            PetHealth
           </span>
           
           {/* Teléfono opcional ultra pequeño */}

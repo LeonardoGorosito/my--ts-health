@@ -1,21 +1,20 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { useDarkMode } from '../hooks/useDarkMode'
+import { ThemeToggle } from './ThemeToggle'
 import { 
   User, 
   Settings, 
-  Sun, 
-  Moon, 
   LogOut, 
   ChevronRight,
   QrCode,
-  LayoutDashboard
+  LayoutDashboard,
+  CreditCard,
+  ShieldCheck
 } from 'lucide-react'
 
 export function ProfileDropdown() {
   const { user, logout } = useAuth()
-  const { isDark, toggle } = useDarkMode()
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -58,25 +57,18 @@ export function ProfileDropdown() {
           <MenuLink to="/perfil" icon={<User size={18} />} label="Mi Perfil" onClick={() => setIsOpen(false)} />
           <MenuLink to="/configuracion" icon={<Settings size={18} />} label="Configuración" onClick={() => setIsOpen(false)} />
           <MenuLink to="/app/qr" icon={<QrCode size={18} />} label="Código QR Mascotas" onClick={() => setIsOpen(false)} />
+          <MenuLink to="/app/plan" icon={<CreditCard size={18} />} label="Mi plan" onClick={() => setIsOpen(false)} />
+          {user?.role === 'ADMIN' && (
+            <MenuLink to="/admin" icon={<ShieldCheck size={18} />} label="Administrar planes" onClick={() => setIsOpen(false)} />
+          )}
         </div>
 
         <div className="my-2 border-t border-gray-100 dark:border-neutral-800" />
 
-        {/* DARK MODE SWITCH (Estilo Atheros) */}
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3 text-gray-600 dark:text-gray-300">
-            {isDark ? <Moon size={18} /> : <Sun size={18} />}
-            <span className="text-sm font-bold uppercase tracking-widest text-[10px]">Modo Oscuro</span>
-          </div>
-          <button 
-            onClick={toggle}
-            role="switch"
-            aria-checked={isDark}
-            aria-label="Modo oscuro"
-            className={`w-10 h-5 rounded-full transition-colors relative ${isDark ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-neutral-700'}`}
-          >
-            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isDark ? 'left-6' : 'left-1'}`} />
-          </button>
+        {/* TEMA: Sistema / Claro / Oscuro */}
+        <div className="px-4 py-3">
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Tema</p>
+          <ThemeToggle className="w-full" />
         </div>
 
         <div className="my-2 border-t border-gray-100 dark:border-neutral-800" />

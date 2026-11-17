@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { toast } from 'sonner'
 
 export const api = axios.create({
   // Asegúrate de que esta variable de entorno esté bien definida en Vercel Frontend
@@ -6,6 +7,21 @@ export const api = axios.create({
   // CAMBIO IMPORTANTE: Esto debe ser true para coincidir con el backend
   withCredentials: true, 
 })
+
+// 402 = el plan no alcanza (prueba vencida, límite de mascotas o función Pro).
+// Mostramos el motivo con un acceso a "Mi plan"; el componente igual recibe el error.
+api.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    if (error?.response?.status === 402) {
+      toast.warning(error.response.data?.message || 'Tu plan no incluye esta acción', {
+        id: 'plan-required', // un solo aviso aunque fallen varios pedidos juntos
+        action: { label: 'Ver planes', onClick: () => window.location.assign('/app/plan') },
+      })
+    }
+    return Promise.reject(error)
+  }
+)
 
 api.interceptors.request.use((cfg) => {
   const t = localStorage.getItem('token')

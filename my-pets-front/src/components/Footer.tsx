@@ -42,7 +42,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-100 dark:border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-          <p>&copy; {currentYear} Pet Health. Hecho con <Heart size={10} className="inline text-emerald-500 mx-1" /> en Santa Fe.</p>
+          <p>&copy; {currentYear} PetHealth. Hecho con <Heart size={10} className="inline text-emerald-500 mx-1" /> en Santa Fe.</p>
           <div className="flex gap-6">
             <span className="text-gray-300 dark:text-gray-700">v1.0.0</span>
           </div>

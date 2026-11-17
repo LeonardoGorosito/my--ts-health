@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { api } from '../lib/axios'
+import type { Tier } from '../lib/plans'
 
 export type User = { 
   id: string; 
@@ -13,6 +14,22 @@ export type User = {
   emergencyPhone?: string | null;
   emailReminders?: boolean;
   role: 'USER' | 'ADMIN'; 
+  subscription?: Subscription;
+}
+
+// Estado de la suscripción que devuelve /auth/me (ver my-pet-api/src/lib/subscription.ts)
+export type Subscription = {
+  tier: Tier;
+  plan: 'STANDARD' | 'PRO' | null;
+  planExpiresAt: string | null;
+  trialEndsAt: string | null;
+  trialDaysLeft: number;
+  limits: {
+    maxPets: number | null; // null = ilimitadas
+    reminders: boolean;
+    attachments: boolean;
+    readOnly: boolean;
+  };
 }
 
 export type Preferences = {
@@ -45,6 +62,7 @@ type AuthCtx = {
   verifyEmail: (email: string, code: string) => Promise<void>
   updateProfile: (data: ProfileUpdate) => Promise<void>
   updatePreferences: (data: Preferences) => Promise<void>
+  refreshUser: () => Promise<void>
 }
 
 const Ctx = createContext<AuthCtx | null>(null)
@@ -103,7 +121,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(me);
   }
 
-  const value = useMemo(() => ({ user, loading, login, logout, register, verifyEmail, updateProfile, updatePreferences }), [user, loading])
+  const refreshUser = async () => {
+    const { data: me } = await api.get('/auth/me');
+    setUser(me);
+  }
+
+  const value = useMemo(() => ({ user, loading, login, logout, register, verifyEmail, updateProfile, updatePreferences, refreshUser }), [user, loading])
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
 

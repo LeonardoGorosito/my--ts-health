@@ -42,7 +42,11 @@ There is no test suite. `npm run build` is the type-check gate. `tsconfig.app.js
 
 **Forms**: modals and auth pages use `react-hook-form` with `zodResolver` and a zod schema defined in the same file. Pet create and edit send `FormData` because they include a photo upload.
 
-**Styling**: Tailwind CSS v4 through `@tailwindcss/vite`. There is no tailwind config file; theme tokens (`bg-matte`, `bg-card`, `text-main`) are declared in `@theme` in `src/index.css` and overridden under `.dark`. Dark mode is class-based (`@variant dark` on `.dark`), toggled by `hooks/useDarkMode.ts` and persisted in `localStorage.theme`. Icons come from `lucide-react`.
+**Styling**: Tailwind CSS v4 through `@tailwindcss/vite`. There is no tailwind config file; theme tokens (`bg-matte`, `bg-card`, `text-main`) are declared in `@theme` in `src/index.css` and overridden under `.dark`. Dark mode is class-based (`@variant dark` on `.dark`). `hooks/useTheme.ts` is one shared store with three options: `system` (the default; follows the device live), `light`, or `dark`. Only an explicit choice is saved in `localStorage.theme`. The inline script in `index.html` applies the theme before React loads. `components/ThemeToggle.tsx` is the selector and appears on the landing, the auth pages (through `AuthTopBar`), and the profile menu. Every new screen needs `dark:` variants. Icons come from `lucide-react`.
+
+**Subscriptions**: 30-day trial with everything in Pro (no card), then `STANDARD` (max 2 pets, no reminders or attachments) or `PRO`. If no plan is active, the account is read-only, but the public QR page and lost mode keep working. The backend enforces limits in `../my-pet-api/src/lib/subscription.ts` (`requireActive`, `requireFeature`, `requirePetSlot`) and answers `402` with a `code` (`SUBSCRIPTION_EXPIRED`, `PLAN_REQUIRED`, `PET_LIMIT`). `/auth/me` returns `subscription` (tier and limits). On the front, `hooks/useSubscription.ts` decides which buttons to show, and the axios interceptor turns any 402 into a toast linking to `/app/plan`. Prices and plan copy live only in `src/lib/plans.ts`; if you change what a plan includes, change the backend too. No payment provider is connected yet: admins assign plans by hand at `/admin` (`PUT /admin/plan`).
+
+**Brand**: the logo and the mascot "Placo" (a collar tag with a face) are SVG components in `src/components/brand/` (`Logo`, `PlacoIcon`, `Placo` with `mood`). The favicon is `public/favicon.svg`. The brand font is Space Grotesk (`font-brand`), loaded in `index.html`.
 
 ## Gotchas
 

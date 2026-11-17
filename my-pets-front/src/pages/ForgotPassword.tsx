@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { api } from '../lib/axios'
 import { KeyRound, MailCheck, ArrowLeft } from 'lucide-react'
+import { AuthTopBar } from '../components/AuthTopBar'
 
 const schema = z.object({ 
   email: z.string().email('Ingresa un email válido'), 
@@ -56,20 +57,21 @@ export default function ForgotPassword() {
   // Input idéntico al del Login
   const InputField = ({ ...props }) => (
     <input 
-      className="bg-gray-100 border-none px-4 py-3 my-1.5 w-full rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition-all placeholder-gray-400 text-gray-800"
+      className="bg-gray-100 border-none px-4 py-3 my-1.5 w-full rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition-all placeholder-gray-400 text-gray-800 dark:bg-gray-800 dark:text-gray-100"
       {...props}
     />
   )
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 font-sans">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-[450px] p-10 text-center relative animate-in fade-in zoom-in duration-300">
+    <div className="relative min-h-screen pt-20 bg-gray-100 flex items-center justify-center p-4 font-sans dark:bg-gray-950">
+        <AuthTopBar />
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-[450px] p-10 text-center relative animate-in fade-in zoom-in duration-300 dark:bg-gray-900">
           
         <div className="text-center mb-6 flex flex-col items-center">
-          <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-4">
+          <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-4 dark:bg-emerald-950">
             {isEmailSent ? <MailCheck size={32} className="text-emerald-500" /> : <KeyRound size={32} className="text-emerald-500" />}
           </div>
-          <h2 className="text-3xl font-bold text-emerald-900">
+          <h2 className="text-3xl font-bold text-emerald-900 dark:text-emerald-100">
             {isEmailSent ? 'Revisa tu correo' : 'Recuperar Acceso'}
           </h2>
         </div>
@@ -97,12 +99,12 @@ export default function ForgotPassword() {
           </>
         ) : (
           <div className="text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <p className="text-sm text-gray-500 mb-8 leading-relaxed">
-              Hemos enviado un enlace a <strong className="text-gray-800">{lastEmail}</strong>. Revisa tu bandeja de entrada (y la carpeta de Spam) en los próximos minutos.
+            <p className="text-sm text-gray-500 mb-8 leading-relaxed dark:text-gray-400">
+              Hemos enviado un enlace a <strong className="text-gray-800 dark:text-gray-100">{lastEmail}</strong>. Revisa tu bandeja de entrada (y la carpeta de Spam) en los próximos minutos.
             </p>
             
             {/* SECCIÓN DE REENVIAR */}
-            <div className="mb-6 space-y-3 bg-gray-50 p-6 rounded-2xl border border-gray-100">
+            <div className="mb-6 space-y-3 bg-gray-50 p-6 rounded-2xl border border-gray-100 dark:bg-gray-800">
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">¿No recibiste nada?</p>
                 <button 
                     onClick={handleResend} 

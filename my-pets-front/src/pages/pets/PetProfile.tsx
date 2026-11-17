@@ -30,6 +30,7 @@ import { AddMedicalModal } from '../../components/AddMedicalModal'
 import { AddVaccineModal } from '../../components/AddVaccineModal'
 import { AddDewormingModal } from '../../components/AddDewormingModal'
 import { PetQrModal } from '../../components/PetQrModal' // <--- Importamos el modal del QR
+import { useSubscription } from '../../hooks/useSubscription'
 import { LostModeModal } from '../../components/LostModeModal'
 
 // --- FUNCIÓN AUXILIAR: CALCULAR EDAD ---
@@ -106,9 +107,21 @@ export function PetProfile() {
   const [editingVaccine, setEditingVaccine] = useState<VaccineItem | null>(null)
   const [editingDeworming, setEditingDeworming] = useState<DewormingItem | null>(null)
 
-  const openMedicalModal = (record: MedicalItem | null = null) => { setEditingMedical(record); setIsMedicalModalOpen(true) }
-  const openVaccineModal = (record: VaccineItem | null = null) => { setEditingVaccine(record); setIsVaccineModalOpen(true) }
-  const openDewormingModal = (record: DewormingItem | null = null) => { setEditingDeworming(record); setIsDewormingModalOpen(true) }
+  // Plan: en solo lectura no se abren los formularios de alta/edición (el backend también lo bloquea)
+  const { limits } = useSubscription()
+  const blockedByPlan = () => {
+    if (!limits.readOnly) return false
+    toast.warning('Tu prueba gratis terminó. Elegí un plan para seguir editando.', {
+      id: 'plan-required',
+      action: { label: 'Ver planes', onClick: () => navigate('/app/plan') },
+    })
+    return true
+  }
+
+  const openMedicalModal = (record: MedicalItem | null = null) => { if (blockedByPlan()) return; setEditingMedical(record); setIsMedicalModalOpen(true) }
+  const openVaccineModal = (record: VaccineItem | null = null) => { if (blockedByPlan()) return; setEditingVaccine(record); setIsVaccineModalOpen(true) }
+  const openDewormingModal = (record: DewormingItem | null = null) => { if (blockedByPlan()) return; setEditingDeworming(record); setIsDewormingModalOpen(true) }
+  const openEditPet = () => { if (blockedByPlan()) return; setIsEditModalOpen(true) }
 
   // 2. CARGAR DATOS
   const fetchPet = async () => {
@@ -209,7 +222,7 @@ export function PetProfile() {
           </button>
 
           <button 
-              onClick={() => setIsEditModalOpen(true)} 
+              onClick={openEditPet} 
               aria-label="Editar perfil"
               className="bg-black/20 hover:bg-black/40 text-white p-2 md:px-4 rounded-full backdrop-blur-sm transition-all flex items-center gap-2 font-bold text-xs uppercase tracking-widest shadow-lg"
           >
@@ -298,7 +311,7 @@ export function PetProfile() {
                    <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
                       <AlertCircle size={20} className="text-emerald-500" /> Notas de Salud
                    </h3>
-                   <button onClick={() => setIsEditModalOpen(true)} className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 hover:text-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 rounded-lg transition-colors">
+                   <button onClick={openEditPet} className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 hover:text-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 rounded-lg transition-colors">
                      Editar
                    </button>
                </div>
@@ -530,7 +543,17 @@ export function PetProfile() {
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Estudios y Archivos</h2>
-              <UploadButton petId={pet.id} onUploadSuccess={fetchPet} />
+              {limits.attachments ? (
+                <UploadButton petId={pet.id} onUploadSuccess={fetchPet} />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => navigate('/app/plan')}
+                  className="text-xs font-bold text-emerald-700 dark:text-emerald-300 border-2 border-emerald-600 px-4 py-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950 transition-colors"
+                >
+                  Adjuntar archivos es de Pro
+                </button>
+              )}
             </div>
             
             {pet.attachments.length === 0 ? (

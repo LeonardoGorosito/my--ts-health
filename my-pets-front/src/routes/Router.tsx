@@ -20,6 +20,8 @@ import { Settings } from '../pages/Settings'
 // --- 4. PÁGINAS PÚBLICAS ---
 import { PublicPetProfile } from '../pages/public/PublicPetProfile' 
 import LandingPage from '../pages/public/LandingPage'
+import { MyPlan } from '../pages/MyPlan'
+import { AdminPlans } from '../pages/AdminPlans'
 
 // ------------------------------------------------------------------
 // COMPONENTE BARRERA: Evita que un usuario logueado vuelva al Login
@@ -43,6 +45,8 @@ export function AppRouter() {
     <Routes>
       {/* --- RUTA RAÍZ PÚBLICA --- */}
       <Route path="/" element={<LandingPage />} />
+      {/* Los precios están en la landing; /precios queda como atajo a esa sección */}
+      <Route path="/precios" element={<Navigate to={{ pathname: '/', hash: '#precios' }} replace />} />
       
       {/* =================================================================
           ZONA DE AUTENTICACIÓN (Solo para visitantes)
@@ -69,6 +73,9 @@ export function AppRouter() {
         {/* QR Code Page */}
         <Route path="qr" element={<ProtectedRoute><PetQrPage /></ProtectedRoute>} />
 
+        {/* Plan y suscripción */}
+        <Route path="plan" element={<ProtectedRoute><MyPlan /></ProtectedRoute>} />
+
         {/* Perfil detallado de una mascota en particular */}
         <Route path="pets/:id" element={<ProtectedRoute><PetProfile /></ProtectedRoute>} />
       </Route>
@@ -77,6 +84,7 @@ export function AppRouter() {
       <Route element={<MainLayout />}>
         <Route path="/perfil" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
         <Route path="/configuracion" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute roles={['ADMIN']}><AdminPlans /></ProtectedRoute>} />
       </Route>
       
       {/* --- RUTA SALVAVIDAS (Catch-all) --- */}

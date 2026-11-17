@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '../../lib/axios'
+import { Logo } from '../../components/brand/Logo'
+import { Placo } from '../../components/brand/Placo'
 // NUEVO: Agregamos el ícono Phone
-import { AlertCircle, Cat, Dog, Heart, Mail, User, Phone, Siren } from 'lucide-react'
+import { AlertCircle, Cat, Dog, Mail, User, Phone, Siren } from 'lucide-react'
 
 // NUEVO: Agregamos el phone al interface del dueño
 interface PublicPet {
@@ -50,7 +52,7 @@ export function PublicPetProfile() {
   
   if (!pet) return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-black p-6 text-center">
-      <Heart size={48} className="text-gray-300 dark:text-gray-700 mb-4" />
+      <Placo size={120} mood="sad" className="mb-4" title="Placo triste: no encontramos la mascota" />
       <h1 className="text-2xl font-black text-gray-900 dark:text-white">Mascota no encontrada</h1>
       <p className="text-gray-500 mt-2">Este código QR ya no es válido o la mascota fue eliminada.</p>
     </div>
@@ -202,12 +204,12 @@ export function PublicPetProfile() {
           </div>
         </div>
 
-        <div className="mt-12 opacity-50 flex flex-col items-center">
-          <Heart size={20} className="text-gray-400 mb-2" />
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-            Generado por PetHealth
-          </p>
-        </div>
+        <a href="/" className="mt-12 flex flex-col items-center gap-2 opacity-80 hover:opacity-100 transition-opacity">
+          <Logo size="sm" />
+          <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+            Historia clínica y placa QR para tu mascota
+          </span>
+        </a>
       </div>
     </div>
   )

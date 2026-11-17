@@ -6,6 +6,9 @@
   --color-bg-matte: #ffffff;
   --color-bg-card: #ffffff;
   --color-text-main: #111827;
+
+  /* Tipografía de la marca (logo); cargada en index.html */
+  --font-brand: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
 }
 
 /* VALORES CUANDO EL MODO OSCURO ESTÁ ON */
@@ -178,4 +181,9 @@ html, body {
   .container-auth.right-panel-active .overlay-right {
     transform: translateX(20%);
   }
+}
+
+/* Desplazamiento suave para los links a secciones (#precios, etc.), salvo que el usuario pida menos movimiento */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
 }

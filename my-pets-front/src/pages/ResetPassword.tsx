@@ -6,6 +6,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { api } from '../lib/axios' 
 import { LockKeyhole } from 'lucide-react'
+import { AuthTopBar } from '../components/AuthTopBar'
 
 const schema = z.object({
   password: z.string().min(6, 'Mínimo 6 caracteres'),
@@ -54,7 +55,7 @@ export default function ResetPassword() {
 
   const InputField = ({ ...props }) => (
     <input 
-      className="bg-gray-100 border-none px-4 py-3 my-1.5 w-full rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition-all placeholder-gray-400 text-gray-800"
+      className="bg-gray-100 border-none px-4 py-3 my-1.5 w-full rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition-all placeholder-gray-400 text-gray-800 dark:bg-gray-800 dark:text-gray-100"
       {...props}
     />
   )
@@ -71,13 +72,14 @@ export default function ResetPassword() {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gray-100">
-        <div className="bg-white p-8 rounded-3xl shadow-xl text-center max-w-sm">
-          <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+      <div className="relative min-h-screen pt-20 flex items-center justify-center p-4 bg-gray-100 dark:bg-gray-950">
+        <AuthTopBar />
+        <div className="bg-white p-8 rounded-3xl shadow-xl text-center max-w-sm dark:bg-gray-900">
+          <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 dark:bg-red-950">
              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Enlace inválido</h2>
-          <p className="text-sm text-gray-500 mb-6">El enlace expiró o es incorrecto. Por favor solicita uno nuevo.</p>
+          <h2 className="text-xl font-bold text-gray-900 mb-2 dark:text-white">Enlace inválido</h2>
+          <p className="text-sm text-gray-500 mb-6 dark:text-gray-400">El enlace expiró o es incorrecto. Por favor solicita uno nuevo.</p>
           <button onClick={() => navigate('/forgot-password')} className="bg-gray-900 text-white text-xs font-bold py-3 px-6 rounded-full uppercase tracking-wider hover:bg-black transition-colors w-full">
             Solicitar nuevo enlace
           </button>
@@ -87,14 +89,15 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 font-sans">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-[450px] p-10 text-center relative animate-in fade-in zoom-in duration-300">
+    <div className="relative min-h-screen pt-20 bg-gray-100 flex items-center justify-center p-4 font-sans dark:bg-gray-950">
+        <AuthTopBar />
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-[450px] p-10 text-center relative animate-in fade-in zoom-in duration-300 dark:bg-gray-900">
         
         <div className="text-center mb-8 flex flex-col items-center">
-          <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-4">
+          <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-4 dark:bg-emerald-950">
             <LockKeyhole size={32} className="text-emerald-500" />
           </div>
-          <h2 className="text-3xl font-bold text-emerald-900">Nueva Contraseña</h2>
+          <h2 className="text-3xl font-bold text-emerald-900 dark:text-emerald-100">Nueva Contraseña</h2>
           <p className="text-sm text-gray-400 mt-2">Ingresa tu nueva clave para recuperar el acceso</p>
         </div>
 

@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/axios'
-import { Menu, X, Heart, Plus, Bell, Syringe, Pill } from 'lucide-react'
+import { Menu, X, Bell, Syringe, Pill } from 'lucide-react'
 import { ProfileDropdown } from './ProfileDropdown'
 import { NotificationsModal } from './NotificationsModal'
+import { Logo } from './brand/Logo'
 
 export type Alert = {
   id: string;
@@ -175,23 +176,9 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-20">
           
           <Link to="/app" aria-label="PetHealth, ir a Mis Mascotas" className="flex items-center gap-3 group" onClick={closeMenu}>
-            <div className="relative flex flex-col items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <div className="flex gap-0.5 mb-[2px]">
-                 <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                 <div className="w-2 h-2 bg-emerald-500 rounded-full -mt-1"></div>
-                 <div className="w-2 h-2 bg-emerald-500 rounded-full -mt-1"></div>
-                 <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              </div>
-              <div className="relative">
-                 <Heart className="w-8 h-8 text-emerald-600 fill-emerald-600" strokeWidth={0} />
-                 <Plus className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white" size={16} strokeWidth={4} />
-              </div>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-black text-xl leading-none text-gray-900 dark:text-white tracking-tighter">
-                Pet<span className="text-emerald-600">Health</span>
-              </span>
-            </div>
+            <span className="group-hover:scale-105 transition-transform duration-300">
+              <Logo size="md" />
+            </span>
           </Link>
 
 

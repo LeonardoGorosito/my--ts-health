@@ -7,6 +7,7 @@ import { isAxiosError } from 'axios'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate, Link } from 'react-router-dom'
 import { toast } from 'sonner'
+import { AuthTopBar } from '../components/AuthTopBar'
 
 // En el login solo exigimos que haya contraseña: la regla de longitud mínima
 // la impone el registro (y el backend). Así no bloqueamos cuentas viejas.
@@ -45,7 +46,7 @@ type InputFieldProps = InputHTMLAttributes<HTMLInputElement> & { ref?: Ref<HTMLI
 function InputField(props: InputFieldProps) {
   return (
     <input
-      className="bg-gray-100 border-none px-4 py-3 my-1.5 w-full rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition-all placeholder-gray-500 text-gray-800"
+      className="bg-gray-100 border-none px-4 py-3 my-1.5 w-full rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition-all placeholder-gray-500 text-gray-800 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400"
       {...props}
     />
   )
@@ -58,7 +59,7 @@ function EyeIcon({ visible, onClick }: { visible: boolean; onClick: () => void }
       onClick={onClick}
       aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
       aria-pressed={visible}
-      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-emerald-600"
+      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-emerald-600 dark:text-gray-400"
     >
       {visible ? (
         <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -160,15 +161,16 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
   // =========================================
   if (isVerifying) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 font-sans">
-        <div className="bg-white p-8 md:p-10 rounded-3xl shadow-2xl w-full max-w-[450px] text-center animate-in zoom-in duration-300">
-          <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
+      <div className="relative min-h-screen pt-20 bg-gray-100 flex items-center justify-center p-4 font-sans dark:bg-gray-950">
+        <AuthTopBar />
+        <div className="bg-white p-8 md:p-10 rounded-3xl shadow-2xl w-full max-w-[450px] text-center animate-in zoom-in duration-300 dark:bg-gray-900">
+          <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6 dark:bg-emerald-950">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><path d="M22 13V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h8"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/><path d="m16 19 2 2 4-4"/></svg>
           </div>
           
-          <h2 className="text-3xl font-bold text-emerald-900 mb-2">Verifica tu email</h2>
-          <p className="text-sm text-gray-500 mb-8">
-            Ingresa el código de 6 dígitos que enviamos a <strong className="text-gray-800">{registeredEmail}</strong>
+          <h2 className="text-3xl font-bold text-emerald-900 mb-2 dark:text-emerald-100">Verifica tu email</h2>
+          <p className="text-sm text-gray-500 mb-8 dark:text-gray-400">
+            Ingresa el código de 6 dígitos que enviamos a <strong className="text-gray-800 dark:text-gray-100">{registeredEmail}</strong>
           </p>
 
           <form onSubmit={onVerify} className="flex flex-col items-center">
@@ -184,7 +186,7 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
                   value={digit}
                   onChange={(e) => handleOtpChange(index, e.target.value)}
                   onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                  className="w-10 h-12 sm:w-12 sm:h-14 text-center text-xl font-bold rounded-xl border border-gray-200 bg-gray-50 outline-none focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all text-gray-900"
+                  className="w-10 h-12 sm:w-12 sm:h-14 text-center text-xl font-bold rounded-xl border border-gray-200 bg-gray-50 outline-none focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all text-gray-900 dark:bg-gray-800 dark:text-white dark:border-gray-700 dark:focus:bg-gray-900"
                 />
               ))}
             </div>
@@ -214,47 +216,48 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
   // VISTA 2: LOGIN / REGISTRO NORMAL
   // =========================================
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 font-sans">
-      <div className={`container-auth bg-white rounded-3xl shadow-2xl w-full max-w-[900px] md:min-h-[600px] relative overflow-hidden ${isRegisterActive ? "right-panel-active" : ""}`}>
+    <div className="relative min-h-screen pt-20 bg-gray-100 flex items-center justify-center p-4 font-sans dark:bg-gray-950">
+        <AuthTopBar />
+      <div className={`container-auth bg-white rounded-3xl shadow-2xl w-full max-w-[900px] md:min-h-[600px] relative overflow-hidden dark:bg-gray-900 ${isRegisterActive ? "right-panel-active" : ""}`}>
         
         {/* --- FORMULARIO DE REGISTRO --- */}
-        <div className="form-container sign-up-container bg-white p-8 md:p-10 flex flex-col items-center justify-center h-full text-center py-12 md:py-10">
+        <div className="form-container sign-up-container bg-white p-8 md:p-10 flex flex-col items-center justify-center h-full text-center py-12 md:py-10 dark:bg-gray-900">
           <form onSubmit={handleRegisterSubmit(onRegister)} className="w-full max-w-xs flex flex-col items-center mt-4">
-            <h1 className="text-3xl font-bold text-emerald-900 mb-2">Crear Cuenta</h1>
+            <h1 className="text-3xl font-bold text-emerald-900 mb-2 dark:text-emerald-100">Crear Cuenta</h1>
             <p className="text-sm text-gray-400 mb-4">Usa tu email para registrarte</p>
 
             <div className="flex gap-2 w-full">
               <div className="w-1/2">
                 <InputField type="text" placeholder="Nombre" aria-label="Nombre" autoComplete="given-name" aria-invalid={!!regErrors.name} aria-describedby={regErrors.name ? 'reg-name-error' : undefined} {...regRegister('name')} />
-                {regErrors.name && <span id="reg-name-error" role="alert" className="text-xs text-red-600 block text-left">{regErrors.name.message}</span>}
+                {regErrors.name && <span id="reg-name-error" role="alert" className="text-xs text-red-600 block text-left dark:text-red-400">{regErrors.name.message}</span>}
               </div>
               <div className="w-1/2">
                 <InputField type="text" placeholder="Apellido" aria-label="Apellido" autoComplete="family-name" aria-invalid={!!regErrors.lastname} aria-describedby={regErrors.lastname ? 'reg-lastname-error' : undefined} {...regRegister('lastname')} />
-                {regErrors.lastname && <span id="reg-lastname-error" role="alert" className="text-xs text-red-600 block text-left">{regErrors.lastname.message}</span>}
+                {regErrors.lastname && <span id="reg-lastname-error" role="alert" className="text-xs text-red-600 block text-left dark:text-red-400">{regErrors.lastname.message}</span>}
               </div>
             </div>
 
             <div className="w-full">
                 <InputField type="email" placeholder="Email" aria-label="Email" autoComplete="email" aria-invalid={!!regErrors.email} aria-describedby={regErrors.email ? 'reg-email-error' : undefined} {...regRegister('email')} />
-                {regErrors.email && <span id="reg-email-error" role="alert" className="text-xs text-red-600 block text-left">{regErrors.email.message}</span>}
+                {regErrors.email && <span id="reg-email-error" role="alert" className="text-xs text-red-600 block text-left dark:text-red-400">{regErrors.email.message}</span>}
             </div>
 
             <div className="w-full">
                 <InputField type="tel" placeholder="Celular (Ej: +54 9...)" aria-label="Celular" autoComplete="tel" aria-describedby="reg-phone-hint" {...regRegister('phone')} />
-                <span id="reg-phone-hint" className="text-xs text-gray-500 block text-left ml-2 mb-1">Se usará para emergencias en tu placa QR.</span>
-                {regErrors.phone && <span role="alert" className="text-xs text-red-600 block text-left">{regErrors.phone.message}</span>}
+                <span id="reg-phone-hint" className="text-xs text-gray-500 block text-left ml-2 mb-1 dark:text-gray-400">Se usará para emergencias en tu placa QR.</span>
+                {regErrors.phone && <span role="alert" className="text-xs text-red-600 block text-left dark:text-red-400">{regErrors.phone.message}</span>}
             </div>
 
             <div className="w-full relative">
                 <InputField type={showPassword ? "text" : "password"} placeholder="Contraseña" aria-label="Contraseña" autoComplete="new-password" aria-invalid={!!regErrors.password} aria-describedby={regErrors.password ? 'reg-password-error' : undefined} {...regRegister('password')} />
                 <EyeIcon visible={showPassword} onClick={() => setShowPassword(!showPassword)} />
             </div>
-            {regErrors.password && <span id="reg-password-error" role="alert" className="text-xs text-red-600 block text-left w-full">{regErrors.password.message}</span>}
+            {regErrors.password && <span id="reg-password-error" role="alert" className="text-xs text-red-600 block text-left w-full dark:text-red-400">{regErrors.password.message}</span>}
 
             <div className="w-full relative">
                 <InputField type={showPassword ? "text" : "password"} placeholder="Confirmar contraseña" aria-label="Confirmar contraseña" autoComplete="new-password" aria-invalid={!!regErrors.passwordConfirm} aria-describedby={regErrors.passwordConfirm ? 'reg-password-confirm-error' : undefined} {...regRegister('passwordConfirm')} />
             </div>
-            {regErrors.passwordConfirm && <span id="reg-password-confirm-error" role="alert" className="text-xs text-red-600 block text-left w-full">{regErrors.passwordConfirm.message}</span>}
+            {regErrors.passwordConfirm && <span id="reg-password-confirm-error" role="alert" className="text-xs text-red-600 block text-left w-full dark:text-red-400">{regErrors.passwordConfirm.message}</span>}
             
             <button 
                 type="submit" 
@@ -264,32 +267,32 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
               {registerLoading ? 'Creando...' : 'Registrarse'}
             </button>
 
-            <div className="md:hidden mt-6 text-sm text-gray-500">
+            <div className="md:hidden mt-6 text-sm text-gray-500 dark:text-gray-400">
               ¿Ya tienes cuenta? <button type="button" onClick={() => setIsRegisterActive(false)} className="text-emerald-600 font-bold hover:underline">Inicia Sesión</button>
             </div>
           </form>
         </div>
 
         {/* --- FORMULARIO DE LOGIN --- */}
-        <div className="form-container sign-in-container bg-white p-8 md:p-10 flex flex-col items-center justify-center h-full text-center py-12 md:py-10">
+        <div className="form-container sign-in-container bg-white p-8 md:p-10 flex flex-col items-center justify-center h-full text-center py-12 md:py-10 dark:bg-gray-900">
           <form onSubmit={handleLoginSubmit(onLogin)} className="w-full max-w-xs flex flex-col items-center">
-            <div className="mb-6 bg-emerald-100 p-3 rounded-full text-emerald-600">
+            <div className="mb-6 bg-emerald-100 p-3 rounded-full text-emerald-600 dark:bg-emerald-950">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.45 2.344-2.5"/><path d="M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.96-1.45-2.344-2.5"/><path d="M8 14v.5"/><path d="M16 14v.5"/><path d="M11.25 16.25h1.5L12 17l-.75-.75Z"/><path d="M4.42 11.247A4.335 4.335 0 0 1 6.938 10c.333.004.588.024.767.064.424.094.885.114 1.254.123h6.082c.49-.012.83-.029 1.254-.123.18-.04.435-.06.767-.064a4.335 4.335 0 0 1 2.518 1.247c-.828 2.05-3.002 4.154-4.88 5.626a5.27 5.27 0 0 1-5.4 0c-1.877-1.472-4.052-3.576-4.88-5.626Z"/></svg>
             </div>
-            <h1 className="text-3xl font-bold text-emerald-900 mb-4">¡Hola de nuevo!</h1>
+            <h1 className="text-3xl font-bold text-emerald-900 mb-4 dark:text-emerald-100">¡Hola de nuevo!</h1>
             
             <div className="w-full">
                 <InputField type="email" placeholder="Email" aria-label="Email" autoComplete="email" aria-invalid={!!loginErrors.email} aria-describedby={loginErrors.email ? 'login-email-error' : undefined} {...regLogin('email')} />
-                {loginErrors.email && <span id="login-email-error" role="alert" className="text-xs text-red-600 block text-left">{loginErrors.email.message}</span>}
+                {loginErrors.email && <span id="login-email-error" role="alert" className="text-xs text-red-600 block text-left dark:text-red-400">{loginErrors.email.message}</span>}
             </div>
 
             <div className="w-full relative">
                 <InputField type={showPassword ? "text" : "password"} placeholder="Contraseña" aria-label="Contraseña" autoComplete="current-password" aria-invalid={!!loginErrors.password} aria-describedby={loginErrors.password ? 'login-password-error' : undefined} {...regLogin('password')} />
                 <EyeIcon visible={showPassword} onClick={() => setShowPassword(!showPassword)} />
             </div>
-            {loginErrors.password && <span id="login-password-error" role="alert" className="text-xs text-red-600 block text-left w-full">{loginErrors.password.message}</span>}
+            {loginErrors.password && <span id="login-password-error" role="alert" className="text-xs text-red-600 block text-left w-full dark:text-red-400">{loginErrors.password.message}</span>}
 
-            <Link to="/forgot-password" className="text-xs text-gray-500 my-4 hover:text-emerald-600 transition-colors border-b border-transparent hover:border-emerald-600">
+            <Link to="/forgot-password" className="text-xs text-gray-500 my-4 hover:text-emerald-600 transition-colors border-b border-transparent hover:border-emerald-600 dark:text-gray-400">
               ¿Olvidaste tu contraseña?
             </Link>
 
@@ -301,7 +304,7 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
                {loginLoading ? 'Ingresando...' : 'Iniciar Sesión'}
             </button>
 
-            <div className="md:hidden mt-6 text-sm text-gray-500">
+            <div className="md:hidden mt-6 text-sm text-gray-500 dark:text-gray-400">
               ¿Eres nuevo aquí? <button type="button" onClick={() => setIsRegisterActive(true)} className="text-emerald-600 font-bold hover:underline">Regístrate</button>
             </div>
           </form>
