@@ -5,7 +5,6 @@ import { useDarkMode } from '../hooks/useDarkMode'
 import { 
   User, 
   Settings, 
-  Monitor, 
   Sun, 
   Moon, 
   LogOut, 
@@ -58,7 +57,6 @@ export function ProfileDropdown() {
           <MenuLink to="/app" icon={<LayoutDashboard size={18} />} label="Mis Mascotas" onClick={() => setIsOpen(false)} />
           <MenuLink to="/perfil" icon={<User size={18} />} label="Mi Perfil" onClick={() => setIsOpen(false)} />
           <MenuLink to="/configuracion" icon={<Settings size={18} />} label="Configuración" onClick={() => setIsOpen(false)} />
-          <MenuLink to="/dispositivos" icon={<Monitor size={18} />} label="Dispositivos" onClick={() => setIsOpen(false)} />
           <MenuLink to="/app/qr" icon={<QrCode size={18} />} label="Código QR Mascotas" onClick={() => setIsOpen(false)} />
         </div>
 

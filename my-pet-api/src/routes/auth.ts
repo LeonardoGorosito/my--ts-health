@@ -54,6 +54,11 @@ const updateMeSchema = z.object({
   emergencyPhone: z.string().max(30).optional(),
 })
 
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Ingresá tu contraseña actual'),
+  newPassword: z.string().min(6, 'La nueva contraseña debe tener al menos 6 caracteres'),
+})
+
 const preferencesSchema = z.object({
   emailReminders: z.boolean(),
 })
@@ -281,6 +286,29 @@ export default async function auth(app: FastifyInstance) {
             select: meSelect
         })
         return me
+    })
+
+    // ==========================================================
+    // CAMBIAR CONTRASEÑA (PUT /auth/me/password) — pide la actual
+    // ==========================================================
+    app.put('/me/password', { preHandler: [authenticate], ...codeLimit }, async (req: any, reply) => {
+        const parsed = changePasswordSchema.safeParse(req.body)
+        if (!parsed.success) {
+            return reply.code(400).send({ message: parsed.error.issues[0]?.message ?? 'Datos inválidos' })
+        }
+        const { currentPassword, newPassword } = parsed.data
+
+        const user = await prisma.user.findUnique({ where: { id: req.user.sub } })
+        if (!user?.passwordHash) return reply.code(400).send({ message: 'La cuenta no tiene contraseña' })
+
+        const ok = await bcrypt.compare(currentPassword, user.passwordHash)
+        if (!ok) return reply.code(401).send({ message: 'La contraseña actual no es correcta' })
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { passwordHash: await bcrypt.hash(newPassword, 10) }
+        })
+        return { message: 'Contraseña actualizada' }
     })
 
     // ==========================================================

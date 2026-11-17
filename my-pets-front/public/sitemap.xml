@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- DOMINIO: reemplazar https://tu-dominio.com por el dominio real -->
+<!-- DOMINIO: si cambia la URL del sitio, reemplazar https://oet-health-front.vercel.app (también en index.html) -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://tu-dominio.com/</loc>
+    <loc>https://oet-health-front.vercel.app/</loc>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>

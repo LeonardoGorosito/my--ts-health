@@ -7,6 +7,7 @@ import { isAxiosError } from 'axios';
 import { HeartPulse, Shield, Save } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import type { User } from '../context/AuthContext';
+import { ChangePasswordCard } from '../components/ChangePasswordCard';
 
 const schema = z.object({
   name: z.string().trim().min(2, 'El nombre es muy corto'),
@@ -74,7 +75,8 @@ const UserProfile = () => {
   const initial = watch('name')?.trim()?.[0]?.toUpperCase() || 'U';
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
+    <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Encabezado */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Mi Perfil</h1>
@@ -180,6 +182,10 @@ const UserProfile = () => {
         </button>
       </div>
     </form>
+
+    {/* Formulario aparte: no puede ir anidado dentro del form del perfil */}
+    <ChangePasswordCard />
+    </div>
   );
 };
 

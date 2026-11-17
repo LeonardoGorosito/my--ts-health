@@ -6,5 +6,5 @@ Disallow: /configuracion
 Disallow: /dispositivos
 Disallow: /reset-password
 
-# DOMINIO: reemplazar https://tu-dominio.com por el dominio real
-Sitemap: https://tu-dominio.com/sitemap.xml
+# DOMINIO: si cambia la URL del sitio, reemplazar https://oet-health-front.vercel.app (también en index.html)
+Sitemap: https://oet-health-front.vercel.app/sitemap.xml
