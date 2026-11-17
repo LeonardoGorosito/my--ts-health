@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../db.js'
 import { authenticate } from '../hooks/authenticate.js'
-import cloudinary from '../lib/cloudinary.js'
+import { destroyCloudinaryUrl } from '../lib/cloudinary-assets.js'
 
 export default async function attachmentRoutes(app: FastifyInstance) {
 
@@ -23,27 +23,7 @@ export default async function attachmentRoutes(app: FastifyInstance) {
     }
 
     // Borrar de Cloudinary
-    if (attachment.url) {
-      try {
-         // Lógica para extraer el Public ID de la URL
-         const parts = attachment.url.split('/')
-         const filename = parts.pop()?.split('.')[0]
-         const folder = parts.pop()
-         const parentFolder = parts.pop()
-         
-         if (filename && folder) {
-             const publicId = parentFolder 
-                ? `${parentFolder}/${folder}/${filename}` // ej: pet-health/files/archivo
-                : `${folder}/${filename}`
-             
-             // Intentamos borrar (probamos como imagen y como raw/pdf)
-             await cloudinary.uploader.destroy(publicId)
-             await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' })
-         }
-      } catch (e) {
-        console.error('Error borrando de Cloudinary', e)
-      }
-    }
+    await destroyCloudinaryUrl(attachment.url)
 
     // Borrar de la DB
     await prisma.attachment.delete({ where: { id } })

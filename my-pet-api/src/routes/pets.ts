@@ -4,6 +4,7 @@ import { prisma } from '../db.js'
 import { authenticate } from '../hooks/authenticate.js'
 import { requireActive, requirePetSlot } from '../lib/subscription.js'
 import cloudinary from '../lib/cloudinary.js'
+import { destroyCloudinaryUrl } from '../lib/cloudinary-assets.js'
 import { pipeline } from 'node:stream/promises'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -188,35 +189,20 @@ export default async function petRoutes(app: FastifyInstance) {
       return reply.status(404).send({ message: 'No se pudo eliminar (no encontrada o sin permisos)' })
     }
 
-    const deleteImageFromCloudinary = async (url: string) => {
-      try {
-        const parts = url.split('/')
-        const filenameWithExt = parts.pop() 
-        const folder = parts.pop() 
-        const parentFolder = parts.pop()
-
-        if (filenameWithExt && folder && parentFolder) {
-            const filename = filenameWithExt.split('.')[0]
-            const publicId = `${parentFolder}/${folder}/${filename}`
-            await cloudinary.uploader.destroy(publicId)
-        }
-      } catch (error) {
-        console.error('Error borrando imagen de Cloudinary:', error)
-      }
-    }
-
-    if (pet.profileImageUrl) {
-        await deleteImageFromCloudinary(pet.profileImageUrl)
-    }
-    if (pet.bannerImageUrl) {
-        await deleteImageFromCloudinary(pet.bannerImageUrl)
-    }
+    // Borramos de Cloudinary las fotos y todos los archivos adjuntos de la mascota.
+    // (Los registros de la base se borran en cascada con la mascota.)
+    const attachments = await prisma.attachment.findMany({ where: { petId: id }, select: { url: true } })
+    await Promise.all([
+      destroyCloudinaryUrl(pet.profileImageUrl),
+      destroyCloudinaryUrl(pet.bannerImageUrl),
+      ...attachments.map((a) => destroyCloudinaryUrl(a.url)),
+    ])
 
     await prisma.pet.delete({
       where: { id }
     })
 
-    return reply.send({ message: 'Mascota y sus imágenes eliminadas correctamente' })
+    return reply.send({ message: 'Mascota, imágenes y archivos eliminados correctamente' })
   })
 
   // =========================================================================
