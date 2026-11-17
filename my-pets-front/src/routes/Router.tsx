@@ -20,6 +20,8 @@ import { Settings } from '../pages/Settings'
 // --- 4. PÁGINAS PÚBLICAS ---
 import { PublicPetProfile } from '../pages/public/PublicPetProfile' 
 import LandingPage from '../pages/public/LandingPage'
+import { Terms } from '../pages/public/Terms'
+import { Privacy } from '../pages/public/Privacy'
 import { MyPlan } from '../pages/MyPlan'
 import { AdminPlans } from '../pages/AdminPlans'
 
@@ -45,6 +47,8 @@ export function AppRouter() {
     <Routes>
       {/* --- RUTA RAÍZ PÚBLICA --- */}
       <Route path="/" element={<LandingPage />} />
+      <Route path="/terminos" element={<Terms />} />
+      <Route path="/privacidad" element={<Privacy />} />
       {/* Los precios están en la landing; /precios queda como atajo a esa sección */}
       <Route path="/precios" element={<Navigate to={{ pathname: '/', hash: '#precios' }} replace />} />
       

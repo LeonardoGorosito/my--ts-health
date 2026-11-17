@@ -48,6 +48,8 @@ There is no test suite. `npm run build` is the type-check gate. `tsconfig.app.js
 
 **Brand**: the logo and the mascot "Placo" (a collar tag with a face) are SVG components in `src/components/brand/` (`Logo`, `PlacoIcon`, `Placo` with `mood`). The favicon is `public/favicon.svg`. The brand font is Space Grotesk (`font-brand`), loaded in `index.html`.
 
+**Legal pages**: `/terminos` (`pages/public/Terms.tsx`) and `/privacidad` (`pages/public/Privacy.tsx`) are written for Argentine law (Ley 25.326 on personal data, Ley 24.240 on consumer protection). They share `components/LegalLayout.tsx`. The owner's name, tax ID (CUIT), and contact email live in `src/lib/legal.ts`; a `null` value shows a highlighted "a completar" (to be completed) mark. These texts describe what the app actually does: what the public tag page shows, which providers are used (Vercel, Neon, Cloudinary, Resend), and the plans and prices from `plans.ts`. If any of that changes, update the texts and `LEGAL.updatedAt`. Registration requires an explicit checkbox accepting both pages.
+
 ## Gotchas
 
 - `README.md` is outdated: it still lists `Login.tsx`/`Register.tsx`, which have been merged into `AuthPage`. Trust the code over the README.

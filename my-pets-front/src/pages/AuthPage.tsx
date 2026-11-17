@@ -23,6 +23,8 @@ const registerSchema = z.object({
   phone: z.string().optional(),
   password: z.string().min(6, 'Mínimo 6 caracteres'),
   passwordConfirm: z.string().min(6, 'Confirma tu contraseña'),
+  // Consentimiento expreso (Ley 25.326): sin aceptar no se puede crear la cuenta
+  acceptTerms: z.boolean().refine((v) => v, 'Tenés que aceptar los términos y la política de privacidad'),
 }).superRefine(({ password, passwordConfirm }, ctx) => {
   if (password !== passwordConfirm) {
     ctx.addIssue({ code: "custom", message: "Las contraseñas no coinciden", path: ['passwordConfirm'] });
@@ -94,7 +96,7 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
     register: regRegister, 
     handleSubmit: handleRegisterSubmit, 
     formState: { errors: regErrors, isSubmitting: registerLoading } 
-  } = useForm<RegisterData>({ resolver: zodResolver(registerSchema) })
+  } = useForm<RegisterData>({ resolver: zodResolver(registerSchema), defaultValues: { acceptTerms: false } })
 
   const onLogin = async (d: LoginData) => {
     try {
@@ -258,6 +260,22 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
                 <InputField type={showPassword ? "text" : "password"} placeholder="Confirmar contraseña" aria-label="Confirmar contraseña" autoComplete="new-password" aria-invalid={!!regErrors.passwordConfirm} aria-describedby={regErrors.passwordConfirm ? 'reg-password-confirm-error' : undefined} {...regRegister('passwordConfirm')} />
             </div>
             {regErrors.passwordConfirm && <span id="reg-password-confirm-error" role="alert" className="text-xs text-red-600 block text-left w-full dark:text-red-400">{regErrors.passwordConfirm.message}</span>}
+
+            <label className="mt-3 flex w-full items-start gap-2 text-left text-xs text-gray-600 dark:text-gray-300">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 flex-shrink-0 accent-emerald-600"
+                aria-invalid={!!regErrors.acceptTerms}
+                aria-describedby={regErrors.acceptTerms ? 'reg-terms-error' : undefined}
+                {...regRegister('acceptTerms')}
+              />
+              <span>
+                Acepto los <Link to="/terminos" target="_blank" rel="noopener" className="font-semibold text-emerald-700 underline dark:text-emerald-400">Términos y Condiciones</Link> y la{' '}
+                <Link to="/privacidad" target="_blank" rel="noopener" className="font-semibold text-emerald-700 underline dark:text-emerald-400">Política de Privacidad</Link>
+                <span className="sr-only"> (se abren en una pestaña nueva)</span>
+              </span>
+            </label>
+            {regErrors.acceptTerms && <span id="reg-terms-error" role="alert" className="text-xs text-red-600 block text-left w-full dark:text-red-400">{regErrors.acceptTerms.message}</span>}
             
             <button 
                 type="submit" 

@@ -441,6 +441,9 @@ export default function LandingPage() {
             ))}
             <Link to="/login" className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">Iniciar sesión</Link>
             <Link to="/register" className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">Crear cuenta</Link>
+            <Link to="/terminos" className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">Términos y condiciones</Link>
+            <Link to="/privacidad" className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">Privacidad</Link>
+            <Link to="/terminos#arrepentimiento" className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">Botón de arrepentimiento</Link>
           </nav>
         </div>
         <p className="border-t border-gray-100 py-5 text-center text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
