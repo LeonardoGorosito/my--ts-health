@@ -5,6 +5,7 @@ import { prisma } from '../db.js'
 import { authenticate } from '../hooks/authenticate.js'
 // IMPORTANTE: Asegurate de tener tu resend configurado en este archivo
 import { resend, MAIL_FROM, logDevCode } from '../lib/mailer.js'
+import { getSubscription, trialEndFromNow } from '../lib/subscription.js'
 
 // --- HELPER PARA CÓDIGOS DE 6 DÍGITOS ---
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString()
@@ -43,6 +44,13 @@ const meSelect = {
   id: true, email: true, name: true, lastname: true, phone: true, address: true,
   vetName: true, vetPhone: true, emergencyPhone: true, emailReminders: true, role: true
 } as const
+
+// Respuesta de /auth/me (y de lo que edita el perfil): datos del usuario + estado de la suscripción
+const meResponse = async (userId: string) => {
+  const me = await prisma.user.findUnique({ where: { id: userId }, select: meSelect })
+  if (!me) return null
+  return { ...me, subscription: await getSubscription(userId) }
+}
 
 const updateMeSchema = z.object({
   name: z.string().trim().min(2, 'El nombre es muy corto'),
@@ -115,6 +123,7 @@ export default async function auth(app: FastifyInstance) {
                     phone: body.phone,
                     role: 'USER',
                     isVerified: false,
+                    trialEndsAt: trialEndFromNow(), // 30 días de prueba con todo lo de Pro
                     verificationCode: otp,
                     verificationCodeExpiry: new Date(Date.now() + 15 * 60 * 1000) // 15 mins
                 }
@@ -281,11 +290,7 @@ export default async function auth(app: FastifyInstance) {
     // ME
     // ==========================================================
     app.get('/me', { preHandler: [authenticate] }, async (req: any) => { 
-        const me = await prisma.user.findUnique({ 
-            where: { id: req.user.sub }, 
-            select: meSelect
-        })
-        return me
+        return meResponse(req.user.sub)
     })
 
     // ==========================================================
@@ -320,9 +325,9 @@ export default async function auth(app: FastifyInstance) {
         const me = await prisma.user.update({
             where: { id: req.user.sub },
             data: parsed.data,
-            select: meSelect
+            select: { id: true }
         })
-        return me
+        return meResponse(me.id)
     })
 
     // ==========================================================
@@ -341,8 +346,8 @@ export default async function auth(app: FastifyInstance) {
         const me = await prisma.user.update({
             where: { id: req.user.sub },
             data: { name: name.trim(), lastname: lastname.trim(), ...optional },
-            select: meSelect
+            select: { id: true }
         })
-        return me
+        return meResponse(me.id)
     })
 }

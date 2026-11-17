@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../db.js'
 import { authenticate } from '../hooks/authenticate.js'
+import { requireActive } from '../lib/subscription.js'
 import { sameDate } from '../lib/dates.js'
 
 export default async function dewormingRoutes(app: FastifyInstance) {
@@ -15,7 +16,7 @@ export default async function dewormingRoutes(app: FastifyInstance) {
   })
 
   // 1. AGREGAR (POST /dewormings)
-  app.post('/', { preHandler: [authenticate] }, async (req, reply) => {
+  app.post('/', { preHandler: [authenticate, requireActive] }, async (req, reply) => {
     try {
       const data = dewormingSchema.parse(req.body)
       
@@ -59,7 +60,7 @@ export default async function dewormingRoutes(app: FastifyInstance) {
   })
 
   // EDITAR (PUT /:id) — mismo esquema que el alta, sin petId
-  app.put('/:id', { preHandler: [authenticate] }, async (req, reply) => {
+  app.put('/:id', { preHandler: [authenticate, requireActive] }, async (req, reply) => {
     const { id } = req.params as { id: string }
     const parsed = dewormingSchema.omit({ petId: true }).safeParse(req.body)
     if (!parsed.success) {

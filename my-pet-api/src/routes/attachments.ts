@@ -3,73 +3,12 @@ import { z } from 'zod'
 import { prisma } from '../db.js'
 import { authenticate } from '../hooks/authenticate.js'
 import cloudinary from '../lib/cloudinary.js'
-import { pipeline } from 'node:stream/promises'
-import fs from 'node:fs'
-import path from 'node:path'
-import os from 'node:os'
 
 export default async function attachmentRoutes(app: FastifyInstance) {
 
-  // Función auxiliar (igual que en pets.ts)
-  const uploadToCloudinary = async (file: any, folder: string) => {
-    const tempFilePath = path.join(os.tmpdir(), file.filename)
-    await pipeline(file.file, fs.createWriteStream(tempFilePath))
-    
-    try {
-      const result = await cloudinary.uploader.upload(tempFilePath, {
-        folder: `pet-health/${folder}`,
-        resource_type: 'auto', // Auto para detectar si es PDF, Imagen o Video
-      })
-      return result
-    } finally {
-      if (fs.existsSync(tempFilePath)) {
-        fs.unlinkSync(tempFilePath)
-      }
-    }
-  }
+  // La subida de archivos se hace por POST /upload (routes/upload.ts), que verifica dueño y plan.
 
-  // 1. SUBIR ARCHIVO (POST /attachments)
-  app.post('/', { preHandler: [authenticate] }, async (req, reply) => {
-    const parts = req.parts()
-    let petId = ''
-    let uploadedFile: any = null
-
-    // Procesamos el multipart
-    for await (const part of parts) {
-      if (part.type === 'file') {
-        // Subimos el archivo a Cloudinary (carpeta 'files')
-        uploadedFile = await uploadToCloudinary(part, 'files')
-      } else {
-        // Capturamos el petId que viene como texto
-        if (part.fieldname === 'petId') {
-          petId = part.value as string
-        }
-      }
-    }
-
-    if (!petId || !uploadedFile) {
-      return reply.status(400).send({ message: 'Falta el archivo o el ID de la mascota' })
-    }
-
-    // Guardamos en la base de datos
-    try {
-      const attachment = await prisma.attachment.create({
-        data: {
-          name: uploadedFile.original_filename || 'Archivo sin nombre',
-          url: uploadedFile.secure_url,
-          // 👇 ESTA ES LA LÍNEA CORREGIDA (antes decía "type:") 👇
-          fileType: uploadedFile.format || 'file', 
-          petId: petId
-        }
-      })
-      return reply.status(201).send(attachment)
-    } catch (error) {
-      req.log.error(error)
-      return reply.status(500).send({ message: 'Error al guardar el archivo' })
-    }
-  })
-
-  // 2. BORRAR ARCHIVO (DELETE /attachments/:id)
+  // BORRAR ARCHIVO (DELETE /attachments/:id)
   app.delete('/:id', { preHandler: [authenticate] }, async (req, reply) => {
     const { id } = req.params as { id: string }
 

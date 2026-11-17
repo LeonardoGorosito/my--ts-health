@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { prisma } from '../db.js'
 import { ENV } from '../env.js'
 import { resend, MAIL_FROM, isDev } from '../lib/mailer.js'
+import { computeTier, limitsFor, subscriptionSelect } from '../lib/subscription.js'
 
 // ==========================================================
 // RECORDATORIOS DE VENCIMIENTOS (GET /cron/reminders)
@@ -93,10 +94,11 @@ export default async function cronRoutes(app: FastifyInstance) {
     vaccines.forEach(push('vaccine'))
     dewormings.forEach(push('deworming'))
 
-    const owners = await prisma.user.findMany({
+    // Los recordatorios son de Pro (y de la prueba gratis): filtramos por plan vigente
+    const owners = (await prisma.user.findMany({
       where: { id: { in: [...byOwner.keys()] } },
-      select: { id: true, name: true, email: true },
-    })
+      select: { id: true, name: true, email: true, ...subscriptionSelect },
+    })).filter((o) => limitsFor(computeTier(o, now)).reminders)
 
     let sent = 0
     let failed = 0

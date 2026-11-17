@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../db.js' 
 import { authenticate } from '../hooks/authenticate.js'
+import { requireActive, requirePetSlot } from '../lib/subscription.js'
 import cloudinary from '../lib/cloudinary.js'
 import { pipeline } from 'node:stream/promises'
 import fs from 'node:fs'
@@ -48,7 +49,7 @@ export default async function petRoutes(app: FastifyInstance) {
   })
 
   // 2. CREAR (POST /pets)
-  app.post('/', { preHandler: [authenticate] }, async (req, reply) => {
+  app.post('/', { preHandler: [authenticate, requirePetSlot] }, async (req, reply) => {
     const parts = req.parts()
     const data: any = {}
     
@@ -118,7 +119,7 @@ export default async function petRoutes(app: FastifyInstance) {
   })
 
   // 4. EDITAR (PUT /pets/:id)
-  app.put('/:id', { preHandler: [authenticate] }, async (req, reply) => {
+  app.put('/:id', { preHandler: [authenticate, requireActive] }, async (req, reply) => {
     const { id } = req.params as { id: string }
     
     const existingPet = await prisma.pet.findUnique({ where: { id, ownerId: req.user.sub } })

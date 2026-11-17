@@ -26,6 +26,11 @@ model User {
 
   // --- PREFERENCIAS ---
   emailReminders        Boolean   @default(true) // recordatorios de vacunas/desparasitaciones por email
+
+  // --- SUSCRIPCIÓN (ver src/lib/subscription.ts) ---
+  trialEndsAt           DateTime? // fin de la prueba gratis; null = usuario previo (se completa solo al consultar)
+  plan                  Plan?     // plan pago; null = sin plan
+  planExpiresAt         DateTime? // el plan pago vale hasta esta fecha
   
   // --- NUEVOS CAMPOS PARA VERIFICACIÓN DE EMAIL ---
   isVerified            Boolean   @default(false)
@@ -110,6 +115,11 @@ model Deworming {
   petId       String
   createdAt   DateTime  @default(now())
   pet         Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+enum Plan {
+  STANDARD
+  PRO
 }
 
 enum Role {

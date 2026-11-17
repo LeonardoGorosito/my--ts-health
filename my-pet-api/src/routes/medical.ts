@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../db.js'
 import { authenticate } from '../hooks/authenticate.js'
+import { requireActive } from '../lib/subscription.js'
 
 export default async function medicalRoutes(app: FastifyInstance) {
   
@@ -14,7 +15,7 @@ export default async function medicalRoutes(app: FastifyInstance) {
   })
 
   // 1. AGREGAR REGISTRO MÉDICO (POST /medical)
-  app.post('/', { preHandler: [authenticate] }, async (req, reply) => {
+  app.post('/', { preHandler: [authenticate, requireActive] }, async (req, reply) => {
     try {
       const data = medicalRecordSchema.parse(req.body)
       
@@ -60,7 +61,7 @@ export default async function medicalRoutes(app: FastifyInstance) {
   })
 
   // EDITAR (PUT /:id) — mismo esquema que el alta, sin petId
-  app.put('/:id', { preHandler: [authenticate] }, async (req, reply) => {
+  app.put('/:id', { preHandler: [authenticate, requireActive] }, async (req, reply) => {
     const { id } = req.params as { id: string }
     const parsed = medicalRecordSchema.omit({ petId: true }).safeParse(req.body)
     if (!parsed.success) {

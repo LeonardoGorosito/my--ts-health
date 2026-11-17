@@ -3,12 +3,13 @@ import cloudinary from '../lib/cloudinary.js';
 import { prisma } from '../db.js';
 import { z } from 'zod';
 import { authenticate } from '../hooks/authenticate.js';
+import { requireActive, requireFeature } from '../lib/subscription.js';
 
 export async function uploadRoutes(app: FastifyInstance) {
   
   // POST /upload?petId=xxxx
   // Requiere login y que la mascota sea del usuario
-  app.post('/upload', { preHandler: [authenticate] }, async (req, reply) => {
+  app.post('/upload', { preHandler: [authenticate, requireActive, requireFeature('attachments')] }, async (req, reply) => {
     // 1. Validar que venga el ID de la mascota (lo pedimos por Query Param para facilitar)
     const { petId } = req.query as { petId?: string };
     if (!petId) {
