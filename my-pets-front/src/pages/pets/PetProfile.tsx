@@ -31,6 +31,9 @@ import { AddVaccineModal } from '../../components/AddVaccineModal'
 import { AddDewormingModal } from '../../components/AddDewormingModal'
 import { PetQrModal } from '../../components/PetQrModal' // <--- Importamos el modal del QR
 import { useSubscription } from '../../hooks/useSubscription'
+import { AddWeightModal } from '../../components/AddWeightModal'
+import type { WeightRecordItem } from '../../components/AddWeightModal'
+import { WeightChart } from '../../components/WeightChart'
 import { LostModeModal } from '../../components/LostModeModal'
 
 // --- FUNCIÓN AUXILIAR: CALCULAR EDAD ---
@@ -72,6 +75,7 @@ interface PetDetail {
   vaccinations: any[] 
   medicalHistory: any[] 
   dewormings: any[]
+  weights?: WeightRecordItem[]
   isLost: boolean
   lostSince?: string | null
   lostMessage?: string | null
@@ -121,6 +125,10 @@ export function PetProfile() {
   const openMedicalModal = (record: MedicalItem | null = null) => { if (blockedByPlan()) return; setEditingMedical(record); setIsMedicalModalOpen(true) }
   const openVaccineModal = (record: VaccineItem | null = null) => { if (blockedByPlan()) return; setEditingVaccine(record); setIsVaccineModalOpen(true) }
   const openDewormingModal = (record: DewormingItem | null = null) => { if (blockedByPlan()) return; setEditingDeworming(record); setIsDewormingModalOpen(true) }
+  const [isWeightModalOpen, setIsWeightModalOpen] = useState(false)
+  const [editingWeight, setEditingWeight] = useState<WeightRecordItem | null>(null)
+  const [showAllWeights, setShowAllWeights] = useState(false)
+  const openWeightModal = (record: WeightRecordItem | null = null) => { if (blockedByPlan()) return; setEditingWeight(record); setIsWeightModalOpen(true) }
   const openEditPet = () => { if (blockedByPlan()) return; setIsEditModalOpen(true) }
 
   // 2. CARGAR DATOS
@@ -172,6 +180,17 @@ export function PetProfile() {
     }
   }
 
+  const handleDeleteWeight = async (weightId: string) => {
+    if (!window.confirm('¿Borrar este registro de peso?')) return
+    try {
+      await api.delete(`/weights/${weightId}`)
+      toast.success('Registro eliminado')
+      fetchPet()
+    } catch {
+      toast.error('No se pudo eliminar el registro')
+    }
+  }
+
   const handleDeleteDeworming = async (id: string) => {
     if (!window.confirm('¿Borrar esta desparasitación?')) return
     try {
@@ -183,6 +202,14 @@ export function PetProfile() {
 
   if (loading) return <Loader text="Cargando perfil..." />  
   if (!pet) return <div className="p-10 text-center text-gray-500 dark:text-white">No encontramos a la mascota</div>
+
+  // Peso: registros del más reciente al más viejo, y cambio respecto del anterior
+  const weights = pet.weights ?? []
+  const weightsNewestFirst = [...weights].sort((a, b) => b.date.localeCompare(a.date))
+  const latestWeight = weightsNewestFirst[0]
+  const previousWeight = weightsNewestFirst[1]
+  const weightDelta = latestWeight && previousWeight ? Math.round((latestWeight.weightKg - previousWeight.weightKg) * 100) / 100 : null
+  const fmtKg = (kg: number) => `${kg.toLocaleString('es-AR', { maximumFractionDigits: 2 })} kg`
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black pb-20 transition-colors duration-300">
@@ -496,6 +523,74 @@ export function PetProfile() {
                  )}
                </div>
             </div>
+
+            {/* Evolución del peso */}
+            <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-gray-200 dark:border-zinc-800 shadow-sm dark:shadow-none md:col-span-2">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Weight size={20} className="text-emerald-500" aria-hidden="true" /> Evolución del peso
+                </h3>
+                <button onClick={() => openWeightModal()} aria-label="Registrar peso" className="w-8 h-8 flex items-center justify-center rounded-full bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-lg shadow-emerald-900/20">
+                  <Plus size={16} aria-hidden="true" />
+                </button>
+              </div>
+
+              {weights.length === 0 ? (
+                <div className="flex flex-col items-center justify-center text-center py-6 gap-3">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm">
+                    Registrá el peso de {pet.name} en cada control para ver cómo evoluciona. Es clave en cachorros, dietas y mascotas mayores.
+                  </p>
+                  <button onClick={() => openWeightModal()} className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors">
+                    Registrar el primer peso
+                  </button>
+                </div>
+              ) : (
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
+                  <div>
+                    {/* Resumen: peso actual y cambio respecto del registro anterior */}
+                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-3">
+                      <span className="font-brand text-3xl font-bold text-gray-900 dark:text-white tabular-nums">{fmtKg(latestWeight!.weightKg)}</span>
+                      {weightDelta !== null && previousWeight && (
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          {weightDelta === 0 ? 'Sin cambios' : `${weightDelta > 0 ? '+' : '−'}${fmtKg(Math.abs(weightDelta))}`} desde el {new Date(previousWeight.date).toLocaleDateString('es-AR', { timeZone: 'UTC' })}
+                        </span>
+                      )}
+                    </div>
+                    <WeightChart points={weights} petName={pet.name} />
+                  </div>
+
+                  {/* Registros (los más recientes primero) */}
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Registros</p>
+                    <ul className="space-y-2">
+                      {weightsNewestFirst.slice(0, showAllWeights ? undefined : 5).map((w) => (
+                        <li key={w.id} className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-100 dark:border-zinc-800/50 group">
+                          <div className="min-w-0">
+                            <p className="font-bold text-sm text-gray-800 dark:text-gray-200 tabular-nums">{fmtKg(w.weightKg)}</p>
+                            <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
+                              {new Date(w.date).toLocaleDateString('es-AR', { timeZone: 'UTC' })}{w.note ? ` · ${w.note}` : ''}
+                            </p>
+                          </div>
+                          <div className="flex flex-shrink-0">
+                            <button onClick={() => openWeightModal(w)} aria-label={`Editar el peso del ${new Date(w.date).toLocaleDateString('es-AR', { timeZone: 'UTC' })}`} className="text-gray-300 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 p-2 rounded-lg transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100 focus:opacity-100">
+                              <Edit2 size={14} aria-hidden="true" />
+                            </button>
+                            <button onClick={() => handleDeleteWeight(w.id)} aria-label={`Eliminar el peso del ${new Date(w.date).toLocaleDateString('es-AR', { timeZone: 'UTC' })}`} className="text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100 focus:opacity-100">
+                              <Trash2 size={14} aria-hidden="true" />
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                    {weights.length > 5 && (
+                      <button type="button" onClick={() => setShowAllWeights((v) => !v)} className="mt-2 text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:underline">
+                        {showAllWeights ? 'Ver menos' : `Ver los ${weights.length} registros`}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -611,6 +706,7 @@ export function PetProfile() {
       <EditPetModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} petData={pet as any} onPetUpdated={fetchPet} />
       <AddMedicalModal isOpen={isMedicalModalOpen} onClose={() => setIsMedicalModalOpen(false)} petId={pet.id} record={editingMedical} onSuccess={fetchPet} />
       <AddVaccineModal isOpen={isVaccineModalOpen} onClose={() => setIsVaccineModalOpen(false)} petId={pet.id} record={editingVaccine} onSuccess={fetchPet} />
+      <AddWeightModal isOpen={isWeightModalOpen} onClose={() => setIsWeightModalOpen(false)} petId={pet.id} record={editingWeight} onSuccess={fetchPet} />
       <AddDewormingModal isOpen={isDewormingModalOpen} onClose={() => setIsDewormingModalOpen(false)} petId={pet.id} record={editingDeworming} onSuccess={fetchPet} />
       
       {/* Modal nuevo del QR */}

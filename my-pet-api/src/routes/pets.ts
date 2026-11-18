@@ -107,7 +107,8 @@ export default async function petRoutes(app: FastifyInstance) {
           vaccinations: true,
           medicalHistory: { orderBy: { date: 'desc' } },
           attachments: { orderBy: { createdAt: 'desc' } },
-          dewormings: { orderBy: { dateApplied: 'desc' } } 
+          dewormings: { orderBy: { dateApplied: 'desc' } },
+          weights: { orderBy: { date: 'asc' } }
         }
       })
 

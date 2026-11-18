@@ -12,6 +12,7 @@ import { uploadRoutes } from './routes/upload.js'
 import medicalRoutes from './routes/medical.js'
 import vaccineRoutes from './routes/vaccines.js'
 import dewormingRoutes from './routes/dewormings.js'
+import weightRoutes from './routes/weights.js'
 import attachmentRoutes from './routes/attachments.js'
 import cronRoutes from './routes/cron.js'
 import adminRoutes from './routes/admin.js'
@@ -79,6 +80,9 @@ app.register(vaccineRoutes, { prefix: '/vaccines' })
 // dewornings
 
 app.register(dewormingRoutes, { prefix: '/dewormings' })
+
+// historial de peso
+app.register(weightRoutes, { prefix: '/weights' })
 
 //attachments
 

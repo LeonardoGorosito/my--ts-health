@@ -67,6 +67,7 @@ model Pet {
   lostMessage         String?
   attachments         Attachment[]
   dewormings      Deworming[]
+  weights         WeightRecord[]
   medicalHistory  MedicalRecord[]
   owner           User            @relation(fields: [ownerId], references: [id])
   vaccinations    Vaccination[]
@@ -103,6 +104,19 @@ model Attachment {
   petId           String
   medicalRecord   MedicalRecord? @relation(fields: [medicalRecordId], references: [id])
   pet             Pet            @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+// Historial de peso. Pet.weight guarda el valor del registro más reciente (lo sincroniza routes/weights.ts)
+model WeightRecord {
+  id        String   @id @default(cuid())
+  weightKg  Float
+  date      DateTime
+  note      String?
+  petId     String
+  createdAt DateTime @default(now())
+  pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  @@index([petId, date])
 }
 
 model Deworming {
