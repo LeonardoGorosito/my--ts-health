@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
 import { isAxiosError } from 'axios'
-import { X, Siren, PartyPopper } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { X, Siren, PartyPopper, FileImage } from 'lucide-react'
 import { api } from '../lib/axios'
 
 interface LostModeModalProps {
@@ -96,6 +97,15 @@ export function LostModeModal({ isOpen, onClose, onSuccess, pet }: LostModeModal
           >
             {saving ? 'Guardando...' : pet.isLost ? 'Actualizar mensaje' : 'Activar modo perdida'}
           </button>
+
+          {pet.isLost && (
+            <Link
+              to={`/app/pets/${pet.id}/afiche`}
+              className="w-full flex items-center justify-center gap-2 bg-white dark:bg-zinc-800 text-red-700 dark:text-red-300 ring-2 ring-red-600 hover:bg-red-50 dark:hover:bg-zinc-700 py-3 rounded-xl font-bold uppercase tracking-wide transition-colors"
+            >
+              <FileImage size={18} aria-hidden="true" /> Crear afiche &quot;Se busca&quot;
+            </Link>
+          )}
 
           {pet.isLost && (
             <button

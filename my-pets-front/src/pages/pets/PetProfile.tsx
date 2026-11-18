@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { api } from '../../lib/axios'
 import { toast } from 'sonner'
 
@@ -268,15 +268,20 @@ export function PetProfile() {
       {/* AVISO DE MASCOTA PERDIDA */}
       {pet.isLost && (
         <div className="px-6 mb-8">
-          <button
-            type="button"
-            onClick={() => setIsLostModalOpen(true)}
-            className="w-full bg-red-600 hover:bg-red-500 text-white px-5 py-3 rounded-2xl flex flex-wrap items-center justify-center gap-2 text-sm font-bold transition-colors shadow-lg shadow-red-900/20"
-          >
-            <Siren size={18} aria-hidden="true" />
-            {pet.name} está marcada/o como perdida/o{pet.lostSince ? ` desde el ${new Date(pet.lostSince).toLocaleDateString()}` : ''}. La placa QR muestra el aviso.
-            <span className="underline">Gestionar</span>
-          </button>
+          <div className="w-full bg-red-600 text-white px-5 py-3 rounded-2xl flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm font-bold shadow-lg shadow-red-900/20">
+            <p className="flex items-center gap-2 text-center">
+              <Siren size={18} aria-hidden="true" className="flex-shrink-0" />
+              {pet.name} está marcada/o como perdida/o{pet.lostSince ? ` desde el ${new Date(pet.lostSince).toLocaleDateString()}` : ''}. La placa QR muestra el aviso.
+            </p>
+            <div className="flex gap-2">
+              <Link to={`/app/pets/${pet.id}/afiche`} className="bg-white text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors">
+                Crear afiche
+              </Link>
+              <button type="button" onClick={() => setIsLostModalOpen(true)} className="ring-1 ring-white/70 hover:bg-white/10 px-3 py-1.5 rounded-lg transition-colors">
+                Gestionar aviso
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
