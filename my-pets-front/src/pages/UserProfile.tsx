@@ -178,7 +178,7 @@ const UserProfile = () => {
           className="flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-all shadow-sm hover:shadow-md"
         >
           <Save size={20} />
-          {saving ? 'Guardando...' : 'Guardar Cambios'}
+          {saving ? 'Guardando...' : 'Guardar cambios'}
         </button>
       </div>
     </form>

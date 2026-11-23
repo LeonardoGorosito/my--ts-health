@@ -65,7 +65,7 @@ export function PricingTable({ currentPlan, renderAction }: PricingTableProps) {
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{info.tagline}</p>
 
               <p className="mt-5 flex items-baseline gap-1">
-                <span className="font-brand text-4xl font-bold text-gray-900 dark:text-white">
+                <span className="font-brand text-4xl font-bold tabular-nums text-gray-900 dark:text-white">
                   {formatPrice(PRICES[plan][currency], currency)}
                 </span>
                 <span className="text-sm text-gray-600 dark:text-gray-400">/ mes</span>

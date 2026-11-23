@@ -22,7 +22,7 @@ export const PLAN_INFO: Record<PaidPlan, { name: string; tagline: string; featur
     tagline: 'Para cuidar a tus mascotas sin complicarte.',
     features: [
       'Hasta 2 mascotas',
-      'Ficha completa: vacunas, desparasitaciones e historial',
+      'Ficha completa: vacunas, historial, tratamientos y peso',
       'Placa QR con tus datos de contacto',
       'Modo mascota perdida',
     ],

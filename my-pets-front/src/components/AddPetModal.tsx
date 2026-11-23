@@ -10,9 +10,9 @@ import { Button } from './Button'
 
 const addPetSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-  species: z.enum(['CAT', 'DOG'], { message: 'Selecciona una especie válida' }),
+  species: z.enum(['CAT', 'DOG'], { message: 'Elegí una especie' }),
   breed: z.string().optional().default(''),
-  gender: z.enum(['Macho', 'Hembra'], { message: 'Selecciona un género' }),
+  gender: z.enum(['Macho', 'Hembra'], { message: 'Elegí un género' }),
   birthDate: z.string().optional().default(''),
   weight: z.string().optional().default(''),
   isCastrated: z.boolean().default(false),
@@ -192,7 +192,7 @@ export function AddPetModal({ isOpen, onClose, onPetAdded }: AddPetModalProps) {
                 {/* Nombre y Raza */}
                 <div className="space-y-4">
                     <div>
-                    <label htmlFor="add-pet-name" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Nombre</label>
+                    <label htmlFor="add-pet-name" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Nombre</label>
                     <Input
                         type="text"
                         placeholder="Ej: Halu"
@@ -203,7 +203,7 @@ export function AddPetModal({ isOpen, onClose, onPetAdded }: AddPetModalProps) {
                     </div>
 
                     <div>
-                    <label htmlFor="add-pet-breed" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Raza (Opcional)</label>
+                    <label htmlFor="add-pet-breed" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Raza (Opcional)</label>
                     <Input
                         type="text"
                         placeholder="Ej: Siamés, Golden Retriever..."
@@ -213,7 +213,7 @@ export function AddPetModal({ isOpen, onClose, onPetAdded }: AddPetModalProps) {
                     </div>
 
                     <div>
-                    <label htmlFor="add-pet-phone" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Teléfono (Opcional)</label>
+                    <label htmlFor="add-pet-phone" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Teléfono (Opcional)</label>
                     <Input
                         type="text"
                         placeholder="Ej: +54 342 1234567"
@@ -227,7 +227,7 @@ export function AddPetModal({ isOpen, onClose, onPetAdded }: AddPetModalProps) {
                     </label>
 
                     <div>
-                    <label htmlFor="add-pet-address" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Dirección (Opcional)</label>
+                    <label htmlFor="add-pet-address" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Dirección (Opcional)</label>
                     <Input
                         type="text"
                         placeholder="Ej: San Martín 2020, Santa Fe Capital"
@@ -243,7 +243,7 @@ export function AddPetModal({ isOpen, onClose, onPetAdded }: AddPetModalProps) {
 
                 {/* Especie */}
                 <div>
-                    <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Especie</label>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Especie</label>
                     <div className="flex gap-2">
                     {(['CAT', 'DOG'] as const).map((s) => (
                         <button
@@ -266,7 +266,7 @@ export function AddPetModal({ isOpen, onClose, onPetAdded }: AddPetModalProps) {
                 {/* Grid: Género, Peso, Nacimiento */}
                 <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-1">
-                    <label htmlFor="add-pet-gender" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Género</label>
+                    <label htmlFor="add-pet-gender" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Género</label>
                     <div className="relative">
                         <select
                         id="add-pet-gender" {...register('gender')}
@@ -279,7 +279,7 @@ export function AddPetModal({ isOpen, onClose, onPetAdded }: AddPetModalProps) {
                     </div>
                     
                     <div className="col-span-1">
-                    <label htmlFor="add-pet-weight" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Peso (kg)</label>
+                    <label htmlFor="add-pet-weight" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Peso (kg)</label>
                     <Input 
                         type="text" 
                         placeholder="Ej: 5.4"
@@ -289,7 +289,7 @@ export function AddPetModal({ isOpen, onClose, onPetAdded }: AddPetModalProps) {
                     </div>
 
                     <div className="col-span-2">
-                    <label htmlFor="add-pet-birthDate" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Nacimiento</label>
+                    <label htmlFor="add-pet-birthDate" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Nacimiento</label>
                     <Input 
                         type="date" 
                         id="add-pet-birthDate" {...register('birthDate')}
@@ -307,7 +307,7 @@ export function AddPetModal({ isOpen, onClose, onPetAdded }: AddPetModalProps) {
                 </label>
 
                 <div>
-                    <label htmlFor="add-pet-specialNeeds" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Notas de salud</label>
+                    <label htmlFor="add-pet-specialNeeds" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Notas de salud</label>
                     <textarea
                     placeholder="Baja visión, alergias, medicación..."
                     id="add-pet-specialNeeds" {...register('specialNeeds')}
@@ -316,13 +316,13 @@ export function AddPetModal({ isOpen, onClose, onPetAdded }: AddPetModalProps) {
                 </div>
 
                 <div className="flex gap-3 pt-2">
-                    <button type="button" onClick={handleClose} className="flex-1 px-6 py-4 font-black text-[10px] uppercase tracking-widest text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                    <button type="button" onClick={handleClose} className="flex-1 px-6 py-3.5 text-sm font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
                     Cancelar
                     </button>
                     <Button
                     type="submit"
                     disabled={isLoading}
-                    className="flex-[2] bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] uppercase tracking-widest py-4 rounded-2xl transition-all shadow-xl shadow-emerald-900/20 disabled:opacity-50 flex justify-center items-center"
+                    className="flex-[2] bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold py-3.5 rounded-2xl transition-all shadow-xl shadow-emerald-900/20 disabled:opacity-50 flex justify-center items-center"
                     >
                     {isLoading ? (
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

@@ -8,6 +8,9 @@ import {
   BellRing,
   Paperclip,
   Phone,
+  Pill,
+  Weight,
+  Printer,
   ShieldCheck,
   CreditCard,
   Heart,
@@ -38,14 +41,44 @@ const NAV = [
   { href: '#preguntas', label: 'Preguntas' },
 ];
 
-const FEATURES = [
+type Feature = { icon: typeof Syringe; title: string; text: string; pro?: boolean };
+
+// Dos grupos: lo que ordena su salud y lo que lo trae de vuelta a casa
+const HEALTH_FEATURES: Feature[] = [
   { icon: Syringe, title: 'Vacunas y desparasitaciones', text: 'Fechas aplicadas y próximas dosis, con aviso cuando algo está por vencer.' },
   { icon: FileText, title: 'Historia clínica', text: 'Consultas, cirugías y diagnósticos ordenados en una línea de tiempo.' },
-  { icon: QrCode, title: 'Placa QR para el collar', text: 'Quien la escanee ve su perfil y cómo contactarte. Vos elegís qué datos mostrar.' },
-  { icon: Siren, title: 'Modo mascota perdida', text: 'Un toque y la placa muestra un aviso de búsqueda con botones para llamarte.' },
+  { icon: Pill, title: 'Tratamientos en curso', text: 'Qué toma, cuánto y hasta cuándo. Te avisamos antes de que termine.' },
+  { icon: Weight, title: 'Peso', text: 'Cada pesada en un gráfico, para ver cómo evoluciona.' },
   { icon: BellRing, title: 'Recordatorios por email', text: 'Te avisamos antes de cada vencimiento para que no se te pase ninguna dosis.', pro: true },
   { icon: Paperclip, title: 'Estudios y recetas', text: 'Subí análisis, radiografías y recetas para tenerlos a mano en cada consulta.', pro: true },
 ];
+
+const SAFETY_FEATURES: Feature[] = [
+  { icon: QrCode, title: 'Placa QR para el collar', text: 'Quien la escanee ve su perfil y cómo contactarte. Vos elegís qué datos mostrar.' },
+  { icon: Siren, title: 'Modo mascota perdida', text: 'Un toque y la placa muestra un aviso de búsqueda con botones para llamarte.' },
+  { icon: Printer, title: 'Afiche “Se busca”', text: 'Un cartel listo para imprimir, con su foto y el QR.' },
+];
+
+function FeatureRow({ icon: Icon, title, text, pro, tone = 'health' }: Feature & { tone?: 'health' | 'safety' }) {
+  return (
+    <li className={`flex gap-4 border-b py-5 last:border-b-0 ${tone === 'safety' ? 'border-red-200/70 dark:border-red-900/40' : 'border-gray-200 dark:border-gray-800 sm:[&:nth-last-child(2)]:border-b-0'}`}>
+      <Icon
+        size={22}
+        aria-hidden="true"
+        className={`mt-0.5 flex-shrink-0 ${tone === 'safety' ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}
+      />
+      <div>
+        <h4 className="flex flex-wrap items-center gap-2 font-bold text-gray-900 dark:text-white">
+          {title}
+          {pro && (
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-900 dark:bg-amber-900/40 dark:text-amber-200">Pro</span>
+          )}
+        </h4>
+        <p className="mt-1 text-gray-600 dark:text-gray-400">{text}</p>
+      </div>
+    </li>
+  );
+}
 
 const STEPS = [
   { title: 'Creá tu cuenta', text: `Gratis por ${TRIAL_DAYS} días, sin tarjeta. Te lleva menos de un minuto.` },
@@ -127,11 +160,10 @@ function PhonePreview() {
   );
 }
 
-function SectionHeading({ id, eyebrow, title, text }: { id: string; eyebrow: string; title: string; text?: string }) {
+function SectionHeading({ id, title, text }: { id: string; title: string; text?: string }) {
   return (
     <div className="mx-auto max-w-2xl text-center">
-      <p className="text-sm font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400">{eyebrow}</p>
-      <h2 id={id} className="mt-2 font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white md:text-4xl text-balance">
+      <h2 id={id} className="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white md:text-4xl text-balance">
         {title}
       </h2>
       {text && <p className="mt-4 text-lg text-gray-600 dark:text-gray-400 text-balance">{text}</p>}
@@ -175,8 +207,10 @@ export default function LandingPage() {
             ))}
           </nav>
           <div className="flex items-center gap-2">
-            <ThemeToggle compact className="hidden md:inline-flex" />
-            <Link to="/login" className="rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
+            <div className="hidden md:block">
+              <ThemeToggle compact />
+            </div>
+            <Link to="/login" className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
               Iniciar sesión
             </Link>
             <Link to="/register" className="hidden rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-emerald-700 sm:inline-flex">
@@ -192,10 +226,7 @@ export default function LandingPage() {
           <div aria-hidden="true" className="pointer-events-none absolute -top-40 right-0 h-[520px] w-[520px] rounded-full bg-emerald-200/50 blur-3xl dark:bg-emerald-900/30" />
           <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-14 sm:px-6 md:py-20 lg:grid-cols-2 lg:gap-8">
             <div className="text-center lg:text-left">
-              <p className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-800 ring-1 ring-emerald-200 dark:bg-emerald-950 dark:text-emerald-200 dark:ring-emerald-800">
-                <Siren size={14} aria-hidden="true" /> Nuevo: modo mascota perdida
-              </p>
-              <h1 id="hero-titulo" className="mt-5 font-brand text-4xl font-bold leading-[1.05] tracking-tight text-gray-900 dark:text-white sm:text-5xl lg:text-6xl text-balance">
+              <h1 id="hero-titulo" className="font-brand text-4xl font-bold leading-[1.05] tracking-tight text-gray-900 dark:text-white sm:text-5xl lg:text-6xl text-balance">
                 La salud de tu mascota y su placa QR, <span className="text-emerald-600 dark:text-emerald-400">en un solo lugar</span>
               </h1>
               <p className="mx-auto mt-5 max-w-xl text-lg text-gray-600 dark:text-gray-400 lg:mx-0 text-balance">
@@ -268,26 +299,27 @@ export default function LandingPage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <SectionHeading
               id="funciones-titulo"
-              eyebrow="Funciones"
               title="Todo lo que necesitás para cuidarlos"
               text="Dejá la libreta de vacunación de papel: lo importante de cada mascota, ordenado y en tu celular."
             />
-            <ul className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {FEATURES.map(({ icon: Icon, title, text, pro }) => (
-                <li key={title} className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-                  <div className="flex items-center justify-between">
-                    <span className="rounded-xl bg-emerald-50 p-3 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">
-                      <Icon size={22} aria-hidden="true" />
-                    </span>
-                    {pro && (
-                      <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-900 dark:bg-amber-900/40 dark:text-amber-200">Pro</span>
-                    )}
-                  </div>
-                  <h3 className="mt-4 text-lg font-bold text-gray-900 dark:text-white">{title}</h3>
-                  <p className="mt-2 text-gray-600 dark:text-gray-400">{text}</p>
-                </li>
-              ))}
-            </ul>
+            <div className="mt-14 grid gap-12 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:gap-10">
+              <div className="lg:pt-6">
+                <h3 className="font-brand text-xl font-bold text-gray-900 dark:text-white">Su salud, ordenada</h3>
+                <ul className="mt-2 grid sm:grid-cols-2 sm:gap-x-10">
+                  {HEALTH_FEATURES.map((f) => (
+                    <FeatureRow key={f.title} {...f} />
+                  ))}
+                </ul>
+              </div>
+              <div className="rounded-3xl bg-red-50 px-6 pb-2 pt-6 ring-1 ring-red-100 dark:bg-red-950/30 dark:ring-red-900/40">
+                <h3 className="font-brand text-xl font-bold text-gray-900 dark:text-white">Y si se pierde, la trae de vuelta</h3>
+                <ul className="mt-2">
+                  {SAFETY_FEATURES.map((f) => (
+                    <FeatureRow key={f.title} {...f} tone="safety" />
+                  ))}
+                </ul>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -296,9 +328,8 @@ export default function LandingPage() {
           <div className="mx-auto max-w-7xl space-y-20 px-4 sm:px-6">
             <article className="grid items-center gap-10 md:grid-cols-2 md:gap-14">
               <div>
-                <p className="text-sm font-bold uppercase tracking-widest text-red-700 dark:text-red-400">Si se pierde</p>
-                <h2 className="mt-2 font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white md:text-4xl text-balance">
-                  Cualquiera que la encuentre puede ayudarte
+                <h2 className="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white md:text-4xl text-balance">
+                  Si se pierde, cualquiera que la encuentre puede ayudarte
                 </h2>
                 <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
                   No hace falta descargar nada: con la cámara del celular, quien escanee la placa ve un aviso de mascota perdida, sus cuidados especiales y un botón para llamarte o escribirte por WhatsApp.
@@ -318,9 +349,8 @@ export default function LandingPage() {
 
             <article className="grid items-center gap-10 md:grid-cols-2 md:gap-14">
               <div className="md:order-2">
-                <p className="text-sm font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400">En el veterinario</p>
-                <h2 className="mt-2 font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white md:text-4xl text-balance">
-                  Su historia clínica, en tu bolsillo
+                <h2 className="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white md:text-4xl text-balance">
+                  En el veterinario, su historia clínica está en tu bolsillo
                 </h2>
                 <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
                   Cada vacuna, desparasitación y consulta queda registrada. En la próxima visita le mostrás todo al veterinario desde el celular, aunque cambies de clínica.
@@ -343,7 +373,7 @@ export default function LandingPage() {
         {/* CÓMO FUNCIONA */}
         <section id="como-funciona" aria-labelledby="como-titulo" className="scroll-mt-20 py-20 md:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <SectionHeading id="como-titulo" eyebrow="Cómo funciona" title="Listo en tres pasos" />
+            <SectionHeading id="como-titulo" title="Listo en tres pasos" />
             <div className="relative mt-14">
             <div aria-hidden="true" className="absolute left-[16%] right-[16%] top-6 hidden h-0.5 bg-emerald-200 dark:bg-emerald-900 md:block" />
             <ol className="relative grid gap-8 md:grid-cols-3">
@@ -372,7 +402,6 @@ export default function LandingPage() {
             <div className="mb-12">
               <SectionHeading
                 id="precios-titulo"
-                eyebrow="Precios"
                 title="Planes simples, precios bajos"
                 text={`Empezá con ${TRIAL_DAYS} días gratis con todo incluido. Sin tarjeta, sin compromiso.`}
               />
@@ -390,7 +419,7 @@ export default function LandingPage() {
         {/* PREGUNTAS FRECUENTES */}
         <section id="preguntas" aria-labelledby="preguntas-titulo" className="scroll-mt-20 py-20 md:py-24">
           <div className="mx-auto max-w-3xl px-4 sm:px-6">
-            <SectionHeading id="preguntas-titulo" eyebrow="Preguntas frecuentes" title="Lo que más nos preguntan" />
+            <SectionHeading id="preguntas-titulo" title="Preguntas frecuentes" />
             <div className="mt-12 divide-y divide-gray-200 rounded-2xl border border-gray-200 bg-white dark:divide-gray-800 dark:border-gray-800 dark:bg-gray-900">
               {FAQ.map(({ q, a }) => (
                 <details key={q} className="group px-5 py-4 [&_summary::-webkit-details-marker]:hidden">

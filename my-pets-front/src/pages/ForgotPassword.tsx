@@ -9,7 +9,7 @@ import { KeyRound, MailCheck, ArrowLeft } from 'lucide-react'
 import { AuthTopBar } from '../components/AuthTopBar'
 
 const schema = z.object({ 
-  email: z.string().email('Ingresa un email válido'), 
+  email: z.string().email('Ingresá un email válido'), 
 })
 
 type FormData = z.infer<typeof schema>
@@ -72,14 +72,14 @@ export default function ForgotPassword() {
             {isEmailSent ? <MailCheck size={32} className="text-emerald-500" /> : <KeyRound size={32} className="text-emerald-500" />}
           </div>
           <h2 className="text-3xl font-bold text-emerald-900 dark:text-emerald-100">
-            {isEmailSent ? 'Revisa tu correo' : 'Recuperar Acceso'}
+            {isEmailSent ? 'Revisá tu correo' : 'Recuperar Acceso'}
           </h2>
         </div>
 
         {!isEmailSent ? (
           <>
             <p className="text-sm text-gray-400 mb-8 leading-relaxed">
-              Ingresa el correo electrónico asociado a tu cuenta y te enviaremos las instrucciones para restablecer tu contraseña.
+              Ingresá el email de tu cuenta y te enviaremos las instrucciones para restablecer tu contraseña.
             </p>
 
             <form className="space-y-2 flex flex-col items-center" onSubmit={handleSubmit(onSubmit)}>
@@ -100,7 +100,7 @@ export default function ForgotPassword() {
         ) : (
           <div className="text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
             <p className="text-sm text-gray-500 mb-8 leading-relaxed dark:text-gray-400">
-              Hemos enviado un enlace a <strong className="text-gray-800 dark:text-gray-100">{lastEmail}</strong>. Revisa tu bandeja de entrada (y la carpeta de Spam) en los próximos minutos.
+              Hemos enviado un enlace a <strong className="text-gray-800 dark:text-gray-100">{lastEmail}</strong>. Revisá tu bandeja de entrada (y la carpeta de Spam) en los próximos minutos.
             </p>
             
             {/* SECCIÓN DE REENVIAR */}

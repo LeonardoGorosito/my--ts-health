@@ -183,7 +183,7 @@ export function AddTreatmentModal({ isOpen, onClose, onSuccess, petId, record }:
 
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} className="flex-1 py-3 text-xs font-bold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">CANCELAR</button>
-            <Button type="submit" disabled={loading} className="flex-1 bg-emerald-600 text-white py-3 rounded-xl font-bold uppercase tracking-wide">
+            <Button type="submit" disabled={loading} className="flex-1 bg-emerald-600 text-white py-3 rounded-xl font-semibold">
               {loading ? 'Guardando...' : 'Confirmar'}
             </Button>
           </div>

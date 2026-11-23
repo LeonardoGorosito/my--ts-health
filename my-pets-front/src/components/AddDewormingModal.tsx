@@ -106,7 +106,7 @@ export function AddDewormingModal({ isOpen, onClose, petId, onSuccess, record }:
 
           <div className="flex gap-3 pt-4">
              <button type="button" onClick={onClose} className="flex-1 py-3 text-xs font-bold text-gray-500">CANCELAR</button>
-             <Button type="submit" disabled={loading} className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-bold uppercase tracking-wide">
+             <Button type="submit" disabled={loading} className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-semibold">
                {loading ? '...' : 'Confirmar'}
              </Button>
           </div>

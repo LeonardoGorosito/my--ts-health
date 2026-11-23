@@ -11,9 +11,9 @@ import { useNavigate } from 'react-router-dom'
 
 const editPetSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-  species: z.enum(['CAT', 'DOG'], { message: 'Selecciona una especie válida' }),
+  species: z.enum(['CAT', 'DOG'], { message: 'Elegí una especie' }),
   breed: z.string().optional(),
-  gender: z.enum(['Macho', 'Hembra'], { message: 'Selecciona un género' }),
+  gender: z.enum(['Macho', 'Hembra'], { message: 'Elegí un género' }),
   birthDate: z.string().optional(),
   weight: z.string().optional(),
   isCastrated: z.boolean(),
@@ -198,17 +198,17 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData }: EditPet
                 {/* Campos idénticos al de Agregar */}
                 <div className="space-y-4">
                     <div>
-                        <label htmlFor="edit-pet-name" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Nombre</label>
+                        <label htmlFor="edit-pet-name" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Nombre</label>
                         <Input type="text" id="edit-pet-name" {...register('name')} className="w-full bg-gray-50 dark:bg-bg-matte border-2 border-transparent focus:border-emerald-600 dark:text-gray-100 rounded-2xl transition-all font-bold" />
                         {errors.name && <p className="mt-1 text-xs font-bold text-red-500">{errors.name.message}</p>}
                     </div>
                     <div>
-                        <label htmlFor="edit-pet-breed" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Raza</label>
+                        <label htmlFor="edit-pet-breed" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Raza</label>
                         <Input type="text" id="edit-pet-breed" {...register('breed')} className="w-full bg-gray-50 dark:bg-bg-matte border-2 border-transparent focus:border-emerald-600 dark:text-gray-100 rounded-2xl transition-all font-bold text-sm" />
                     </div>
 
                     <div>
-                    <label htmlFor="edit-pet-phone" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Teléfono (Opcional)</label>
+                    <label htmlFor="edit-pet-phone" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Teléfono (Opcional)</label>
                     <Input
                         type="text"
                         placeholder="Ej: +54 342 1234567"
@@ -222,7 +222,7 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData }: EditPet
                     </label>
 
                     <div>
-                    <label htmlFor="edit-pet-address" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Dirección (Opcional)</label>
+                    <label htmlFor="edit-pet-address" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Dirección (Opcional)</label>
                     <Input
                         type="text"
                         placeholder="Ej: San Martín 2020, Santa Fe Capital"
@@ -237,7 +237,7 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData }: EditPet
                 </div>
 
                 <div>
-                    <label className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Especie</label>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Especie</label>
                     <div className="flex gap-2">
                     {(['CAT', 'DOG'] as const).map((s) => (
                         <button key={s} type="button" onClick={() => { setSelectedSpecies(s); setValue('species', s) }} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border-2 ${selectedSpecies === s ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg' : 'bg-gray-50 dark:bg-bg-matte border-transparent text-gray-400 dark:text-neutral-500'}`}>
@@ -249,18 +249,18 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData }: EditPet
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label htmlFor="edit-pet-gender" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Género</label>
+                        <label htmlFor="edit-pet-gender" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Género</label>
                         <select id="edit-pet-gender" {...register('gender')} className="w-full px-4 py-3 bg-gray-50 dark:bg-bg-matte dark:text-gray-100 border-2 border-transparent focus:border-emerald-600 rounded-2xl font-bold text-sm outline-none appearance-none">
                             <option value="Macho">Macho</option>
                             <option value="Hembra">Hembra</option>
                         </select>
                     </div>
                     <div>
-                        <label htmlFor="edit-pet-weight" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Peso (kg)</label>
+                        <label htmlFor="edit-pet-weight" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Peso (kg)</label>
                         <Input type="text" id="edit-pet-weight" {...register('weight')} className="bg-gray-50 dark:bg-bg-matte border-transparent focus:border-emerald-600 rounded-2xl text-sm font-bold dark:text-gray-100" />
                     </div>
                     <div className="col-span-2">
-                        <label htmlFor="edit-pet-birthDate" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Nacimiento</label>
+                        <label htmlFor="edit-pet-birthDate" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Nacimiento</label>
                         <Input type="date" id="edit-pet-birthDate" {...register('birthDate')} className="bg-gray-50 dark:bg-bg-matte border-transparent focus:border-emerald-600 rounded-2xl text-sm font-bold dark:text-gray-100 w-full" />
                     </div>
                 </div>
@@ -274,23 +274,23 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData }: EditPet
                 </label>
 
                 <div>
-                    <label htmlFor="edit-pet-specialNeeds" className="block text-[10px] uppercase font-black tracking-widest text-gray-400 mb-2">Notas de salud</label>
+                    <label htmlFor="edit-pet-specialNeeds" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Notas de salud</label>
                     <textarea id="edit-pet-specialNeeds" {...register('specialNeeds')} className="w-full px-4 py-3 bg-gray-50 dark:bg-bg-matte dark:text-gray-100 border-2 border-transparent focus:border-emerald-600 rounded-2xl text-sm font-bold min-h-[80px] outline-none resize-none" />
                 </div>
 
                 <div className="flex gap-3 pt-4 border-t border-gray-100 dark:border-zinc-800">
-                    <button type="button" onClick={handleClose} className="flex-1 px-6 py-4 font-black text-[10px] uppercase tracking-widest text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                    <button type="button" onClick={handleClose} className="flex-1 px-6 py-3.5 text-sm font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
                     Cancelar
                     </button>
-                    <Button type="submit" disabled={isLoading} className="flex-[2] bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] uppercase tracking-widest py-4 rounded-2xl transition-all shadow-xl shadow-emerald-900/20 flex justify-center items-center">
-                    {isLoading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Guardar Cambios'}
+                    <Button type="submit" disabled={isLoading} className="flex-[2] bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold py-3.5 rounded-2xl transition-all shadow-xl shadow-emerald-900/20 flex justify-center items-center">
+                    {isLoading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Guardar cambios'}
                     </Button>
                 </div>
 
                 {/* ZONA DE PELIGRO (Eliminar) */}
                 <div className="pt-2">
                    {!showDeleteConfirm ? (
-                       <button type="button" onClick={() => setShowDeleteConfirm(true)} className="w-full flex items-center justify-center gap-2 text-red-400 hover:text-red-600 dark:hover:text-red-300 text-[10px] font-black uppercase tracking-widest py-3 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all">
+                       <button type="button" onClick={() => setShowDeleteConfirm(true)} className="w-full flex items-center justify-center gap-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm font-semibold py-3 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all">
                            <Trash2 size={14} /> Eliminar Mascota
                        </button>
                    ) : (
@@ -301,7 +301,7 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData }: EditPet
                            </div>
                            <div className="flex gap-3">
                                <button type="button" onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-2 bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 rounded-xl text-xs font-bold shadow-sm">Cancelar</button>
-                               <button type="button" onClick={handleDelete} className="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow-md shadow-red-900/10">Sí, Eliminar</button>
+                               <button type="button" onClick={handleDelete} className="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow-md shadow-red-900/10">Sí, eliminar</button>
                            </div>
                        </div>
                    )}

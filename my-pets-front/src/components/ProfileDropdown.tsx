@@ -96,7 +96,7 @@ export function ProfileDropdown() {
         {/* SIGN OUT */}
         <button
           onClick={() => { logout(); setIsOpen(false); }}
-          className="w-full flex items-center justify-center gap-2 p-3 rounded-2xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 font-black text-[10px] uppercase tracking-widest transition-colors"
+          className="w-full flex items-center justify-center gap-2 p-3 rounded-2xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 font-semibold text-sm transition-colors"
         >
           <LogOut size={16} />
           Cerrar todas las sesiones

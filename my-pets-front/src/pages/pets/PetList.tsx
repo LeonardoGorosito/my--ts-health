@@ -53,11 +53,11 @@ export function PetsList() {
         {/* HEADER */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-black text-gray-900 dark:text-gray-100 uppercase tracking-tighter">
-              Mis Mascotas
+            <h1 className="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+              Mis mascotas
             </h1>
             <p className="text-gray-500 dark:text-gray-400 font-medium mt-1">
-              ¡Hola, {user?.name}! Tenés <span className="text-emerald-600 dark:text-emerald-400 font-bold">{pets?.length || 0} peludos</span> a cargo.
+              ¡Hola, {user?.name}!{petCount > 0 && <> Tenés <span className="text-emerald-700 dark:text-emerald-400 font-bold">{petCount} {petCount === 1 ? 'peludo' : 'peludos'}</span> a cargo.</>}
             </p>
           </div>
           {canAddPet ? (
@@ -66,7 +66,7 @@ export function PetsList() {
               className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-emerald-900/20 dark:shadow-none transition-all flex items-center gap-2 group whitespace-nowrap"
             >
               <Plus size={20} aria-hidden="true" className="group-hover:rotate-90 transition-transform motion-reduce:transition-none" />
-              Agregar Mascota
+              Agregar mascota
             </button>
           ) : (
             <Link

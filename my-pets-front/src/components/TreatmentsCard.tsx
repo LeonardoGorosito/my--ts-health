@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { CheckCircle2, Edit2, Plus, Tablets, Trash2 } from 'lucide-react'
 import { formatDay, frequencyLabel, treatmentStatus } from '../lib/treatments'
 import type { Treatment } from '../lib/treatments'
+import { EmptyHint } from './EmptyHint'
 
 interface Props {
   treatments: Treatment[]
@@ -13,7 +14,7 @@ interface Props {
 }
 
 const iconButton =
-  'text-gray-400 dark:text-gray-500 p-2 rounded-lg transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100 focus:opacity-100'
+  'text-gray-500 dark:text-gray-400 p-2 rounded-lg transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100 focus:opacity-100'
 
 // Tarjeta "Medicación y tratamientos": vigentes arriba (con progreso), terminados plegados abajo
 export function TreatmentsCard({ treatments, petName, onAdd, onEdit, onFinish, onDelete }: Props) {
@@ -41,9 +42,11 @@ export function TreatmentsCard({ treatments, petName, onAdd, onEdit, onFinish, o
       </div>
 
       {current.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-gray-400 py-2">
-          {finished.length > 0 ? `${petName} no tiene tratamientos en curso.` : `Registrá los remedios de ${petName}: dosis, cada cuántas horas y hasta cuándo.`}
-        </p>
+        <EmptyHint
+          text={finished.length > 0 ? `${petName} no tiene tratamientos en curso.` : `Registrá los remedios de ${petName}: dosis, cada cuántas horas y hasta cuándo.`}
+          action="Agregar tratamiento"
+          onAction={onAdd}
+        />
       ) : (
         <ul className="space-y-3">
           {current.map(({ t, status }) => (

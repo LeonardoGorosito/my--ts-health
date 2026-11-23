@@ -78,7 +78,7 @@ export function PetQrPage() {
         <div className="max-w-4xl w-full flex flex-col items-center gap-8">
           
           <div className="w-full print:hidden">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center transition-colors">Selecciona una mascota</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center transition-colors">Elegí una mascota</h2>
             <div className="flex flex-wrap justify-center gap-4">
               {pets.map(pet => (
                 <button

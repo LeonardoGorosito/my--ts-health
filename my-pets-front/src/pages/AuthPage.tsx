@@ -8,6 +8,8 @@ import { useAuth } from '../context/AuthContext'
 import { useNavigate, Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { AuthTopBar } from '../components/AuthTopBar'
+import { Placo } from '../components/brand/Placo'
+import { TRIAL_DAYS } from '../lib/plans'
 
 // En el login solo exigimos que haya contraseña: la regla de longitud mínima
 // la impone el registro (y el backend). Así no bloqueamos cuentas viejas.
@@ -119,7 +121,7 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
       await registerUser(d.name, d.lastname, d.email.trim(), d.password, d.phone)
       setRegisteredEmail(d.email.trim())
       setIsVerifying(true)
-      toast.success('Revisa tu correo para obtener el código')
+      toast.success('Revisá tu correo para obtener el código')
     } catch (e) {
       toast.error(getApiError(e).data?.message || 'Error al registrarse')
     }
@@ -144,7 +146,7 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
   const onVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     const code = otp.join('');
-    if (code.length !== 6) return toast.error('Ingresa los 6 dígitos');
+    if (code.length !== 6) return toast.error('Ingresá los 6 dígitos');
     
     setVerifyLoading(true);
     try {
@@ -170,9 +172,9 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><path d="M22 13V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h8"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/><path d="m16 19 2 2 4-4"/></svg>
           </div>
           
-          <h2 className="text-3xl font-bold text-emerald-900 mb-2 dark:text-emerald-100">Verifica tu email</h2>
+          <h2 className="text-3xl font-bold text-emerald-900 mb-2 dark:text-emerald-100">Verificá tu email</h2>
           <p className="text-sm text-gray-500 mb-8 dark:text-gray-400">
-            Ingresa el código de 6 dígitos que enviamos a <strong className="text-gray-800 dark:text-gray-100">{registeredEmail}</strong>
+            Ingresá el código de 6 dígitos que enviamos a <strong className="text-gray-800 dark:text-gray-100">{registeredEmail}</strong>
           </p>
 
           <form onSubmit={onVerify} className="flex flex-col items-center">
@@ -196,7 +198,7 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
             <button 
               type="submit" 
               disabled={verifyLoading}
-              className="w-full bg-emerald-600 text-white text-xs font-bold py-4 px-10 rounded-full uppercase tracking-wider hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/30 disabled:opacity-50"
+              className="w-full bg-emerald-600 text-white text-sm font-semibold py-4 px-10 rounded-full hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/30 disabled:opacity-50"
             >
               {verifyLoading ? 'Verificando...' : 'Confirmar código'}
             </button>
@@ -225,8 +227,8 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
         {/* --- FORMULARIO DE REGISTRO --- */}
         <div className="form-container sign-up-container bg-white p-8 md:p-10 flex flex-col items-center justify-center h-full text-center py-12 md:py-10 dark:bg-gray-900">
           <form onSubmit={handleRegisterSubmit(onRegister)} className="w-full max-w-xs flex flex-col items-center mt-4">
-            <h1 className="text-3xl font-bold text-emerald-900 mb-2 dark:text-emerald-100">Crear Cuenta</h1>
-            <p className="text-sm text-gray-400 mb-4">Usa tu email para registrarte</p>
+            <h1 className="font-brand text-3xl font-bold text-emerald-900 mb-2 dark:text-emerald-100">Crear cuenta</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Registrate con tu email</p>
 
             <div className="flex gap-2 w-full">
               <div className="w-1/2">
@@ -280,13 +282,13 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
             <button 
                 type="submit" 
                 disabled={registerLoading}
-                className="mt-6 bg-emerald-600 text-white text-xs font-bold py-3 px-10 rounded-full uppercase tracking-wider hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/30 disabled:opacity-50"
+                className="mt-6 bg-emerald-600 text-white text-sm font-semibold py-3 px-10 rounded-full hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/30 disabled:opacity-50"
             >
-              {registerLoading ? 'Creando...' : 'Registrarse'}
+              {registerLoading ? 'Creando...' : 'Crear cuenta'}
             </button>
 
             <div className="md:hidden mt-6 text-sm text-gray-500 dark:text-gray-400">
-              ¿Ya tienes cuenta? <button type="button" onClick={() => setIsRegisterActive(false)} className="text-emerald-600 font-bold hover:underline">Inicia Sesión</button>
+              ¿Ya tenés cuenta? <button type="button" onClick={() => setIsRegisterActive(false)} className="text-emerald-700 dark:text-emerald-400 font-bold hover:underline">Iniciá sesión</button>
             </div>
           </form>
         </div>
@@ -294,10 +296,8 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
         {/* --- FORMULARIO DE LOGIN --- */}
         <div className="form-container sign-in-container bg-white p-8 md:p-10 flex flex-col items-center justify-center h-full text-center py-12 md:py-10 dark:bg-gray-900">
           <form onSubmit={handleLoginSubmit(onLogin)} className="w-full max-w-xs flex flex-col items-center">
-            <div className="mb-6 bg-emerald-100 p-3 rounded-full text-emerald-600 dark:bg-emerald-950">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.45 2.344-2.5"/><path d="M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.96-1.45-2.344-2.5"/><path d="M8 14v.5"/><path d="M16 14v.5"/><path d="M11.25 16.25h1.5L12 17l-.75-.75Z"/><path d="M4.42 11.247A4.335 4.335 0 0 1 6.938 10c.333.004.588.024.767.064.424.094.885.114 1.254.123h6.082c.49-.012.83-.029 1.254-.123.18-.04.435-.06.767-.064a4.335 4.335 0 0 1 2.518 1.247c-.828 2.05-3.002 4.154-4.88 5.626a5.27 5.27 0 0 1-5.4 0c-1.877-1.472-4.052-3.576-4.88-5.626Z"/></svg>
-            </div>
-            <h1 className="text-3xl font-bold text-emerald-900 mb-4 dark:text-emerald-100">¡Hola de nuevo!</h1>
+            <Placo size={72} className="mb-4" title="Placo, la mascota de PetHealth" />
+            <h1 className="font-brand text-3xl font-bold text-emerald-900 mb-4 dark:text-emerald-100">¡Hola de nuevo!</h1>
             
             <div className="w-full">
                 <InputField type="email" placeholder="Email" aria-label="Email" autoComplete="email" aria-invalid={!!loginErrors.email} aria-describedby={loginErrors.email ? 'login-email-error' : undefined} {...regLogin('email')} />
@@ -317,13 +317,13 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
             <button 
                 type="submit" 
                 disabled={loginLoading}
-                className="bg-emerald-600 text-white text-xs font-bold py-3 px-10 rounded-full uppercase tracking-wider hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/30 disabled:opacity-50"
+                className="bg-emerald-600 text-white text-sm font-semibold py-3 px-10 rounded-full hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/30 disabled:opacity-50"
             >
-               {loginLoading ? 'Ingresando...' : 'Iniciar Sesión'}
+               {loginLoading ? 'Ingresando...' : 'Iniciar sesión'}
             </button>
 
             <div className="md:hidden mt-6 text-sm text-gray-500 dark:text-gray-400">
-              ¿Eres nuevo aquí? <button type="button" onClick={() => setIsRegisterActive(true)} className="text-emerald-600 font-bold hover:underline">Regístrate</button>
+              ¿Primera vez acá? <button type="button" onClick={() => setIsRegisterActive(true)} className="text-emerald-700 dark:text-emerald-400 font-bold hover:underline">Creá tu cuenta</button>
             </div>
           </form>
         </div>
@@ -332,28 +332,28 @@ export default function AuthPage({ initialRegister = false }: { initialRegister?
         <div className="overlay-container">
           <div className="overlay bg-gradient-to-r from-emerald-500 to-teal-700">
             <div className="overlay-panel overlay-left">
-              <h1 className="text-3xl font-bold text-white mb-4">¿Ya tienes cuenta?</h1>
+              <h1 className="font-brand text-3xl font-bold text-white mb-4">¿Ya tenés cuenta?</h1>
               <p className="text-sm font-light text-emerald-50 mb-8 leading-relaxed">
-                Para mantenerte conectado con tus mascotas, inicia sesión con tus datos personales.
+                Entrá para ver la ficha de tus mascotas y lo que tienen pendiente.
               </p>
               <button 
-                className="bg-transparent border border-white text-white text-xs font-bold py-3 px-10 rounded-full uppercase tracking-wider hover:bg-white hover:text-emerald-700 transition-all"
+                className="bg-transparent border border-white text-white text-sm font-semibold py-3 px-10 rounded-full hover:bg-white hover:text-emerald-700 transition-all"
                 onClick={() => setIsRegisterActive(false)}
               >
-                Iniciar Sesión
+                Iniciar sesión
               </button>
             </div>
 
             <div className="overlay-panel overlay-right">
-              <h1 className="text-3xl font-bold text-white mb-4">¿Eres nuevo aquí?</h1>
+              <h1 className="font-brand text-3xl font-bold text-white mb-4">¿Primera vez acá?</h1>
               <p className="text-sm font-light text-emerald-50 mb-8 leading-relaxed">
-                Ingresa tus datos personales y comienza a gestionar la salud de tus mascotas hoy mismo.
+                Creá tu cuenta y probá todo gratis durante {TRIAL_DAYS} días, sin tarjeta.
               </p>
               <button 
-                className="bg-transparent border border-white text-white text-xs font-bold py-3 px-10 rounded-full uppercase tracking-wider hover:bg-white hover:text-emerald-700 transition-all"
+                className="bg-transparent border border-white text-white text-sm font-semibold py-3 px-10 rounded-full hover:bg-white hover:text-emerald-700 transition-all"
                 onClick={() => setIsRegisterActive(true)}
               >
-                Registrarse
+                Crear cuenta
               </button>
             </div>
           </div>

@@ -34,6 +34,7 @@ import { useSubscription } from '../../hooks/useSubscription'
 import { AddWeightModal } from '../../components/AddWeightModal'
 import type { WeightRecordItem } from '../../components/AddWeightModal'
 import { WeightChart } from '../../components/WeightChart'
+import { EmptyHint } from '../../components/EmptyHint'
 import { TreatmentsCard } from '../../components/TreatmentsCard'
 import { AddTreatmentModal } from '../../components/AddTreatmentModal'
 import { todayInput } from '../../lib/treatments'
@@ -249,6 +250,7 @@ export function PetProfile() {
   const latestWeight = weightsNewestFirst[0]
   const previousWeight = weightsNewestFirst[1]
   const weightDelta = latestWeight && previousWeight ? Math.round((latestWeight.weightKg - previousWeight.weightKg) * 100) / 100 : null
+  const isFemale = pet.gender === 'Hembra'
   const fmtKg = (kg: number) => `${kg.toLocaleString('es-AR', { maximumFractionDigits: 2 })} kg`
 
   return (
@@ -270,7 +272,7 @@ export function PetProfile() {
         <div className="absolute top-6 right-6 flex items-center gap-3 z-10">
           <button 
               onClick={() => setIsLostModalOpen(true)}
-              className={`${pet.isLost ? 'bg-red-600 hover:bg-red-500 animate-pulse' : 'bg-black/20 hover:bg-red-600'} text-white p-2 md:px-4 rounded-full backdrop-blur-sm transition-all flex items-center gap-2 font-bold text-xs uppercase tracking-widest shadow-lg`}
+              className={`${pet.isLost ? 'bg-red-600 hover:bg-red-500 animate-pulse' : 'bg-black/20 hover:bg-red-600'} text-white p-2 md:px-4 rounded-full backdrop-blur-sm transition-all flex items-center gap-2 font-semibold text-sm shadow-lg`}
               title={pet.isLost ? 'Gestionar aviso de mascota perdida' : 'Reportar como perdida'}
               aria-label={pet.isLost ? 'Gestionar aviso de mascota perdida' : 'Reportar como perdida'}
           >
@@ -280,8 +282,8 @@ export function PetProfile() {
 
           <button 
               onClick={() => setIsQrModalOpen(true)}
-              className="bg-black/20 hover:bg-emerald-600 text-white p-2 md:px-4 rounded-full backdrop-blur-sm transition-all flex items-center gap-2 font-bold text-xs uppercase tracking-widest shadow-lg"
-              title="Ver Placa QR"
+              className="bg-black/20 hover:bg-emerald-600 text-white p-2 md:px-4 rounded-full backdrop-blur-sm transition-all flex items-center gap-2 font-semibold text-sm shadow-lg"
+              title="Ver placa QR"
               aria-label="Ver placa QR"
           >
               <QrCode size={16} /> 
@@ -291,10 +293,10 @@ export function PetProfile() {
           <button 
               onClick={openEditPet} 
               aria-label="Editar perfil"
-              className="bg-black/20 hover:bg-black/40 text-white p-2 md:px-4 rounded-full backdrop-blur-sm transition-all flex items-center gap-2 font-bold text-xs uppercase tracking-widest shadow-lg"
+              className="bg-black/20 hover:bg-black/40 text-white p-2 md:px-4 rounded-full backdrop-blur-sm transition-all flex items-center gap-2 font-semibold text-sm shadow-lg"
           >
               <Edit2 size={16} /> 
-              <span className="hidden md:inline">Editar Perfil</span>
+              <span className="hidden md:inline">Editar perfil</span>
           </button>
         </div>
       </div>
@@ -313,7 +315,7 @@ export function PetProfile() {
           </div>
           <div className="flex-1 pt-2 md:pb-2">
             <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-2 tracking-tight transition-colors">{pet.name}</h1>
-            <div className="flex flex-wrap items-center gap-3 text-sm font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+            <div className="flex flex-wrap items-center gap-3 font-semibold text-emerald-700 dark:text-emerald-400">
               <span>{pet.breed || 'Mestizo'}</span>
               <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-zinc-700"></span>
               <span>{pet.gender || 'Sin género'}</span>
@@ -338,7 +340,7 @@ export function PetProfile() {
           <div className="w-full bg-red-600 text-white px-5 py-3 rounded-2xl flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm font-bold shadow-lg shadow-red-900/20">
             <p className="flex items-center gap-2 text-center">
               <Siren size={18} aria-hidden="true" className="flex-shrink-0" />
-              {pet.name} está marcada/o como perdida/o{pet.lostSince ? ` desde el ${new Date(pet.lostSince).toLocaleDateString()}` : ''}. La placa QR muestra el aviso.
+              {pet.name} está marcad{isFemale ? 'a' : 'o'} como perdid{isFemale ? 'a' : 'o'}{pet.lostSince ? ` desde el ${new Date(pet.lostSince).toLocaleDateString()}` : ''}. La placa QR muestra el aviso.
             </p>
             <div className="flex gap-2">
               <Link to={`/app/pets/${pet.id}/afiche`} className="bg-white text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors">
@@ -354,56 +356,53 @@ export function PetProfile() {
 
       {/* TABS */}
       <div className="px-6 border-b border-gray-200 dark:border-zinc-800 mb-8 transition-colors">
-        <div className="flex gap-8 overflow-x-auto">
+        <div className="flex gap-6 overflow-x-auto md:gap-8">
           {['info', 'history', 'files'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab as any)}
-              className={`pb-4 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === tab ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+              className={`pb-4 font-semibold border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === tab ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'
               }`}
             >
               {tab === 'info' && 'Resumen'}
-              {tab === 'history' && 'Historial Médico'}
-              {tab === 'files' && 'Carpeta de Estudios'}
+              {tab === 'history' && <><span className="md:hidden">Historial</span><span className="hidden md:inline">Historial médico</span></>}
+              {tab === 'files' && 'Estudios'}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="px-6 max-w-5xl mx-auto">
+      <div className="px-6">
         
         {/* TAB 1: RESUMEN */}
         {activeTab === 'info' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             
-            {/* Notas de Salud */}
+            {/* Notas de salud */}
             <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-gray-200 dark:border-zinc-800 shadow-sm dark:shadow-none flex flex-col h-full">
                <div className="flex justify-between items-start mb-4">
                    <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                      <AlertCircle size={20} className="text-emerald-500" /> Notas de Salud
+                      <AlertCircle size={20} className="text-emerald-500" aria-hidden="true" /> Notas de salud
                    </h3>
-                   <button onClick={openEditPet} className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 hover:text-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 rounded-lg transition-colors">
+                   <button onClick={openEditPet} aria-label="Editar notas de salud" className="text-sm font-semibold text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 rounded-lg transition-colors">
                      Editar
                    </button>
                </div>
-               <div className="flex-1 bg-gray-50 dark:bg-black/20 rounded-2xl p-4 border border-gray-100 dark:border-zinc-800/50">
-                 {pet.specialNeeds ? (
-                   <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-sm font-medium">{pet.specialNeeds}</p>
-                 ) : (
-                   <div className="h-full flex flex-col items-center justify-center text-center opacity-50 py-4">
-                      <span className="text-sm text-gray-400 italic mb-2">Sin observaciones</span>
-                      <p className="text-xs text-gray-300 max-w-[200px]">Agrega alergias, medicación o condiciones crónicas.</p>
-                   </div>
-                 )}
-               </div>
+               {pet.specialNeeds ? (
+                 <div className="flex-1 bg-gray-50 dark:bg-black/20 rounded-2xl p-4 border border-gray-100 dark:border-zinc-800/50">
+                   <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm font-medium whitespace-pre-line">{pet.specialNeeds}</p>
+                 </div>
+               ) : (
+                 <EmptyHint text={`Anotá alergias, condiciones crónicas o cuidados especiales. Si alguien encuentra a ${pet.name}, también los ve en la placa.`} action="Agregar notas" onAction={openEditPet} />
+               )}
             </div>
 
             {/* TARJETA 3: DESPARASITACIÓN */}
             <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-gray-200 dark:border-zinc-800 shadow-sm dark:shadow-none flex flex-col h-full">
                <div className="flex justify-between items-center mb-4">
                    <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                      <Pill size={20} className="text-blue-500" /> Desparasitación
+                      <Pill size={20} className="text-blue-500" aria-hidden="true" /> Desparasitación
                    </h3>
                    <button 
                      onClick={() => openDewormingModal()}
@@ -416,10 +415,7 @@ export function PetProfile() {
 
                <div className="flex-1 space-y-3">
                  {(!pet.dewormings || pet.dewormings.length === 0) ? (
-                    <div className="h-full flex flex-col items-center justify-center text-center opacity-50 py-4 min-h-[100px]">
-                      <span className="text-sm text-gray-400 italic mb-1">Sin registros</span>
-                      <p className="text-xs text-gray-300">Pipetas y pastillas mensuales.</p>
-                    </div>
+                    <EmptyHint text="Registrá pipetas y pastillas para saber cuándo toca la próxima." action="Registrar desparasitación" onAction={() => openDewormingModal()} />
                  ) : (
                     [...pet.dewormings]
                     .sort((a: any, b: any) => {
@@ -443,8 +439,8 @@ export function PetProfile() {
                                         {d.type === 'INTERNA' ? 'INT' : 'EXT'}
                                     </span>
                                 </div>
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">
-                                   Aplicada: {appliedDate}
+                                <p className="text-xs text-gray-600 dark:text-gray-400">
+                                   Aplicada el {appliedDate}
                                 </p>
                              </div>
                              
@@ -465,14 +461,14 @@ export function PetProfile() {
                                <button 
                                  onClick={() => openDewormingModal(d)}
                                  aria-label={`Editar desparasitación ${d.name}`}
-                                 className="text-gray-300 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 p-2 rounded-lg transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                                 className="text-gray-500 dark:text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 p-2 rounded-lg transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
                                >
                                  <Edit2 size={14} aria-hidden="true" />
                                </button>
                                <button 
                                  onClick={() => handleDeleteDeworming(d.id)}
                                  aria-label={`Eliminar desparasitación ${d.name}`}
-                                 className="text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                                 className="text-gray-500 dark:text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
                                >
                                  <Trash2 size={14} aria-hidden="true" />
                                </button>
@@ -484,11 +480,11 @@ export function PetProfile() {
                </div>
             </div>
 
-            {/* Calendario Vacunas */}
+            {/* Vacunas */}
             <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-gray-200 dark:border-zinc-800 shadow-sm dark:shadow-none flex flex-col h-full md:col-span-2">
                <div className="flex justify-between items-center mb-4">
                    <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                      <Syringe size={20} className="text-emerald-500" /> Calendario Vacunas
+                      <Syringe size={20} className="text-emerald-500" aria-hidden="true" /> Vacunas
                    </h3>
                    <button onClick={() => openVaccineModal()} aria-label="Agregar vacuna" className="w-8 h-8 flex items-center justify-center rounded-full bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-lg shadow-emerald-900/20">
                      <Plus size={16} aria-hidden="true" />
@@ -497,10 +493,7 @@ export function PetProfile() {
 
                <div className="flex-1 space-y-3">
                  {pet.vaccinations.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-center opacity-50 py-4 min-h-[100px]">
-                      <span className="text-sm text-gray-400 italic mb-1">Calendario vacío</span>
-                      <p className="text-xs text-gray-300">Registra sus vacunas para activar los recordatorios.</p>
-                    </div>
+                    <EmptyHint text={`Registrá las vacunas de ${pet.name} para ver cuándo vence cada una.`} action="Registrar la primera vacuna" onAction={() => openVaccineModal()} />
                  ) : (
                     [...pet.vaccinations]
                     .sort((a: any, b: any) => {
@@ -519,8 +512,8 @@ export function PetProfile() {
                           <div key={v.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-100 dark:border-zinc-800/50 group">
                              <div>
                                 <p className="font-bold text-gray-800 dark:text-gray-200 text-sm">{v.name}</p>
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">
-                                   Aplicada: {appliedDate}
+                                <p className="text-xs text-gray-600 dark:text-gray-400">
+                                   Aplicada el {appliedDate}
                                 </p>
                              </div>
                              
@@ -537,13 +530,13 @@ export function PetProfile() {
                                     <p className="font-bold text-xs">{nextDate}</p>
                                  </div>
                                ) : (
-                                 <span className="text-[10px] text-gray-400 font-bold bg-gray-100 dark:bg-zinc-800 px-2 py-1 rounded-md">Dosis Única</span>
+                                 <span className="text-xs text-gray-600 dark:text-gray-300 font-semibold bg-gray-100 dark:bg-zinc-800 px-2 py-1 rounded-md">Dosis única</span>
                                )}
                                
                                <button 
                                   onClick={() => openVaccineModal(v)}
                                   aria-label={`Editar vacuna ${v.name}`}
-                                  className="text-gray-300 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 p-2 rounded-lg transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                                  className="text-gray-500 dark:text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 p-2 rounded-lg transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
                                   title="Editar vacuna"
                                >
                                   <Edit2 size={14} aria-hidden="true" />
@@ -551,7 +544,7 @@ export function PetProfile() {
                                <button 
                                   onClick={() => handleDeleteVaccine(v.id)}
                                   aria-label={`Eliminar vacuna ${v.name}`}
-                                  className="text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                                  className="text-gray-500 dark:text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
                                   title="Eliminar vacuna"
                                   >
                                   <Trash2 size={14} aria-hidden="true" />
@@ -576,14 +569,7 @@ export function PetProfile() {
               </div>
 
               {weights.length === 0 ? (
-                <div className="flex flex-col items-center justify-center text-center py-6 gap-3">
-                  <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm">
-                    Registrá el peso de {pet.name} en cada control para ver cómo evoluciona. Es clave en cachorros, dietas y mascotas mayores.
-                  </p>
-                  <button onClick={() => openWeightModal()} className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors">
-                    Registrar el primer peso
-                  </button>
-                </div>
+                <EmptyHint text={`Registrá el peso de ${pet.name} en cada control para ver cómo evoluciona. Es clave en cachorros, dietas y mascotas mayores.`} action="Registrar el primer peso" onAction={() => openWeightModal()} />
               ) : (
                 <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
                   <div>
@@ -601,7 +587,7 @@ export function PetProfile() {
 
                   {/* Registros (los más recientes primero) */}
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Registros</p>
+                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Registros</p>
                     <ul className="space-y-2">
                       {weightsNewestFirst.slice(0, showAllWeights ? undefined : 5).map((w) => (
                         <li key={w.id} className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-100 dark:border-zinc-800/50 group">
@@ -612,10 +598,10 @@ export function PetProfile() {
                             </p>
                           </div>
                           <div className="flex flex-shrink-0">
-                            <button onClick={() => openWeightModal(w)} aria-label={`Editar el peso del ${new Date(w.date).toLocaleDateString('es-AR', { timeZone: 'UTC' })}`} className="text-gray-300 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 p-2 rounded-lg transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100 focus:opacity-100">
+                            <button onClick={() => openWeightModal(w)} aria-label={`Editar el peso del ${new Date(w.date).toLocaleDateString('es-AR', { timeZone: 'UTC' })}`} className="text-gray-500 dark:text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 p-2 rounded-lg transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100 focus:opacity-100">
                               <Edit2 size={14} aria-hidden="true" />
                             </button>
-                            <button onClick={() => handleDeleteWeight(w.id)} aria-label={`Eliminar el peso del ${new Date(w.date).toLocaleDateString('es-AR', { timeZone: 'UTC' })}`} className="text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100 focus:opacity-100">
+                            <button onClick={() => handleDeleteWeight(w.id)} aria-label={`Eliminar el peso del ${new Date(w.date).toLocaleDateString('es-AR', { timeZone: 'UTC' })}`} className="text-gray-500 dark:text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100 focus:opacity-100">
                               <Trash2 size={14} aria-hidden="true" />
                             </button>
                           </div>
@@ -648,33 +634,33 @@ export function PetProfile() {
         {activeTab === 'history' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Linea de Tiempo</h2>
-              <button onClick={() => openMedicalModal()} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-lg shadow-emerald-900/20">
-                <Plus size={16} /> Agregar Evento
+              <h2 className="font-brand text-xl font-bold text-gray-900 dark:text-white">Línea de tiempo</h2>
+              <button onClick={() => openMedicalModal()} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-emerald-900/20">
+                <Plus size={16} aria-hidden="true" /> Agregar evento
               </button>
             </div>
             <div className="space-y-4">
               {pet.medicalHistory.length === 0 ? (
-                <div className="text-center py-12 bg-white dark:bg-zinc-900 rounded-2xl border-2 border-dashed border-gray-200 dark:border-zinc-800">
-                   <Stethoscope className="mx-auto h-10 w-10 text-gray-300 dark:text-gray-600 mb-3" />
-                   <p className="text-gray-500">No hay registros médicos aún.</p>
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl border-2 border-dashed border-gray-200 dark:border-zinc-800">
+                   <Stethoscope aria-hidden="true" className="mx-auto mt-8 h-10 w-10 text-gray-400 dark:text-gray-600" />
+                   <EmptyHint text="Consultas, cirugías y diagnósticos, ordenados por fecha. Así le mostrás todo al veterinario desde el celular." action="Agregar el primer evento" onAction={() => openMedicalModal()} />
                 </div>
               ) : (
                 pet.medicalHistory.map((record: any) => (
                   <div key={record.id} className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm flex gap-4 transition-colors">
                     <div className="flex flex-col items-center min-w-[60px] border-r border-gray-100 dark:border-zinc-800 pr-4">
                        <span className="text-2xl font-black text-emerald-600 dark:text-emerald-500">{dayParts(record.date).day}</span>
-                       <span className="text-xs font-bold text-gray-400 uppercase">{dayParts(record.date).month}</span>
-                       <span className="text-[10px] text-gray-300 mt-1">{dayParts(record.date).year}</span>
+                       <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">{dayParts(record.date).month}</span>
+                       <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">{dayParts(record.date).year}</span>
                     </div>
                     <div className="flex-1">
                        <div className="flex justify-between items-start">
                           <h3 className="font-bold text-gray-900 dark:text-white text-lg">{record.title}</h3>
                           <div className="flex items-center">
-                          <button onClick={() => openMedicalModal(record)} aria-label={`Editar registro ${record.title}`} className="text-gray-300 hover:text-emerald-600 transition-colors p-2 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg">
+                          <button onClick={() => openMedicalModal(record)} aria-label={`Editar registro ${record.title}`} className="text-gray-500 dark:text-gray-400 hover:text-emerald-600 transition-colors p-2 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg">
                             <Edit2 size={16} aria-hidden="true" />
                           </button>
-                          <button onClick={() => handleDeleteRecord(record.id)} aria-label={`Eliminar registro ${record.title}`} className="text-gray-300 hover:text-red-500 transition-colors p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
+                          <button onClick={() => handleDeleteRecord(record.id)} aria-label={`Eliminar registro ${record.title}`} className="text-gray-500 dark:text-gray-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
                             <Trash2 size={16} aria-hidden="true" />
                           </button>
                           </div>
@@ -692,7 +678,7 @@ export function PetProfile() {
         {activeTab === 'files' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Estudios y Archivos</h2>
+              <h2 className="font-brand text-xl font-bold text-gray-900 dark:text-white">Estudios y archivos</h2>
               {limits.attachments ? (
                 <UploadButton petId={pet.id} onUploadSuccess={fetchPet} />
               ) : (
@@ -707,9 +693,9 @@ export function PetProfile() {
             </div>
             
             {pet.attachments.length === 0 ? (
-              <div className="text-center py-12 bg-white dark:bg-zinc-900 rounded-2xl border-2 border-dashed border-gray-200 dark:border-zinc-800 transition-colors">
-                <FileText className="mx-auto h-10 w-10 text-gray-300 dark:text-gray-600 mb-3" />
-                <p className="text-gray-500">No hay archivos guardados aún.</p>
+              <div className="bg-white dark:bg-zinc-900 rounded-2xl border-2 border-dashed border-gray-200 dark:border-zinc-800 transition-colors">
+                <FileText aria-hidden="true" className="mx-auto mt-8 h-10 w-10 text-gray-400 dark:text-gray-600" />
+                <EmptyHint text="Análisis, radiografías y recetas en PDF o imagen, a mano en cada consulta." />
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -728,8 +714,8 @@ export function PetProfile() {
                       <span className="text-xs text-center font-medium text-gray-600 dark:text-gray-300 truncate w-full px-2">
                         {file.name}
                       </span>
-                      <span className="text-[10px] text-gray-400 mt-1">
-                        {new Date(file.createdAt).toLocaleDateString()}
+                      <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {new Date(file.createdAt).toLocaleDateString('es-AR')}
                       </span>
                     </a>
 

@@ -43,7 +43,7 @@ export default function ResetPassword() {
         newPassword: data.password
       })
 
-      toast.success('¡Contraseña restablecida! Ahora puedes iniciar sesión.')
+      toast.success('¡Contraseña restablecida! Ya podés iniciar sesión.')
       navigate('/login')
     } catch (error: any) {
       console.error(error)
@@ -98,7 +98,7 @@ export default function ResetPassword() {
             <LockKeyhole size={32} className="text-emerald-500" />
           </div>
           <h2 className="text-3xl font-bold text-emerald-900 dark:text-emerald-100">Nueva Contraseña</h2>
-          <p className="text-sm text-gray-400 mt-2">Ingresa tu nueva clave para recuperar el acceso</p>
+          <p className="text-sm text-gray-400 mt-2">Elegí una contraseña nueva para recuperar el acceso</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 flex flex-col items-center">
