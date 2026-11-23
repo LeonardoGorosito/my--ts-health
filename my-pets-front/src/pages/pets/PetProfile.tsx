@@ -18,7 +18,8 @@ import {
   Plus,
   Syringe,
   Pill,
-  QrCode, // <--- Agregamos QrCode
+  QrCode,
+  FileDown,
   Siren
 } from 'lucide-react'
 
@@ -279,6 +280,16 @@ export function PetProfile() {
               <Siren size={16} aria-hidden="true" /> 
               <span className="hidden md:inline">{pet.isLost ? 'Perdida' : 'Se perdió'}</span>
           </button>
+
+          <Link
+              to={`/app/pets/${pet.id}/ficha`}
+              className="bg-black/20 hover:bg-emerald-600 text-white p-2 md:px-4 rounded-full backdrop-blur-sm transition-all flex items-center gap-2 font-semibold text-sm shadow-lg"
+              title="Ficha de salud en PDF"
+              aria-label="Ficha de salud en PDF"
+          >
+              <FileDown size={16} aria-hidden="true" />
+              <span className="hidden md:inline">Ficha PDF</span>
+          </Link>
 
           <button 
               onClick={() => setIsQrModalOpen(true)}

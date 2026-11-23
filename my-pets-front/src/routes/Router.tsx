@@ -24,6 +24,7 @@ import { Terms } from '../pages/public/Terms'
 import { Privacy } from '../pages/public/Privacy'
 import { MyPlan } from '../pages/MyPlan'
 import { LostPoster } from '../pages/pets/LostPoster'
+import { PetRecord } from '../pages/pets/PetRecord'
 import { AdminPlans } from '../pages/AdminPlans'
 
 // ------------------------------------------------------------------
@@ -87,6 +88,7 @@ export function AppRouter() {
 
       {/* Afiche "Se busca": pantalla completa, sin navbar (para imprimir limpio) */}
       <Route path="/app/pets/:id/afiche" element={<ProtectedRoute><LostPoster /></ProtectedRoute>} />
+      <Route path="/app/pets/:id/ficha" element={<ProtectedRoute><PetRecord /></ProtectedRoute>} />
 
       {/* Otras rutas con el Layout Principal */}
       <Route element={<MainLayout />}>

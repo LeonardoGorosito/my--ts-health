@@ -356,7 +356,7 @@ export default function LandingPage() {
                   Cada vacuna, desparasitación y consulta queda registrada. En la próxima visita le mostrás todo al veterinario desde el celular, aunque cambies de clínica.
                 </p>
                 <ul className="mt-6 space-y-3">
-                  {['Línea de tiempo con cada consulta y diagnóstico', 'Próximas dosis con aviso de vencimiento', 'Estudios y recetas adjuntos (Pro)'].map((t) => (
+                  {['Línea de tiempo con cada consulta y diagnóstico', 'Próximas dosis con aviso de vencimiento', 'Su ficha completa en PDF, para imprimir o mandar por WhatsApp', 'Estudios y recetas adjuntos (Pro)'].map((t) => (
                     <li key={t} className="flex items-start gap-3 text-gray-700 dark:text-gray-300">
                       <CheckCircle2 size={22} aria-hidden="true" className="mt-0.5 flex-shrink-0 text-emerald-600" /> {t}
                     </li>
