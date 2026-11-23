@@ -34,6 +34,11 @@ import { useSubscription } from '../../hooks/useSubscription'
 import { AddWeightModal } from '../../components/AddWeightModal'
 import type { WeightRecordItem } from '../../components/AddWeightModal'
 import { WeightChart } from '../../components/WeightChart'
+import { TreatmentsCard } from '../../components/TreatmentsCard'
+import { AddTreatmentModal } from '../../components/AddTreatmentModal'
+import { todayInput } from '../../lib/treatments'
+import { formatDay, daysFromToday, dayParts } from '../../lib/dates'
+import type { Treatment } from '../../lib/treatments'
 import { LostModeModal } from '../../components/LostModeModal'
 
 // --- FUNCIÓN AUXILIAR: CALCULAR EDAD ---
@@ -42,17 +47,17 @@ function getAge(dateString: string | undefined) {
   const birth = new Date(dateString)
   const now = new Date()
   
-  let years = now.getFullYear() - birth.getFullYear()
-  const m = now.getMonth() - birth.getMonth()
+  let years = now.getFullYear() - birth.getUTCFullYear()
+  const m = now.getMonth() - birth.getUTCMonth()
   
-  if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) {
+  if (m < 0 || (m === 0 && now.getDate() < birth.getUTCDate())) {
     years--
   }
 
   // ¡Acá estaba el useState suelto! Lo borré de acá.
 
   if (years === 0) {
-    const months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth())
+    const months = (now.getFullYear() - birth.getUTCFullYear()) * 12 + (now.getMonth() - birth.getUTCMonth())
     return `${months} meses`
   }
 
@@ -76,6 +81,7 @@ interface PetDetail {
   medicalHistory: any[] 
   dewormings: any[]
   weights?: WeightRecordItem[]
+  treatments?: Treatment[]
   isLost: boolean
   lostSince?: string | null
   lostMessage?: string | null
@@ -129,6 +135,9 @@ export function PetProfile() {
   const [editingWeight, setEditingWeight] = useState<WeightRecordItem | null>(null)
   const [showAllWeights, setShowAllWeights] = useState(false)
   const openWeightModal = (record: WeightRecordItem | null = null) => { if (blockedByPlan()) return; setEditingWeight(record); setIsWeightModalOpen(true) }
+  const [isTreatmentModalOpen, setIsTreatmentModalOpen] = useState(false)
+  const [editingTreatment, setEditingTreatment] = useState<Treatment | null>(null)
+  const openTreatmentModal = (record: Treatment | null = null) => { if (blockedByPlan()) return; setEditingTreatment(record); setIsTreatmentModalOpen(true) }
   const openEditPet = () => { if (blockedByPlan()) return; setIsEditModalOpen(true) }
 
   // 2. CARGAR DATOS
@@ -188,6 +197,37 @@ export function PetProfile() {
       fetchPet()
     } catch {
       toast.error('No se pudo eliminar el registro')
+    }
+  }
+
+  // Finalizar hoy: mismo tratamiento con fecha de fin = hoy
+  const handleFinishTreatment = async (t: Treatment) => {
+    if (blockedByPlan()) return
+    if (!window.confirm(`¿Dar por terminado hoy el tratamiento con ${t.name}?`)) return
+    try {
+      await api.put(`/treatments/${t.id}`, {
+        name: t.name,
+        dose: t.dose || undefined,
+        frequencyHours: t.frequencyHours,
+        startDate: t.startDate.slice(0, 10),
+        endDate: todayInput(),
+        notes: t.notes || undefined,
+      })
+      toast.success('Tratamiento finalizado')
+      fetchPet()
+    } catch {
+      toast.error('No se pudo finalizar el tratamiento')
+    }
+  }
+
+  const handleDeleteTreatment = async (t: Treatment) => {
+    if (!window.confirm(`¿Borrar el tratamiento con ${t.name}? Se pierde del historial.`)) return
+    try {
+      await api.delete(`/treatments/${t.id}`)
+      toast.success('Tratamiento eliminado')
+      fetchPet()
+    } catch {
+      toast.error('No se pudo eliminar el tratamiento')
     }
   }
 
@@ -389,10 +429,10 @@ export function PetProfile() {
                     })
                     .slice(0, 3)
                     .map((d: any) => {
-                        const nextDate = d.nextDueDate ? new Date(d.nextDueDate) : null
-                        const isExpired = nextDate && nextDate < new Date()
-                        const daysLeft = nextDate ? Math.ceil((nextDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null
-                        const appliedDate = d.dateApplied ? new Date(d.dateApplied).toLocaleDateString() : '-'
+                        const nextDate = d.nextDueDate ? formatDay(d.nextDueDate) : null
+                        const daysLeft = d.nextDueDate ? daysFromToday(d.nextDueDate) : null
+                        const isExpired = daysLeft !== null && daysLeft < 0
+                        const appliedDate = d.dateApplied ? formatDay(d.dateApplied) : '-'
 
                         return (
                           <div key={d.id} className="flex items-center justify-between p-3 rounded-xl bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 group">
@@ -418,7 +458,7 @@ export function PetProfile() {
                                         : 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-900/30 text-blue-600 dark:text-blue-400'
                                  }`}>
                                     <p className="text-[10px] font-black uppercase tracking-widest">{isExpired ? 'Vencida' : 'Próxima'}</p>
-                                    <p className="font-bold text-xs">{nextDate.toLocaleDateString()}</p>
+                                    <p className="font-bold text-xs">{nextDate}</p>
                                  </div>
                                ) : null}
                                
@@ -470,10 +510,10 @@ export function PetProfile() {
                     })
                     .slice(0, 4) 
                     .map((v: any) => {
-                        const nextDate = v.nextDueDate ? new Date(v.nextDueDate) : null
-                        const isExpired = nextDate && nextDate < new Date()
-                        const daysLeft = nextDate ? Math.ceil((nextDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null
-                        const appliedDate = v.dateApplied ? new Date(v.dateApplied).toLocaleDateString() : 'Sin fecha'
+                        const nextDate = v.nextDueDate ? formatDay(v.nextDueDate) : null
+                        const daysLeft = v.nextDueDate ? daysFromToday(v.nextDueDate) : null
+                        const isExpired = daysLeft !== null && daysLeft < 0
+                        const appliedDate = v.dateApplied ? formatDay(v.dateApplied) : 'Sin fecha'
 
                         return (
                           <div key={v.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-100 dark:border-zinc-800/50 group">
@@ -494,7 +534,7 @@ export function PetProfile() {
                                         : 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-900/30 text-emerald-600 dark:text-emerald-400'
                                  }`}>
                                     <p className="text-[10px] font-black uppercase tracking-widest">{isExpired ? 'Vencida' : 'Próxima'}</p>
-                                    <p className="font-bold text-xs">{nextDate.toLocaleDateString()}</p>
+                                    <p className="font-bold text-xs">{nextDate}</p>
                                  </div>
                                ) : (
                                  <span className="text-[10px] text-gray-400 font-bold bg-gray-100 dark:bg-zinc-800 px-2 py-1 rounded-md">Dosis Única</span>
@@ -591,6 +631,16 @@ export function PetProfile() {
                 </div>
               )}
             </div>
+
+            {/* Medicación y tratamientos */}
+            <TreatmentsCard
+              treatments={pet.treatments ?? []}
+              petName={pet.name}
+              onAdd={() => openTreatmentModal()}
+              onEdit={(t) => openTreatmentModal(t)}
+              onFinish={handleFinishTreatment}
+              onDelete={handleDeleteTreatment}
+            />
           </div>
         )}
 
@@ -613,9 +663,9 @@ export function PetProfile() {
                 pet.medicalHistory.map((record: any) => (
                   <div key={record.id} className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm flex gap-4 transition-colors">
                     <div className="flex flex-col items-center min-w-[60px] border-r border-gray-100 dark:border-zinc-800 pr-4">
-                       <span className="text-2xl font-black text-emerald-600 dark:text-emerald-500">{new Date(record.date).getDate()}</span>
-                       <span className="text-xs font-bold text-gray-400 uppercase">{new Date(record.date).toLocaleString('es-ES', { month: 'short' })}</span>
-                       <span className="text-[10px] text-gray-300 mt-1">{new Date(record.date).getFullYear()}</span>
+                       <span className="text-2xl font-black text-emerald-600 dark:text-emerald-500">{dayParts(record.date).day}</span>
+                       <span className="text-xs font-bold text-gray-400 uppercase">{dayParts(record.date).month}</span>
+                       <span className="text-[10px] text-gray-300 mt-1">{dayParts(record.date).year}</span>
                     </div>
                     <div className="flex-1">
                        <div className="flex justify-between items-start">
@@ -706,6 +756,7 @@ export function PetProfile() {
       <EditPetModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} petData={pet as any} onPetUpdated={fetchPet} />
       <AddMedicalModal isOpen={isMedicalModalOpen} onClose={() => setIsMedicalModalOpen(false)} petId={pet.id} record={editingMedical} onSuccess={fetchPet} />
       <AddVaccineModal isOpen={isVaccineModalOpen} onClose={() => setIsVaccineModalOpen(false)} petId={pet.id} record={editingVaccine} onSuccess={fetchPet} />
+      <AddTreatmentModal isOpen={isTreatmentModalOpen} onClose={() => setIsTreatmentModalOpen(false)} petId={pet.id} record={editingTreatment} onSuccess={fetchPet} />
       <AddWeightModal isOpen={isWeightModalOpen} onClose={() => setIsWeightModalOpen(false)} petId={pet.id} record={editingWeight} onSuccess={fetchPet} />
       <AddDewormingModal isOpen={isDewormingModalOpen} onClose={() => setIsDewormingModalOpen(false)} petId={pet.id} record={editingDeworming} onSuccess={fetchPet} />
       

@@ -1,7 +1,8 @@
-import { X, BellRing, AlertTriangle, Syringe, Pill, CheckCircle2 } from 'lucide-react'
+import { X, BellRing, AlertTriangle, Syringe, Pill, Tablets, CheckCircle2 } from 'lucide-react'
 import { createPortal } from 'react-dom' // 1. Importamos createPortal
 import { Link } from 'react-router-dom'
 import type { Alert } from './Navbar'
+import { formatDay } from '../lib/dates'
 
 interface NotificationsModalProps {
   isOpen: boolean;
@@ -59,23 +60,25 @@ export function NotificationsModal({ isOpen, onClose, alerts }: NotificationsMod
                         ? 'bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-500' 
                         : 'bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-500'
                     }`}>
-                      {alert.status === 'OVERDUE' ? <AlertTriangle size={18} /> : (alert.type === 'VACCINE' ? <Syringe size={18} /> : <Pill size={18} />)}
+                      {alert.status === 'OVERDUE' ? <AlertTriangle size={18} /> : (alert.type === 'VACCINE' ? <Syringe size={18} /> : alert.type === 'TREATMENT' ? <Tablets size={18} /> : <Pill size={18} />)}
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-black text-gray-900 dark:text-gray-100">{alert.petName}</span>
                         <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10 text-gray-600 dark:text-gray-300">
-                          {alert.type === 'VACCINE' ? 'Vacuna' : 'Desparasitación'}
+                          {alert.type === 'VACCINE' ? 'Vacuna' : alert.type === 'TREATMENT' ? 'Tratamiento' : 'Desparasitación'}
                         </span>
                       </div>
                       <p className={`text-sm font-medium mt-0.5 ${alert.status === 'OVERDUE' ? 'text-red-800 dark:text-red-400' : 'text-amber-800 dark:text-amber-400'}`}>
-                         {alert.name} {alert.status === 'OVERDUE' ? 'está vencida' : 'vence pronto'}
+                         {alert.name} {alert.type === 'TREATMENT' ? 'termina pronto' : alert.status === 'OVERDUE' ? 'está vencida' : 'vence pronto'}
                       </p>
                       <p className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">
                         {alert.status === 'OVERDUE' 
                           ? `Venció hace ${Math.abs(alert.daysLeft)} día${Math.abs(alert.daysLeft) !== 1 ? 's' : ''}` 
-                          : `Toca en ${alert.daysLeft} día${alert.daysLeft !== 1 ? 's' : ''}`
-                        } ({alert.dueDate.toLocaleDateString()})
+                          : alert.type === 'TREATMENT'
+                            ? (alert.daysLeft === 0 ? 'Termina hoy' : `Termina en ${alert.daysLeft} día${alert.daysLeft !== 1 ? 's' : ''}`)
+                            : `Toca en ${alert.daysLeft} día${alert.daysLeft !== 1 ? 's' : ''}`
+                        } ({formatDay(alert.dueDate.toISOString())})
                       </p>
                     </div>
                   </Link>

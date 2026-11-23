@@ -30,7 +30,7 @@ const sections: LegalSection[] = [
         <ul>
           <li><strong>Datos de tu cuenta:</strong> nombre, apellido, email y contraseña (guardada cifrada, nunca en texto plano). De forma opcional: teléfono, dirección y los contactos de tu veterinaria y guardia de emergencias.</li>
           <li><strong>Datos de tus mascotas:</strong> nombre, especie, raza, sexo, fecha de nacimiento, peso, castración, necesidades especiales y fotos.</li>
-          <li><strong>Información de salud de tus mascotas:</strong> vacunas, desparasitaciones, historial médico y los archivos que adjuntes (estudios, análisis, recetas). Estos archivos pueden incluir datos tuyos o de tu veterinaria si figuran en el documento.</li>
+          <li><strong>Información de salud de tus mascotas:</strong> vacunas, desparasitaciones, historial médico, historial de peso, medicación y tratamientos, y los archivos que adjuntes (estudios, análisis, recetas). Estos archivos pueden incluir datos tuyos o de tu veterinaria si figuran en el documento.</li>
           <li><strong>Datos de tu suscripción y preferencias:</strong> plan, fechas de la prueba y del plan, y si querés recibir recordatorios por email.</li>
           <li><strong>Datos técnicos:</strong> la dirección IP desde la que te conectás, que usamos para limitar intentos de acceso y prevenir abusos, y los registros técnicos que genera nuestro proveedor de hosting.</li>
         </ul>
@@ -66,7 +66,7 @@ const sections: LegalSection[] = [
           <li><strong>Tu dirección</strong> se muestra solo si la habilitás.</li>
           <li>Si activás el modo mascota perdida, también se muestran la fecha y el mensaje que escribas.</li>
         </ul>
-        <p>El historial médico, las vacunas y los archivos adjuntos <strong>nunca</strong> se muestran en la placa.</p>
+        <p>El historial médico, las vacunas, la medicación y los archivos adjuntos <strong>nunca</strong> se muestran en la placa.</p>
       </>
     ),
   },

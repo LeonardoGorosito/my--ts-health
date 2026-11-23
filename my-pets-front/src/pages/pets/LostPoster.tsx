@@ -4,6 +4,7 @@ import QRCode from 'react-qr-code'
 import { toast } from 'sonner'
 import { ArrowLeft, Download, Printer, Share2, Siren } from 'lucide-react'
 import { api } from '../../lib/axios'
+import { todayInput } from '../../lib/dates'
 import { useAuth } from '../../context/AuthContext'
 import { Loader } from '../../components/Loader'
 import { Placo } from '../../components/brand/Placo'
@@ -38,7 +39,8 @@ type Form = {
 
 const TITLES: PosterTitle[] = ['SE BUSCA', '¿ME VISTE?', 'PERDIDO']
 
-const toInputDate = (iso: string | null) => (iso ?? new Date().toISOString()).slice(0, 10)
+// lostSince es un momento real: lo pasamos a la fecha local (no UTC)
+const toInputDate = (iso: string | null) => todayInput(iso ? new Date(iso) : new Date())
 const formatDate = (inputDate: string) => {
   if (!inputDate) return ''
   const [y, m, d] = inputDate.split('-')

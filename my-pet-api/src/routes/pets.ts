@@ -39,7 +39,9 @@ export default async function petRoutes(app: FastifyInstance) {
         orderBy: { createdAt: 'desc' },
         include: {
           vaccinations: true,
-          dewormings: true
+          dewormings: true,
+          // Solo tratamientos vigentes (o terminados ayer): alcanzan para los avisos de la campana
+          treatments: { where: { OR: [{ endDate: null }, { endDate: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } }] } }
         }
       })
       return reply.send(pets)
@@ -108,7 +110,8 @@ export default async function petRoutes(app: FastifyInstance) {
           medicalHistory: { orderBy: { date: 'desc' } },
           attachments: { orderBy: { createdAt: 'desc' } },
           dewormings: { orderBy: { dateApplied: 'desc' } },
-          weights: { orderBy: { date: 'asc' } }
+          weights: { orderBy: { date: 'asc' } },
+          treatments: { orderBy: { startDate: 'desc' } }
         }
       })
 

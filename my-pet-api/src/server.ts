@@ -13,6 +13,7 @@ import medicalRoutes from './routes/medical.js'
 import vaccineRoutes from './routes/vaccines.js'
 import dewormingRoutes from './routes/dewormings.js'
 import weightRoutes from './routes/weights.js'
+import treatmentRoutes from './routes/treatments.js'
 import attachmentRoutes from './routes/attachments.js'
 import cronRoutes from './routes/cron.js'
 import adminRoutes from './routes/admin.js'
@@ -83,6 +84,9 @@ app.register(dewormingRoutes, { prefix: '/dewormings' })
 
 // historial de peso
 app.register(weightRoutes, { prefix: '/weights' })
+
+// medicación y tratamientos
+app.register(treatmentRoutes, { prefix: '/treatments' })
 
 //attachments
 

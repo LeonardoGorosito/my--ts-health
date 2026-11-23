@@ -68,6 +68,7 @@ model Pet {
   attachments         Attachment[]
   dewormings      Deworming[]
   weights         WeightRecord[]
+  treatments      Treatment[]
   medicalHistory  MedicalRecord[]
   owner           User            @relation(fields: [ownerId], references: [id])
   vaccinations    Vaccination[]
@@ -104,6 +105,22 @@ model Attachment {
   petId           String
   medicalRecord   MedicalRecord? @relation(fields: [medicalRecordId], references: [id])
   pet             Pet            @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+// Medicación y tratamientos. endDate null = tratamiento continuo (crónico)
+model Treatment {
+  id             String    @id @default(cuid())
+  name           String    // medicamento
+  dose           String?   // ej: "1/2 comprimido", "5 ml"
+  frequencyHours Int       // cada cuántas horas: 6, 8, 12, 24, 48, 168...
+  startDate      DateTime
+  endDate        DateTime?
+  notes          String?
+  petId          String
+  createdAt      DateTime  @default(now())
+  pet            Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  @@index([petId])
 }
 
 // Historial de peso. Pet.weight guarda el valor del registro más reciente (lo sincroniza routes/weights.ts)

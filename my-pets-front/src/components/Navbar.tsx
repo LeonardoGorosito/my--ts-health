@@ -3,7 +3,10 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/axios'
-import { Menu, X, Bell, Syringe, Pill } from 'lucide-react'
+import { Menu, X, Bell, Syringe, Pill, Tablets } from 'lucide-react'
+import { treatmentStatus } from '../lib/treatments'
+import { daysFromToday } from '../lib/dates'
+import type { Treatment } from '../lib/treatments'
 import { ProfileDropdown } from './ProfileDropdown'
 import { NotificationsModal } from './NotificationsModal'
 import { Logo } from './brand/Logo'
@@ -12,7 +15,7 @@ export type Alert = {
   id: string;
   petId?: string;
   petName: string;
-  type: 'VACCINE' | 'DEWORMING';
+  type: 'VACCINE' | 'DEWORMING' | 'TREATMENT';
   name: string;
   dueDate: Date;
   status: 'OVERDUE' | 'UPCOMING';
@@ -35,11 +38,13 @@ const NotificationDropdown = ({ alerts, onOpenFullModal }: { alerts: Alert[], on
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const getDaysText = (days: number) => {
+  const getDaysText = (days: number, type: Alert['type']) => {
+    // Un tratamiento no "vence": termina
+    const verb = type === 'TREATMENT' ? 'Termina' : 'Vence'
     if (days < 0) return `Venció hace ${Math.abs(days)} días`
-    if (days === 0) return 'Vence hoy'
-    if (days === 1) return 'Vence mañana'
-    return `Vence en ${days} días`
+    if (days === 0) return `${verb} hoy`
+    if (days === 1) return `${verb} mañana`
+    return `${verb} en ${days} días`
   }
 
   return (
@@ -79,15 +84,15 @@ const NotificationDropdown = ({ alerts, onOpenFullModal }: { alerts: Alert[], on
                     onClick={() => setIsOpen(false)}
                     className="p-4 border-b border-gray-50 dark:border-gray-800/50 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors flex gap-3 items-start"
                   >
-                    <div className={`p-2 rounded-full ${alert.type === 'VACCINE' ? 'bg-blue-100 text-blue-600' : 'bg-purple-100 text-purple-600'}`}>
-                      {alert.type === 'VACCINE' ? <Syringe size={16} /> : <Pill size={16} />}
+                    <div className={`p-2 rounded-full ${alert.type === 'VACCINE' ? 'bg-blue-100 text-blue-600' : alert.type === 'TREATMENT' ? 'bg-emerald-100 text-emerald-700' : 'bg-purple-100 text-purple-600'}`}>
+                      {alert.type === 'VACCINE' ? <Syringe size={16} /> : alert.type === 'TREATMENT' ? <Tablets size={16} /> : <Pill size={16} />}
                     </div>
                     <div className="flex-1">
                       <p className="text-sm text-gray-800 dark:text-gray-200">
-                        <span className="font-bold">{alert.petName}</span> necesita: {alert.name}
+                        <span className="font-bold">{alert.petName}</span> {alert.type === 'TREATMENT' ? 'termina su tratamiento:' : 'necesita:'} {alert.name}
                       </p>
                       <p className={`text-xs font-semibold mt-1 ${alert.daysLeft <= 0 ? 'text-red-500' : 'text-amber-500'}`}>
-                        {getDaysText(alert.daysLeft)}
+                        {getDaysText(alert.daysLeft, alert.type)}
                       </p>
                     </div>
                   </Link>
@@ -131,16 +136,13 @@ export default function Navbar() {
   const alerts = useMemo(() => {
     if (!pets) return []
     const newAlerts: Alert[] = []
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
 
     pets.forEach((pet: any) => {
       // 1. Chequear Vacunas
       pet.vaccinations?.forEach((v: any) => {
         if (v.nextDueDate) {
           const dueDate = new Date(v.nextDueDate)
-          dueDate.setHours(0, 0, 0, 0)
-          const diffDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+          const diffDays = daysFromToday(v.nextDueDate)
 
           if (diffDays < 0) {
             newAlerts.push({ id: `vac-${v.id}`, petId: pet.id, petName: pet.name, type: 'VACCINE', name: v.name, dueDate, status: 'OVERDUE', daysLeft: diffDays })
@@ -154,14 +156,22 @@ export default function Navbar() {
       pet.dewormings?.forEach((d: any) => {
         if (d.nextDueDate) {
           const dueDate = new Date(d.nextDueDate)
-          dueDate.setHours(0, 0, 0, 0)
-          const diffDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+          const diffDays = daysFromToday(d.nextDueDate)
 
           if (diffDays < 0) {
             newAlerts.push({ id: `dew-${d.id}`, petId: pet.id, petName: pet.name, type: 'DEWORMING', name: d.name || d.product || 'Desparasitación', dueDate, status: 'OVERDUE', daysLeft: diffDays })
           } else if (diffDays <= 15) {
             newAlerts.push({ id: `dew-${d.id}`, petId: pet.id, petName: pet.name, type: 'DEWORMING', name: d.name || d.product || 'Desparasitación', dueDate, status: 'UPCOMING', daysLeft: diffDays })
           }
+        }
+      })
+
+      // 3. Tratamientos que terminan en los próximos 3 días (para no cortar la medicación sin darse cuenta)
+      pet.treatments?.forEach((t: Treatment) => {
+        if (!t.endDate) return
+        const status = treatmentStatus(t)
+        if (status.kind === 'active' && status.daysLeft !== null && status.daysLeft <= 3) {
+          newAlerts.push({ id: `tre-${t.id}`, petId: pet.id, petName: pet.name, type: 'TREATMENT', name: t.name, dueDate: new Date(t.endDate), status: 'UPCOMING', daysLeft: status.daysLeft })
         }
       })
     })

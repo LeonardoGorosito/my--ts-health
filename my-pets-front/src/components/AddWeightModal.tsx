@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { isAxiosError } from 'axios'
 import { X, Weight } from 'lucide-react'
 import { api } from '../lib/axios'
+import { todayInput } from '../lib/dates'
 import { Input } from './Input'
 import { Button } from './Button'
 
@@ -26,7 +27,7 @@ type FormData = z.infer<typeof schema>
 
 export type WeightRecordItem = { id: string; weightKg: number; date: string; note?: string | null }
 
-const today = () => new Date().toISOString().slice(0, 10)
+const today = () => todayInput()
 const empty = (): FormData => ({ weight: '', date: today(), note: '' })
 
 interface Props {
