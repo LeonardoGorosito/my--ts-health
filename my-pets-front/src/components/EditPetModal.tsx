@@ -36,10 +36,12 @@ type EditPetModalProps = {
   isOpen: boolean
   onClose: () => void
   onPetUpdated?: () => void
+  // false para un familiar: no ve los datos de contacto del dueño ni puede borrar la mascota
+  isOwner?: boolean
   petData: PetData
 }
 
-export function EditPetModal({ isOpen, onClose, onPetUpdated, petData }: EditPetModalProps) {
+export function EditPetModal({ isOpen, onClose, onPetUpdated, petData, isOwner = true }: EditPetModalProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [selectedSpecies, setSelectedSpecies] = useState<'CAT' | 'DOG'>(petData.species)
   const navigate = useNavigate()
@@ -207,6 +209,8 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData }: EditPet
                         <Input type="text" id="edit-pet-breed" {...register('breed')} className="w-full bg-gray-50 dark:bg-bg-matte border-2 border-transparent focus:border-emerald-600 dark:text-gray-100 rounded-2xl transition-all font-bold text-sm" />
                     </div>
 
+                    {/* Contacto del dueño para la placa pública: solo lo edita el dueño */}
+                    {isOwner && (<>
                     <div>
                     <label htmlFor="edit-pet-phone" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Teléfono (Opcional)</label>
                     <Input
@@ -218,7 +222,7 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData }: EditPet
                     </div>
                     <label className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-bg-matte rounded-2xl cursor-pointer group transition-all border-2 border-transparent hover:border-emerald-600/30">
                         <input type="checkbox" {...register('showPhonePublicly')} className="w-5 h-5 rounded-lg accent-emerald-600 cursor-pointer" />
-                        <span className="text-xs font-black uppercase tracking-widest text-gray-600 dark:text-gray-300">¿Mostrar teléfono en el QR público?</span>
+                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">¿Mostrar teléfono en el QR público?</span>
                     </label>
 
                     <div>
@@ -232,8 +236,9 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData }: EditPet
                     </div>
                     <label className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-bg-matte rounded-2xl cursor-pointer group transition-all border-2 border-transparent hover:border-emerald-600/30">
                         <input type="checkbox" {...register('showAddressPublicly')} className="w-5 h-5 rounded-lg accent-emerald-600 cursor-pointer" />
-                        <span className="text-xs font-black uppercase tracking-widest text-gray-600 dark:text-gray-300">¿Mostrar dirección en el QR público?</span>
+                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">¿Mostrar dirección en el QR público?</span>
                     </label>
+                    </>)}
                 </div>
 
                 <div>
@@ -287,11 +292,11 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData }: EditPet
                     </Button>
                 </div>
 
-                {/* ZONA DE PELIGRO (Eliminar) */}
-                <div className="pt-2">
+                {/* ZONA DE PELIGRO (Eliminar): solo el dueño */}
+                {isOwner && <div className="pt-2">
                    {!showDeleteConfirm ? (
                        <button type="button" onClick={() => setShowDeleteConfirm(true)} className="w-full flex items-center justify-center gap-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm font-semibold py-3 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all">
-                           <Trash2 size={14} /> Eliminar Mascota
+                           <Trash2 size={14} aria-hidden="true" /> Eliminar mascota
                        </button>
                    ) : (
                        <div className="bg-red-50 dark:bg-red-900/10 p-4 rounded-2xl border border-red-100 dark:border-red-900/30 animate-in fade-in slide-in-from-bottom-2">
@@ -305,7 +310,7 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData }: EditPet
                            </div>
                        </div>
                    )}
-                </div>
+                </div>}
 
             </div>
         </form>

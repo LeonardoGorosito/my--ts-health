@@ -20,7 +20,9 @@ import {
   Pill,
   QrCode,
   FileDown,
-  Siren
+  Siren,
+  Users,
+  LogOut
 } from 'lucide-react'
 
 // Componentes
@@ -42,6 +44,8 @@ import { todayInput } from '../../lib/treatments'
 import { formatDay, daysFromToday, dayParts } from '../../lib/dates'
 import type { Treatment } from '../../lib/treatments'
 import { LostModeModal } from '../../components/LostModeModal'
+import { ShareModal } from '../../components/ShareModal'
+import { useQueryClient } from '@tanstack/react-query'
 
 // --- FUNCIÓN AUXILIAR: CALCULAR EDAD ---
 function getAge(dateString: string | undefined) {
@@ -85,6 +89,11 @@ interface PetDetail {
   weights?: WeightRecordItem[]
   treatments?: Treatment[]
   isLost: boolean
+  // Compartir: lo calcula el servidor según quién mira y el plan del dueño
+  access?: 'OWNER' | 'CAREGIVER'
+  canEdit?: boolean
+  canAttach?: boolean
+  owner?: { name: string; lastname: string }
   lostSince?: string | null
   lostMessage?: string | null
 }
@@ -119,15 +128,36 @@ export function PetProfile() {
   const [editingVaccine, setEditingVaccine] = useState<VaccineItem | null>(null)
   const [editingDeworming, setEditingDeworming] = useState<DewormingItem | null>(null)
 
-  // Plan: en solo lectura no se abren los formularios de alta/edición (el backend también lo bloquea)
+  // Plan: en solo lectura no se abren los formularios de alta/edición (el backend también lo bloquea).
+  // Lo que vale es el plan del DUEÑO de la mascota: el servidor lo manda como canEdit.
   const { limits } = useSubscription()
+  const queryClient = useQueryClient()
+  const [isShareOpen, setIsShareOpen] = useState(false)
   const blockedByPlan = () => {
-    if (!limits.readOnly) return false
-    toast.warning('Tu prueba gratis terminó. Elegí un plan para seguir editando.', {
-      id: 'plan-required',
-      action: { label: 'Ver planes', onClick: () => navigate('/app/plan') },
-    })
+    const canEdit = pet?.canEdit ?? !limits.readOnly
+    if (canEdit) return false
+    if (pet?.access === 'CAREGIVER') {
+      toast.warning(`El plan de ${pet.owner?.name ?? 'quien te compartió esta mascota'} no está activo, así que por ahora no se puede editar.`, { id: 'plan-required' })
+    } else {
+      toast.warning('Tu prueba gratis terminó. Elegí un plan para seguir editando.', {
+        id: 'plan-required',
+        action: { label: 'Ver planes', onClick: () => navigate('/app/plan') },
+      })
+    }
     return true
+  }
+
+  // Familiar: dejar de ver la mascota compartida
+  const handleLeave = async () => {
+    if (!pet || !window.confirm(`¿Dejar de ver a ${pet.name}? Para volver a verla, ${pet.owner?.name ?? 'el dueño'} te tiene que invitar de nuevo.`)) return
+    try {
+      await api.delete(`/shares/pet/${pet.id}/me`)
+      await queryClient.invalidateQueries({ queryKey: ['pets'] })
+      toast.success(`Dejaste de ver a ${pet.name}`)
+      navigate('/app', { replace: true })
+    } catch {
+      toast.error('No se pudo quitar el acceso')
+    }
   }
 
   const openMedicalModal = (record: MedicalItem | null = null) => { if (blockedByPlan()) return; setEditingMedical(record); setIsMedicalModalOpen(true) }
@@ -281,6 +311,19 @@ export function PetProfile() {
               <span className="hidden md:inline">{pet.isLost ? 'Perdida' : 'Se perdió'}</span>
           </button>
 
+          {pet.access !== 'CAREGIVER' && (
+            <button
+                type="button"
+                onClick={() => setIsShareOpen(true)}
+                className="bg-black/20 hover:bg-emerald-600 text-white p-2 md:px-4 rounded-full backdrop-blur-sm transition-all flex items-center gap-2 font-semibold text-sm shadow-lg"
+                title="Compartir con familia o veterinario"
+                aria-label="Compartir con familia o veterinario"
+            >
+                <Users size={16} aria-hidden="true" />
+                <span className="hidden md:inline">Compartir</span>
+            </button>
+          )}
+
           <Link
               to={`/app/pets/${pet.id}/ficha`}
               className="bg-black/20 hover:bg-emerald-600 text-white p-2 md:px-4 rounded-full backdrop-blur-sm transition-all flex items-center gap-2 font-semibold text-sm shadow-lg"
@@ -331,6 +374,16 @@ export function PetProfile() {
               <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-zinc-700"></span>
               <span>{pet.gender || 'Sin género'}</span>
             </div>
+            {pet.access === 'CAREGIVER' && (
+              <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-600 dark:text-gray-400">
+                <span className="inline-flex items-center gap-1.5">
+                  <Users size={15} aria-hidden="true" /> Compartida por {pet.owner?.name} {pet.owner?.lastname}
+                </span>
+                <button type="button" onClick={handleLeave} className="inline-flex items-center gap-1 font-semibold text-gray-700 underline-offset-2 hover:text-red-700 hover:underline dark:text-gray-300 dark:hover:text-red-400">
+                  <LogOut size={14} aria-hidden="true" /> Dejar de ver
+                </button>
+              </p>
+            )}
           </div>
           <div className="flex gap-3 mb-2">
              <div className="bg-white dark:bg-zinc-900 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-800 flex items-center gap-2 shadow-sm dark:shadow-none transition-colors">
@@ -690,8 +743,10 @@ export function PetProfile() {
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex justify-between items-center mb-6">
               <h2 className="font-brand text-xl font-bold text-gray-900 dark:text-white">Estudios y archivos</h2>
-              {limits.attachments ? (
+              {(pet.canAttach ?? limits.attachments) ? (
                 <UploadButton petId={pet.id} onUploadSuccess={fetchPet} />
+              ) : pet.access === 'CAREGIVER' ? (
+                <p className="text-sm text-gray-600 dark:text-gray-400">El plan de {pet.owner?.name} no incluye archivos adjuntos</p>
               ) : (
                 <button
                   type="button"
@@ -750,7 +805,8 @@ export function PetProfile() {
         )}
       </div>
 
-      <EditPetModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} petData={pet as any} onPetUpdated={fetchPet} />
+      <EditPetModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} petData={pet as any} onPetUpdated={fetchPet} isOwner={pet.access !== 'CAREGIVER'} />
+      {pet.access !== 'CAREGIVER' && <ShareModal isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} petId={pet.id} petName={pet.name} />}
       <AddMedicalModal isOpen={isMedicalModalOpen} onClose={() => setIsMedicalModalOpen(false)} petId={pet.id} record={editingMedical} onSuccess={fetchPet} />
       <AddVaccineModal isOpen={isVaccineModalOpen} onClose={() => setIsVaccineModalOpen(false)} petId={pet.id} record={editingVaccine} onSuccess={fetchPet} />
       <AddTreatmentModal isOpen={isTreatmentModalOpen} onClose={() => setIsTreatmentModalOpen(false)} petId={pet.id} record={editingTreatment} onSuccess={fetchPet} />

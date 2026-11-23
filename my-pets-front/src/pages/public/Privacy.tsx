@@ -46,6 +46,7 @@ const sections: LegalSection[] = [
         <li>Crear y administrar tu cuenta, y verificar tu email.</li>
         <li>Guardar y mostrarte la información de tus mascotas.</li>
         <li>Mostrar la placa pública de cada mascota a quien escanee su código QR (ver el punto siguiente).</li>
+        <li>Mostrar la información de una mascota a las personas con las que vos decidas compartirla (ver “Compartir una mascota”).</li>
         <li>Enviarte emails necesarios para el servicio: códigos de verificación y recuperación de contraseña y, si los tenés activados, recordatorios de vencimientos.</li>
         <li>Gestionar tu prueba gratis y tu plan.</li>
         <li>Proteger el servicio: prevenir accesos no autorizados, fraudes y abusos.</li>
@@ -67,6 +68,23 @@ const sections: LegalSection[] = [
           <li>Si activás el modo mascota perdida, también se muestran la fecha y el mensaje que escribas.</li>
         </ul>
         <p>El historial médico, las vacunas, la medicación y los archivos adjuntos <strong>nunca</strong> se muestran en la placa.</p>
+      </>
+    ),
+  },
+  {
+    id: 'compartir',
+    title: 'Compartir una mascota',
+    body: (
+      <>
+        <p>Desde el perfil de una mascota podés compartirla. Solo pasa si vos creás el link, y lo podés revocar cuando quieras.</p>
+        <ul>
+          <li>
+            <strong>Con tu familia:</strong> creás un link de invitación de un solo uso, que vence a los 7 días. Quien lo acepta con su cuenta ve toda la información de la mascota (vacunas, historial, medicación, peso y archivos) y puede cargar y editar registros. No ve tu teléfono ni tu dirección, no puede borrar la mascota y no puede compartirla. Ves su nombre y su email, y podés quitarle el acceso en cualquier momento; también puede dejar de verla por su cuenta.
+          </li>
+          <li>
+            <strong>Con el veterinario:</strong> creás un link de solo lectura que vence a los 7 días. Cualquier persona que tenga ese link puede ver, sin crear una cuenta, la ficha de salud de la mascota con tu nombre, teléfono y email. Los archivos adjuntos no se muestran (solo sus nombres). Mandalo solo a quien corresponda; si se lo mandaste a otra persona por error, revocalo.
+          </li>
+        </ul>
       </>
     ),
   },

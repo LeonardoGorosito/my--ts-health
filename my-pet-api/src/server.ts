@@ -17,6 +17,7 @@ import treatmentRoutes from './routes/treatments.js'
 import attachmentRoutes from './routes/attachments.js'
 import cronRoutes from './routes/cron.js'
 import adminRoutes from './routes/admin.js'
+import shareRoutes from './routes/shares.js'
 
 // trustProxy: en Vercel la IP real del cliente viene en X-Forwarded-For (necesario para el rate limit)
 const app = Fastify({ logger: true, trustProxy: true })
@@ -97,6 +98,9 @@ app.register(cronRoutes)
 
 // administración (asignar planes a mano)
 app.register(adminRoutes, { prefix: '/admin' })
+
+// compartir mascotas con familia (invitaciones) y veterinario (link de solo lectura)
+app.register(shareRoutes, { prefix: '/shares' })
 
 
 export default app

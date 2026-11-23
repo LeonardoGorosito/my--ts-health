@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../db.js'
 import { authenticate } from '../hooks/authenticate.js'
-import { requireActive } from '../lib/subscription.js'
+import { guardPet } from '../lib/access.js'
 import { sameDate } from '../lib/dates.js'
 
 export default async function dewormingRoutes(app: FastifyInstance) {
@@ -16,14 +16,11 @@ export default async function dewormingRoutes(app: FastifyInstance) {
   })
 
   // 1. AGREGAR (POST /dewormings)
-  app.post('/', { preHandler: [authenticate, requireActive] }, async (req, reply) => {
+  app.post('/', { preHandler: [authenticate] }, async (req, reply) => {
     try {
       const data = dewormingSchema.parse(req.body)
       
-      const pet = await prisma.pet.findUnique({
-        where: { id: data.petId, ownerId: req.user.sub }
-      })
-      if (!pet) return reply.status(403).send({ message: 'No autorizado' })
+      if (!(await guardPet(reply, data.petId, req.user.sub, { requirePlan: true }))) return
 
       const deworming = await prisma.deworming.create({
         data: {
@@ -51,16 +48,15 @@ export default async function dewormingRoutes(app: FastifyInstance) {
       include: { pet: true }
     })
 
-    if (!record || record.pet.ownerId !== req.user.sub) {
-      return reply.status(404).send({ message: 'No encontrado' })
-    }
+    if (!record) return reply.status(404).send({ message: 'No encontrado' })
+    if (!(await guardPet(reply, record.petId, req.user.sub))) return
 
     await prisma.deworming.delete({ where: { id } })
     return reply.send({ message: 'Eliminado correctamente' })
   })
 
   // EDITAR (PUT /:id) — mismo esquema que el alta, sin petId
-  app.put('/:id', { preHandler: [authenticate, requireActive] }, async (req, reply) => {
+  app.put('/:id', { preHandler: [authenticate] }, async (req, reply) => {
     const { id } = req.params as { id: string }
     const parsed = dewormingSchema.omit({ petId: true }).safeParse(req.body)
     if (!parsed.success) {
@@ -69,9 +65,8 @@ export default async function dewormingRoutes(app: FastifyInstance) {
     const data = parsed.data
 
     const existing = await prisma.deworming.findUnique({ where: { id }, include: { pet: true } })
-    if (!existing || existing.pet.ownerId !== req.user.sub) {
-      return reply.status(404).send({ message: 'No encontrado' })
-    }
+    if (!existing) return reply.status(404).send({ message: 'No encontrado' })
+    if (!(await guardPet(reply, existing.petId, req.user.sub, { requirePlan: true }))) return
 
     const updated = await prisma.deworming.update({
       where: { id },

@@ -41,8 +41,10 @@ export function PetsList() {
   if (isLoading) return <Loader text="Buscando tus peludos..." />
 
   // ¿El plan permite agregar otra mascota? (el backend lo controla igual)
+  // El límite del plan cuenta solo las mascotas propias (las compartidas son del plan de su dueño)
+  const ownedCount = pets?.filter((p: { access?: string }) => p.access !== 'CAREGIVER').length ?? 0
   const petCount = pets?.length ?? 0
-  const atPetLimit = limits.maxPets !== null && petCount >= limits.maxPets
+  const atPetLimit = limits.maxPets !== null && ownedCount >= limits.maxPets
   const canAddPet = !limits.readOnly && !atPetLimit
   const limitLabel = limits.readOnly ? 'Elegí un plan para agregar' : `Tu plan permite ${limits.maxPets} · Pasate a Pro`
 

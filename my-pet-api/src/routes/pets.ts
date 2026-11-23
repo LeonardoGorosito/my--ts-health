@@ -2,7 +2,8 @@ import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../db.js' 
 import { authenticate } from '../hooks/authenticate.js'
-import { requireActive, requirePetSlot } from '../lib/subscription.js'
+import { requirePetSlot } from '../lib/subscription.js'
+import { accessibleBy, guardPet, petPermissions } from '../lib/access.js'
 import cloudinary from '../lib/cloudinary.js'
 import { destroyCloudinaryUrl } from '../lib/cloudinary-assets.js'
 import { pipeline } from 'node:stream/promises'
@@ -34,17 +35,19 @@ export default async function petRoutes(app: FastifyInstance) {
   // 1. LISTAR (GET /pets)
   app.get('/', { preHandler: [authenticate] }, async (req, reply) => {
     try {
+      // Propias y compartidas conmigo (las compartidas traen el nombre del dueño)
       const pets = await prisma.pet.findMany({
-        where: { ownerId: req.user.sub },
+        where: accessibleBy(req.user.sub),
         orderBy: { createdAt: 'desc' },
         include: {
+          owner: { select: { name: true, lastname: true } },
           vaccinations: true,
           dewormings: true,
           // Solo tratamientos vigentes (o terminados ayer): alcanzan para los avisos de la campana
           treatments: { where: { OR: [{ endDate: null }, { endDate: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } }] } }
         }
       })
-      return reply.send(pets)
+      return reply.send(pets.map((p) => ({ ...p, access: p.ownerId === req.user.sub ? 'OWNER' : 'CAREGIVER' })))
     } catch (error) {
       req.log.error(error)
       return reply.status(500).send({ message: 'Error al obtener las mascotas' })
@@ -104,8 +107,9 @@ export default async function petRoutes(app: FastifyInstance) {
       const { id } = req.params as { id: string }
       
       const pet = await prisma.pet.findFirst({
-        where: { id, ownerId: req.user.sub },
+        where: { id, ...accessibleBy(req.user.sub) },
         include: {
+          owner: { select: { name: true, lastname: true } },
           vaccinations: true,
           medicalHistory: { orderBy: { date: 'desc' } },
           attachments: { orderBy: { createdAt: 'desc' } },
@@ -116,7 +120,9 @@ export default async function petRoutes(app: FastifyInstance) {
       })
 
       if (!pet) return reply.status(404).send({ message: 'Mascota no encontrada' })
-      return reply.send(pet)
+      // access (OWNER | CAREGIVER), canEdit y canAttach según el plan del dueño
+      const permissions = await petPermissions(pet.ownerId, pet.ownerId === req.user.sub ? 'OWNER' : 'CAREGIVER')
+      return reply.send({ ...pet, ...permissions })
     } catch (error) {
       req.log.error(error)
       return reply.status(500).send({ message: 'Error al obtener la mascota' })
@@ -124,14 +130,16 @@ export default async function petRoutes(app: FastifyInstance) {
   })
 
   // 4. EDITAR (PUT /pets/:id)
-  app.put('/:id', { preHandler: [authenticate, requireActive] }, async (req, reply) => {
+  app.put('/:id', { preHandler: [authenticate] }, async (req, reply) => {
     const { id } = req.params as { id: string }
-    
-    const existingPet = await prisma.pet.findUnique({ where: { id, ownerId: req.user.sub } })
-    if (!existingPet) {
+
+    // Dueño o familiar, con el plan del dueño activo
+    const access = await guardPet(reply, id, req.user.sub, { requirePlan: true })
+    if (!access) {
+      // Consumimos el cuerpo multipart para cerrar bien el pedido
       const parts = req.parts()
-      for await (const part of parts) { await (part as any).toBuffer?.() } 
-      return reply.status(404).send({ message: 'Mascota no encontrada' })
+      for await (const part of parts) { await (part as any).toBuffer?.() }
+      return
     }
 
     const parts = req.parts()
@@ -160,7 +168,8 @@ export default async function petRoutes(app: FastifyInstance) {
 
       const { phone, address, ...petData } = data
 
-      if (phone !== undefined || address !== undefined) {
+      // Teléfono y dirección son del dueño (se muestran en la placa): un familiar no los cambia
+      if (access.role === 'OWNER' && (phone !== undefined || address !== undefined)) {
         await prisma.user.update({
           where: { id: req.user.sub },
           data: {
@@ -185,13 +194,8 @@ export default async function petRoutes(app: FastifyInstance) {
   app.delete('/:id', { preHandler: [authenticate] }, async (req, reply) => {
     const { id } = req.params as { id: string }
 
-    const pet = await prisma.pet.findFirst({
-      where: { id, ownerId: req.user.sub }
-    })
-
-    if (!pet) {
-      return reply.status(404).send({ message: 'No se pudo eliminar (no encontrada o sin permisos)' })
-    }
+    if (!(await guardPet(reply, id, req.user.sub, { ownerOnly: true }))) return
+    const pet = await prisma.pet.findUniqueOrThrow({ where: { id } })
 
     // Borramos de Cloudinary las fotos y todos los archivos adjuntos de la mascota.
     // (Los registros de la base se borran en cascada con la mascota.)
@@ -270,8 +274,9 @@ export default async function petRoutes(app: FastifyInstance) {
     }
     const { isLost, lostMessage } = parsed.data
 
-    const pet = await prisma.pet.findUnique({ where: { id, ownerId: req.user.sub } })
-    if (!pet) return reply.status(404).send({ message: 'Mascota no encontrada' })
+    // Dueño o familiar; funciona aunque el plan haya vencido (es la seguridad de la mascota)
+    if (!(await guardPet(reply, id, req.user.sub))) return
+    const pet = await prisma.pet.findUniqueOrThrow({ where: { id } })
 
     const updated = await prisma.pet.update({
       where: { id },

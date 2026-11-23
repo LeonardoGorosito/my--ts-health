@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 // --- 1. LAYOUTS Y PROTECCIÓN ---
@@ -25,6 +25,8 @@ import { Privacy } from '../pages/public/Privacy'
 import { MyPlan } from '../pages/MyPlan'
 import { LostPoster } from '../pages/pets/LostPoster'
 import { PetRecord } from '../pages/pets/PetRecord'
+import { VetRecord } from '../pages/public/VetRecord'
+import { AcceptInvite } from '../pages/AcceptInvite'
 import { AdminPlans } from '../pages/AdminPlans'
 
 // ------------------------------------------------------------------
@@ -32,9 +34,15 @@ import { AdminPlans } from '../pages/AdminPlans'
 // ------------------------------------------------------------------
 function AuthGate({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
-  
+  const location = useLocation()
+
   if (loading) return <div className="p-6 text-emerald-600 font-bold text-center mt-20">Cargando...</div>
-  if (user) return <Navigate to="/app" replace /> // Si ya entró, lo mandamos a la app
+  if (user) {
+    // Si ya entró, lo mandamos a donde venía (?next=/ruta interna) o a la app
+    const next = new URLSearchParams(location.search).get('next')
+    const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : '/app'
+    return <Navigate to={safeNext} replace />
+  }
   
   return <>{children}</> 
 }
@@ -67,6 +75,10 @@ export function AppRouter() {
           ================================================================= */}
       {/* La placa digital del collar (QR) */}
       <Route path="/public/pet/:id" element={<PublicPetProfile />} />
+      {/* Ficha de solo lectura para el veterinario (link temporal, sin cuenta) */}
+      <Route path="/vet/:token" element={<VetRecord />} />
+      {/* Invitación de la familia: funciona con o sin sesión iniciada */}
+      <Route path="/invitacion/:token" element={<AcceptInvite />} />
 
       {/* =================================================================
           ZONA PRIVADA (Requiere iniciar sesión)

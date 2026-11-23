@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { prisma } from '../db.js'
 import { authenticate } from '../hooks/authenticate.js'
 import { destroyCloudinaryUrl } from '../lib/cloudinary-assets.js'
+import { guardPet } from '../lib/access.js'
 
 export default async function attachmentRoutes(app: FastifyInstance) {
 
@@ -13,14 +14,9 @@ export default async function attachmentRoutes(app: FastifyInstance) {
     const { id } = req.params as { id: string }
 
     // Verificar permisos
-    const attachment = await prisma.attachment.findUnique({
-      where: { id },
-      include: { pet: true }
-    })
-
-    if (!attachment || attachment.pet.ownerId !== req.user.sub) {
-      return reply.status(404).send({ message: 'Archivo no encontrado' })
-    }
+    const attachment = await prisma.attachment.findUnique({ where: { id } })
+    if (!attachment) return reply.status(404).send({ message: 'Archivo no encontrado' })
+    if (!(await guardPet(reply, attachment.petId, req.user.sub))) return
 
     // Borrar de Cloudinary
     await destroyCloudinaryUrl(attachment.url)

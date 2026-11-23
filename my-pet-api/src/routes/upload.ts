@@ -3,13 +3,13 @@ import cloudinary from '../lib/cloudinary.js';
 import { prisma } from '../db.js';
 import { z } from 'zod';
 import { authenticate } from '../hooks/authenticate.js';
-import { requireActive, requireFeature } from '../lib/subscription.js';
+import { guardPet } from '../lib/access.js';
 
 export async function uploadRoutes(app: FastifyInstance) {
   
   // POST /upload?petId=xxxx
   // Requiere login y que la mascota sea del usuario
-  app.post('/upload', { preHandler: [authenticate, requireActive, requireFeature('attachments')] }, async (req, reply) => {
+  app.post('/upload', { preHandler: [authenticate] }, async (req, reply) => {
     // 1. Validar que venga el ID de la mascota (lo pedimos por Query Param para facilitar)
     const { petId } = req.query as { petId?: string };
     if (!petId) {
@@ -17,12 +17,8 @@ export async function uploadRoutes(app: FastifyInstance) {
     }
 
     // 2. Verificar que la mascota pertenezca al usuario ANTES de subir nada a Cloudinary
-    const pet = await prisma.pet.findUnique({
-      where: { id: petId, ownerId: req.user.sub }
-    });
-    if (!pet) {
-      return reply.status(403).send({ message: 'No autorizado' });
-    }
+    // (dueño o familiar; el plan del dueño tiene que incluir adjuntos)
+    if (!(await guardPet(reply, petId, req.user.sub, { feature: 'attachments' }))) return;
 
     // 3. Obtener el archivo del request
     const data = await req.file();

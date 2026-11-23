@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../db.js'
 import { authenticate } from '../hooks/authenticate.js'
-import { requireActive } from '../lib/subscription.js'
+import { guardPet } from '../lib/access.js'
 import { sameDate } from '../lib/dates.js'
 
 export default async function vaccineRoutes(app: FastifyInstance) {
@@ -15,14 +15,11 @@ export default async function vaccineRoutes(app: FastifyInstance) {
   })
 
   // 1. AGREGAR VACUNA (POST /vaccines)
-  app.post('/', { preHandler: [authenticate, requireActive] }, async (req, reply) => {
+  app.post('/', { preHandler: [authenticate] }, async (req, reply) => {
     try {
       const data = vaccineSchema.parse(req.body)
       
-      const pet = await prisma.pet.findUnique({
-        where: { id: data.petId, ownerId: req.user.sub }
-      })
-      if (!pet) return reply.status(403).send({ message: 'No autorizado' })
+      if (!(await guardPet(reply, data.petId, req.user.sub, { requirePlan: true }))) return
 
       // CORRECCIÓN AQUÍ: Usamos 'dateApplied' que es lo que pide tu base de datos
       const vaccine = await prisma.vaccination.create({
@@ -50,16 +47,15 @@ export default async function vaccineRoutes(app: FastifyInstance) {
       include: { pet: true }
     })
 
-    if (!vaccine || vaccine.pet.ownerId !== req.user.sub) {
-      return reply.status(404).send({ message: 'No encontrado' })
-    }
+    if (!vaccine) return reply.status(404).send({ message: 'No encontrado' })
+    if (!(await guardPet(reply, vaccine.petId, req.user.sub))) return
 
     await prisma.vaccination.delete({ where: { id } })
     return reply.send({ message: 'Vacuna eliminada' })
   })
 
   // EDITAR (PUT /:id) — mismo esquema que el alta, sin petId
-  app.put('/:id', { preHandler: [authenticate, requireActive] }, async (req, reply) => {
+  app.put('/:id', { preHandler: [authenticate] }, async (req, reply) => {
     const { id } = req.params as { id: string }
     const parsed = vaccineSchema.omit({ petId: true }).safeParse(req.body)
     if (!parsed.success) {
@@ -68,9 +64,8 @@ export default async function vaccineRoutes(app: FastifyInstance) {
     const data = parsed.data
 
     const existing = await prisma.vaccination.findUnique({ where: { id }, include: { pet: true } })
-    if (!existing || existing.pet.ownerId !== req.user.sub) {
-      return reply.status(404).send({ message: 'No encontrado' })
-    }
+    if (!existing) return reply.status(404).send({ message: 'No encontrado' })
+    if (!(await guardPet(reply, existing.petId, req.user.sub, { requirePlan: true }))) return
 
     const updated = await prisma.vaccination.update({
       where: { id },

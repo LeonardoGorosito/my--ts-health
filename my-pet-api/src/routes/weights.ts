@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../db.js'
 import { authenticate } from '../hooks/authenticate.js'
-import { requireActive } from '../lib/subscription.js'
+import { guardPet } from '../lib/access.js'
 
 // ==========================================================
 // HISTORIAL DE PESO (/weights)
@@ -31,13 +31,12 @@ async function syncCurrentWeight(petId: string) {
 
 export default async function weightRoutes(app: FastifyInstance) {
   // 1. REGISTRAR PESO (POST /weights)
-  app.post('/', { preHandler: [authenticate, requireActive] }, async (req, reply) => {
+  app.post('/', { preHandler: [authenticate] }, async (req, reply) => {
     const parsed = weightSchema.safeParse(req.body)
     if (!parsed.success) return reply.status(400).send({ message: parsed.error.issues[0]?.message ?? 'Datos inválidos' })
     const data = parsed.data
 
-    const pet = await prisma.pet.findUnique({ where: { id: data.petId, ownerId: req.user.sub } })
-    if (!pet) return reply.status(403).send({ message: 'No autorizado' })
+    if (!(await guardPet(reply, data.petId, req.user.sub, { requirePlan: true }))) return
 
     const record = await prisma.weightRecord.create({
       data: { weightKg: data.weightKg, date: new Date(data.date), note: data.note || null, petId: data.petId },
@@ -47,14 +46,15 @@ export default async function weightRoutes(app: FastifyInstance) {
   })
 
   // 2. EDITAR (PUT /weights/:id)
-  app.put('/:id', { preHandler: [authenticate, requireActive] }, async (req, reply) => {
+  app.put('/:id', { preHandler: [authenticate] }, async (req, reply) => {
     const { id } = req.params as { id: string }
     const parsed = weightSchema.omit({ petId: true }).safeParse(req.body)
     if (!parsed.success) return reply.status(400).send({ message: parsed.error.issues[0]?.message ?? 'Datos inválidos' })
     const data = parsed.data
 
-    const existing = await prisma.weightRecord.findUnique({ where: { id }, include: { pet: true } })
-    if (!existing || existing.pet.ownerId !== req.user.sub) return reply.status(404).send({ message: 'No encontrado' })
+    const existing = await prisma.weightRecord.findUnique({ where: { id } })
+    if (!existing) return reply.status(404).send({ message: 'No encontrado' })
+    if (!(await guardPet(reply, existing.petId, req.user.sub, { requirePlan: true }))) return
 
     const record = await prisma.weightRecord.update({
       where: { id },
@@ -67,8 +67,9 @@ export default async function weightRoutes(app: FastifyInstance) {
   // 3. BORRAR (DELETE /weights/:id)
   app.delete('/:id', { preHandler: [authenticate] }, async (req, reply) => {
     const { id } = req.params as { id: string }
-    const existing = await prisma.weightRecord.findUnique({ where: { id }, include: { pet: true } })
-    if (!existing || existing.pet.ownerId !== req.user.sub) return reply.status(404).send({ message: 'No encontrado' })
+    const existing = await prisma.weightRecord.findUnique({ where: { id } })
+    if (!existing) return reply.status(404).send({ message: 'No encontrado' })
+    if (!(await guardPet(reply, existing.petId, req.user.sub))) return
 
     await prisma.weightRecord.delete({ where: { id } })
     await syncCurrentWeight(existing.petId)

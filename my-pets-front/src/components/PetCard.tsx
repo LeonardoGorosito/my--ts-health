@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { Card } from './Card'
-import { Cat, Dog, Heart, ArrowRight, Siren } from 'lucide-react'
+import { Cat, Dog, Heart, ArrowRight, Siren, Users } from 'lucide-react'
 
 type PetCardProps = {
   pet: {
@@ -12,6 +12,8 @@ type PetCardProps = {
     profileImageUrl?: string | null // <--- Agregamos esto para leer la foto
     isLost?: boolean
     gender?: string | null
+    access?: 'OWNER' | 'CAREGIVER'
+    owner?: { name: string; lastname: string }
   }
 }
 
@@ -58,6 +60,12 @@ export function PetCard({ pet }: PetCardProps) {
           </span>
         )}
       </div>
+
+      {pet.access === 'CAREGIVER' && (
+        <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-800 dark:bg-sky-900/30 dark:text-sky-200">
+          <Users size={13} aria-hidden="true" /> Compartida por {pet.owner?.name}
+        </p>
+      )}
 
       <div className="mt-6 flex items-center gap-2 border-t border-gray-50 dark:border-gray-800/50 pt-4 text-xs font-bold text-gray-600 dark:text-gray-400">
         <Heart size={14} aria-hidden="true" className={pet.isCastrated ? 'fill-emerald-500 text-emerald-500' : 'text-gray-400 dark:text-gray-600'} />

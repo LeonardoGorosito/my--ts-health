@@ -8,54 +8,55 @@ datasource db {
 }
 
 model User {
-  id                    String    @id @default(cuid())
-  email                 String    @unique
-  passwordHash          String?
-  name                  String
-  lastname              String
-  role                  Role      @default(USER)
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-  phone                 String?
-  address               String?
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String?
+  name         String
+  lastname     String
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  phone        String?
+  address      String?
 
   // --- CONTACTOS DE EMERGENCIA (pantalla Mi Perfil) ---
-  vetName               String?
-  vetPhone              String?
-  emergencyPhone        String?
+  vetName        String?
+  vetPhone       String?
+  emergencyPhone String?
 
   // --- PREFERENCIAS ---
-  emailReminders        Boolean   @default(true) // recordatorios de vacunas/desparasitaciones por email
+  emailReminders Boolean @default(true) // recordatorios de vacunas/desparasitaciones por email
 
   // --- SUSCRIPCIÓN (ver src/lib/subscription.ts) ---
-  trialEndsAt           DateTime? // fin de la prueba gratis; null = usuario previo (se completa solo al consultar)
-  plan                  Plan?     // plan pago; null = sin plan
-  planExpiresAt         DateTime? // el plan pago vale hasta esta fecha
-  
+  trialEndsAt   DateTime? // fin de la prueba gratis; null = usuario previo (se completa solo al consultar)
+  plan          Plan? // plan pago; null = sin plan
+  planExpiresAt DateTime? // el plan pago vale hasta esta fecha
+
   // --- NUEVOS CAMPOS PARA VERIFICACIÓN DE EMAIL ---
-  isVerified            Boolean   @default(false)
-  verificationCode      String?
+  isVerified             Boolean   @default(false)
+  verificationCode       String?
   verificationCodeExpiry DateTime?
 
   // --- CAMPOS PARA RECUPERAR CONTRASEÑA (los usaremos para el código de 6 dígitos) ---
-  resetToken            String?   @unique
-  resetTokenExpiry      DateTime?
-  
-  pets                  Pet[]
+  resetToken       String?   @unique
+  resetTokenExpiry DateTime?
+
+  pets        Pet[]
+  memberships PetMember[] // mascotas que otra persona compartió con este usuario
 }
 
 model Pet {
-  id              String          @id @default(cuid())
-  name            String
-  species         Species
-  breed           String?
-  gender          String?
-  birthDate       DateTime?
-  isCastrated     Boolean         @default(false)
-  specialNeeds    String?
-  ownerId         String
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  id                  String          @id @default(cuid())
+  name                String
+  species             Species
+  breed               String?
+  gender              String?
+  birthDate           DateTime?
+  isCastrated         Boolean         @default(false)
+  specialNeeds        String?
+  ownerId             String
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
   bannerImageUrl      String?
   profileImageUrl     String?
   weight              String?
@@ -66,23 +67,64 @@ model Pet {
   lostSince           DateTime?
   lostMessage         String?
   attachments         Attachment[]
-  dewormings      Deworming[]
-  weights         WeightRecord[]
-  treatments      Treatment[]
-  medicalHistory  MedicalRecord[]
-  owner           User            @relation(fields: [ownerId], references: [id])
-  vaccinations    Vaccination[]
+  dewormings          Deworming[]
+  weights             WeightRecord[]
+  treatments          Treatment[]
+  medicalHistory      MedicalRecord[]
+  owner               User            @relation(fields: [ownerId], references: [id])
+  vaccinations        Vaccination[]
+  members             PetMember[] // familiares con acceso (ver src/lib/access.ts)
+  shareLinks          ShareLink[] // invitaciones y links para el veterinario
+}
+
+// ==========================================================
+// COMPARTIR MASCOTAS
+// - PetMember: un familiar que acepta una invitación puede ver y cargar registros.
+//   No puede borrar la mascota ni manejar los accesos (eso queda para el dueño).
+// - ShareLink FAMILY: link de invitación de un solo uso (vence a los 7 días).
+// - ShareLink VET: link de solo lectura de la ficha, sin cuenta (vence a los 7 días, revocable).
+// ==========================================================
+model PetMember {
+  id        String   @id @default(cuid())
+  petId     String
+  userId    String
+  createdAt DateTime @default(now())
+  pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([petId, userId])
+  @@index([userId])
+}
+
+model ShareLink {
+  id        String    @id @default(cuid())
+  petId     String
+  kind      ShareKind
+  token     String    @unique
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+  revokedAt DateTime?
+  usedAt    DateTime? // solo FAMILY: cuándo se aceptó
+  usedById  String?
+  pet       Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  @@index([petId])
+}
+
+enum ShareKind {
+  FAMILY
+  VET
 }
 
 model Vaccination {
-  id          String    @id @default(cuid())
-  name        String
-  dateApplied DateTime
-  nextDueDate DateTime?
+  id             String    @id @default(cuid())
+  name           String
+  dateApplied    DateTime
+  nextDueDate    DateTime?
   reminderSentAt DateTime? // cuándo se avisó por email del vencimiento (null = pendiente)
-  notes       String?
-  petId       String
-  pet         Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
+  notes          String?
+  petId          String
+  pet            Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
 }
 
 model MedicalRecord {
@@ -110,9 +152,9 @@ model Attachment {
 // Medicación y tratamientos. endDate null = tratamiento continuo (crónico)
 model Treatment {
   id             String    @id @default(cuid())
-  name           String    // medicamento
-  dose           String?   // ej: "1/2 comprimido", "5 ml"
-  frequencyHours Int       // cada cuántas horas: 6, 8, 12, 24, 48, 168...
+  name           String // medicamento
+  dose           String? // ej: "1/2 comprimido", "5 ml"
+  frequencyHours Int // cada cuántas horas: 6, 8, 12, 24, 48, 168...
   startDate      DateTime
   endDate        DateTime?
   notes          String?
@@ -137,15 +179,15 @@ model WeightRecord {
 }
 
 model Deworming {
-  id          String    @id @default(cuid())
-  name        String
-  dateApplied DateTime
-  nextDueDate DateTime?
+  id             String    @id @default(cuid())
+  name           String
+  dateApplied    DateTime
+  nextDueDate    DateTime?
   reminderSentAt DateTime? // cuándo se avisó por email del vencimiento (null = pendiente)
-  type        String
-  petId       String
-  createdAt   DateTime  @default(now())
-  pet         Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
+  type           String
+  petId          String
+  createdAt      DateTime  @default(now())
+  pet            Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
 }
 
 enum Plan {

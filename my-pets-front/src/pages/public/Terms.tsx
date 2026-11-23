@@ -115,7 +115,7 @@ const sections: LegalSection[] = [
     body: (
       <>
         <p>
-          PetHealth es una herramienta para ordenar información. <strong>No brinda diagnósticos ni consejos veterinarios</strong> y no reemplaza la consulta con un profesional. La información de salud la cargás vos y sos responsable de que sea correcta.
+          PetHealth es una herramienta para ordenar información. <strong>No brinda diagnósticos ni consejos veterinarios</strong> y no reemplaza la consulta con un profesional. La información de salud la cargás vos y sos responsable de que sea correcta. Si compartís una mascota, las personas que invites también pueden cargar y editar información: vos decidís a quién darle acceso y podés quitarlo cuando quieras.
         </p>
         <p>
           Los recordatorios por email son una ayuda: pueden llegar tarde, ir a la carpeta de spam o no llegar por problemas ajenos a nosotros. No reemplazan el seguimiento que indique tu veterinario.
