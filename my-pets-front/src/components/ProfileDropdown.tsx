@@ -11,7 +11,8 @@ import {
   LayoutDashboard,
   CreditCard,
   ShieldCheck,
-  Stethoscope
+  Stethoscope,
+  KeyRound
 } from 'lucide-react'
 import { useMyClinics } from '../lib/clinic'
 
@@ -66,6 +67,7 @@ export function ProfileDropdown() {
           ) : (
             <MenuLink to="/veterinarias/registro" icon={<Stethoscope size={18} />} label="Soy veterinario/a" onClick={() => setIsOpen(false)} />
           )}
+          <MenuLink to="/perfil#codigo-veterinaria" icon={<KeyRound size={18} />} label="Código para mi veterinaria" onClick={() => setIsOpen(false)} />
           {user?.role === 'ADMIN' && (
             <MenuLink to="/admin" icon={<ShieldCheck size={18} />} label="Administración" onClick={() => setIsOpen(false)} />
           )}

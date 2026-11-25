@@ -30,6 +30,20 @@ export function ClientFormModal({ clinicId, client, onClose, onSaved }: {
   onClose: () => void
   onSaved: (c: ClinicClient) => void
 }) {
+  return (
+    <Modal title={client ? 'Editar cliente' : 'Nuevo cliente'} onClose={onClose}>
+      <ClientForm clinicId={clinicId} client={client} onCancel={onClose} onSaved={onSaved} />
+    </Modal>
+  )
+}
+
+// Formulario de datos del cliente (sin modal: lo usan "Editar cliente" y "Nuevo cliente")
+export function ClientForm({ clinicId, client, onCancel, onSaved }: {
+  clinicId: string
+  client?: ClinicClient | null
+  onCancel: () => void
+  onSaved: (c: ClinicClient) => void
+}) {
   const [f, setF] = useState({
     name: client?.name ?? '', lastname: client?.lastname ?? '', dni: client?.dni ?? '', phone: client?.phone ?? '',
     email: client?.email ?? '', address: client?.address ?? '', notes: client?.notes ?? '',
@@ -53,18 +67,16 @@ export function ClientFormModal({ clinicId, client, onClose, onSaved }: {
   }
 
   return (
-    <Modal title={client ? 'Editar cliente' : 'Nuevo cliente'} onClose={onClose}>
-      <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
-        <Field label="Nombre">{(id) => <input id={id} required value={f.name} onChange={set('name')} className={inputClass} autoFocus />}</Field>
-        <Field label="Apellido">{(id) => <input id={id} required value={f.lastname} onChange={set('lastname')} className={inputClass} />}</Field>
-        <Field label="Teléfono">{(id) => <input id={id} type="tel" value={f.phone} onChange={set('phone')} className={inputClass} />}</Field>
-        <Field label="DNI (opcional)">{(id) => <input id={id} inputMode="numeric" value={f.dni} onChange={set('dni')} className={inputClass} />}</Field>
-        <Field label="Email (opcional)" className="sm:col-span-2">{(id) => <input id={id} type="email" value={f.email} onChange={set('email')} className={inputClass} />}</Field>
-        <Field label="Dirección (opcional)" className="sm:col-span-2">{(id) => <input id={id} value={f.address} onChange={set('address')} className={inputClass} />}</Field>
-        <Field label="Notas (opcional)" className="sm:col-span-2">{(id) => <textarea id={id} rows={2} value={f.notes} onChange={set('notes')} className={inputClass} />}</Field>
-        <div className="sm:col-span-2"><FormActions saving={saving} onCancel={onClose} label={client ? 'Guardar' : 'Crear cliente'} /></div>
-      </form>
-    </Modal>
+    <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+      <Field label="Nombre">{(id) => <input id={id} required value={f.name} onChange={set('name')} className={inputClass} autoFocus />}</Field>
+      <Field label="Apellido">{(id) => <input id={id} required value={f.lastname} onChange={set('lastname')} className={inputClass} />}</Field>
+      <Field label="Teléfono">{(id) => <input id={id} type="tel" value={f.phone} onChange={set('phone')} className={inputClass} />}</Field>
+      <Field label="DNI (opcional)">{(id) => <input id={id} inputMode="numeric" value={f.dni} onChange={set('dni')} className={inputClass} />}</Field>
+      <Field label="Email (opcional)" className="sm:col-span-2">{(id) => <input id={id} type="email" value={f.email} onChange={set('email')} className={inputClass} />}</Field>
+      <Field label="Dirección (opcional)" className="sm:col-span-2">{(id) => <input id={id} value={f.address} onChange={set('address')} className={inputClass} />}</Field>
+      <Field label="Notas (opcional)" className="sm:col-span-2">{(id) => <textarea id={id} rows={2} value={f.notes} onChange={set('notes')} className={inputClass} />}</Field>
+      <div className="sm:col-span-2"><FormActions saving={saving} onCancel={onCancel} label={client ? 'Guardar' : 'Crear cliente'} /></div>
+    </form>
   )
 }
 

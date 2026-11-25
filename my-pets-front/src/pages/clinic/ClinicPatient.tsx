@@ -11,10 +11,11 @@ import { daysFromToday, formatDay } from '../../lib/dates'
 import { breedOrDefault, speciesName } from '../../lib/species'
 import { SpeciesIcon } from '../../components/SpeciesIcon'
 import { PatientFormModal, PreventiveFormModal } from '../../components/clinic/forms'
+import { FamilyRecord } from '../../components/clinic/FamilyRecord'
 import { card, dangerLink, primaryButton, secondaryButton } from '../../components/clinic/ui'
 import type { ClinicOutlet } from './ClinicShell'
 
-type Tab = 'history' | 'preventives' | 'files'
+type Tab = 'history' | 'family' | 'preventives' | 'files'
 
 // ---------------------------------------------------------------
 // FICHA DEL PACIENTE (/clinica/pacientes/:patientId)
@@ -63,6 +64,10 @@ export function ClinicPatient() {
 
   const tabs: { id: Tab; label: string; count: number }[] = [
     { id: 'history', label: 'Historia clínica', count: p.records.length },
+    // Ficha que carga el dueño en PetHealth (solo si vinculó la mascota con su código)
+    ...(p.familyRecord
+      ? [{ id: 'family' as Tab, label: 'Ficha de la familia', count: p.familyRecord.vaccinations.length + p.familyRecord.dewormings.length + p.familyRecord.medicalHistory.length + p.familyRecord.treatments.length }]
+      : []),
     { id: 'preventives', label: 'Vacunas y desparasitaciones', count: p.preventives.length },
     { id: 'files', label: 'Estudios', count: p.attachments.length },
   ]
@@ -84,6 +89,9 @@ export function ClinicPatient() {
             {[p.coat, p.microchip && `Microchip ${p.microchip}`].filter(Boolean).join(' · ')}
           </p>
           <p className="mt-2 text-sm">
+            {p.familyRecord && (
+              <span className="mr-2 inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 text-xs font-semibold text-sky-800 dark:bg-sky-900/30 dark:text-sky-200">Usa PetHealth</span>
+            )}
             <span className="text-gray-600 dark:text-gray-400">Dueño/a: </span>
             <Link to={`/clinica/clientes/${p.client.id}`} className="font-semibold text-gray-900 hover:underline dark:text-white">{fullName(p.client)}</Link>
             {p.client.phone && <a href={`tel:${p.client.phone}`} className="ml-2 tabular-nums text-gray-700 hover:underline dark:text-gray-300">{p.client.phone}</a>}
@@ -123,6 +131,8 @@ export function ClinicPatient() {
       </div>
 
       {tab === 'history' && <History records={p.records} patientId={p.id} clinical={clinical} />}
+
+      {tab === 'family' && p.familyRecord && <FamilyRecord data={p.familyRecord} ownerName={p.client.name} />}
 
       {tab === 'preventives' && (
         <PreventiveList

@@ -13,7 +13,8 @@ import { api } from '../lib/axios'
 
 type ShareLink = { id: string; kind: 'FAMILY' | 'VET'; token: string; createdAt: string; expiresAt: string }
 type Member = { id: string; createdAt: string; user: { name: string; lastname: string; email: string } }
-type ShareState = { members: Member[]; invites: ShareLink[]; vetLinks: ShareLink[] }
+type LinkedClinic = { id: string; createdAt: string; clinic: { name: string; city: string } }
+type ShareState = { members: Member[]; invites: ShareLink[]; vetLinks: ShareLink[]; clinics: LinkedClinic[] }
 
 const linkUrl = (l: ShareLink) => `${window.location.origin}/${l.kind === 'VET' ? 'vet' : 'invitacion'}/${l.token}`
 const until = (iso: string) => new Date(iso).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })
@@ -98,6 +99,17 @@ export function ShareModal({ isOpen, onClose, petId, petName }: Props) {
     }
   }
 
+  const unlinkClinic = async (c: LinkedClinic) => {
+    if (!window.confirm(`¿Dejar de compartir la ficha de ${petName} con ${c.clinic.name}? La veterinaria conserva su propia historia clínica, pero deja de ver lo que cargás vos.`)) return
+    try {
+      await api.delete(`/shares/pet/${petId}/clinics/${c.id}`)
+      toast.success('Listo, ya no comparte la ficha')
+      load()
+    } catch (e) {
+      toast.error(errorMessage(e, 'No se pudo dejar de compartir'))
+    }
+  }
+
   const whatsappText = (l: ShareLink) =>
     l.kind === 'VET'
       ? `Hola, te comparto la ficha de salud de ${petName}: ${linkUrl(l)}`
@@ -157,6 +169,27 @@ export function ShareModal({ isOpen, onClose, petId, petName }: Props) {
                 <Link2 size={18} aria-hidden="true" /> {creating === 'FAMILY' ? 'Creando...' : 'Crear link de invitación'}
               </button>
             </section>
+
+            {/* VETERINARIAS VINCULADAS CON EL CÓDIGO DEL DUEÑO */}
+            {state.clinics.length > 0 && (
+              <section aria-labelledby="share-clinics" className="mt-8 border-t border-gray-100 pt-6 dark:border-zinc-800">
+                <h3 id="share-clinics" className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
+                  <Stethoscope size={18} aria-hidden="true" className="text-emerald-600 dark:text-emerald-400" /> Veterinarias que ven su ficha
+                </h3>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Las vinculaste con tu código. Ven lo que cargás de {petName}, sin poder cambiarlo.</p>
+                <ul className="mt-3 divide-y divide-gray-100 rounded-2xl border border-gray-200 dark:divide-zinc-800 dark:border-zinc-800">
+                  {state.clinics.map((c) => (
+                    <li key={c.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-gray-900 dark:text-white">{c.clinic.name}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{c.clinic.city} · desde el {new Date(c.createdAt).toLocaleDateString('es-AR')}</p>
+                      </div>
+                      <button type="button" onClick={() => unlinkClinic(c)} className="text-sm font-semibold text-red-700 hover:underline dark:text-red-400">Dejar de compartir</button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
             {/* VETERINARIO */}
             <section aria-labelledby="share-vet" className="mt-8 border-t border-gray-100 pt-6 dark:border-zinc-800">

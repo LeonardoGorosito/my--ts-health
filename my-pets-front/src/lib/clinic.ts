@@ -94,11 +94,24 @@ export type Preventive = {
 
 export type ClinicAttachment = { id: string; name: string; url: string; fileType: string; createdAt: string }
 
+// Lo que carga la familia en su app (solo si el paciente se vinculó con el código del dueño)
+export type FamilyRecord = {
+  specialNeeds: string | null
+  vaccinations: { id: string; name: string; dateApplied: string; nextDueDate: string | null }[]
+  dewormings: { id: string; name: string; type: string; dateApplied: string; nextDueDate: string | null }[]
+  medicalHistory: { id: string; date: string; title: string; description: string }[]
+  treatments: { id: string; name: string; dose: string | null; frequencyHours: number; startDate: string; endDate: string | null; notes: string | null }[]
+  weights: { id: string; date: string; weightKg: number; note: string | null }[]
+  attachments: { id: string; name: string; url: string; createdAt: string }[]
+}
+
 export type PatientDetail = ClinicPatient & {
-  client: ClinicClient
+  petId: string | null
+  client: ClinicClient & { userId: string | null }
   records: ClinicalRecord[]
   preventives: Preventive[]
   attachments: ClinicAttachment[]
+  familyRecord: FamilyRecord | null
 }
 
 export const ROLE_LABEL: Record<ClinicRole, string> = {

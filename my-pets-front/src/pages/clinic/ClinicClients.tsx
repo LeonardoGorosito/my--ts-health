@@ -9,6 +9,7 @@ import type { ClinicClient, ClinicPatient } from '../../lib/clinic'
 import { breedOrDefault, speciesName } from '../../lib/species'
 import { SpeciesIcon } from '../../components/SpeciesIcon'
 import { ClientFormModal, PatientFormModal } from '../../components/clinic/forms'
+import { NewClientModal } from '../../components/clinic/NewClientModal'
 import { card, dangerLink, inputClass, primaryButton, secondaryButton } from '../../components/clinic/ui'
 import type { ClinicOutlet } from './ClinicShell'
 
@@ -77,7 +78,7 @@ export function ClinicClients() {
         </div>
       )}
 
-      {creating && <ClientFormModal clinicId={clinicId} onClose={() => setCreating(false)} onSaved={(c) => navigate(`/clinica/clientes/${c.id}?nuevoPaciente=1`)} />}
+      {creating && <NewClientModal clinicId={clinicId} onClose={() => setCreating(false)} onSaved={(id, imported) => navigate(`/clinica/clientes/${id}${imported ? '' : '?nuevoPaciente=1'}`)} />}
     </div>
   )
 }

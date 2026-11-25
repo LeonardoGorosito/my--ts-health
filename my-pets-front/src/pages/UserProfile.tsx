@@ -1,3 +1,4 @@
+import { ClinicCodeCard } from '../components/ClinicCodeCard'
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -182,6 +183,8 @@ const UserProfile = () => {
         </button>
       </div>
     </form>
+
+      <ClinicCodeCard />
 
     {/* Formulario aparte: no puede ir anidado dentro del form del perfil */}
     <ChangePasswordCard />

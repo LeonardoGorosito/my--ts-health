@@ -45,9 +45,13 @@ model User {
   resetToken       String?   @unique
   resetTokenExpiry DateTime?
 
-  pets              Pet[]
-  memberships       PetMember[] // mascotas que otra persona compartió con este usuario
-  clinicMemberships ClinicMember[] // veterinarias de las que forma parte (ver sección CLÍNICAS)
+  pets                    Pet[]
+  memberships             PetMember[] // mascotas que otra persona compartió con este usuario
+  clinicMemberships       ClinicMember[] // veterinarias de las que forma parte (ver sección CLÍNICAS)
+  // Código de un solo uso para que una veterinaria importe sus datos y sus mascotas (vence a los 30 min)
+  clinicLinkCode          String?        @unique
+  clinicLinkCodeExpiresAt DateTime?
+  clinicClients           ClinicClient[] // fichas de cliente vinculadas a esta cuenta en veterinarias
 }
 
 model Pet {
@@ -78,6 +82,7 @@ model Pet {
   medicalHistory      MedicalRecord[]
   owner               User            @relation(fields: [ownerId], references: [id])
   vaccinations        Vaccination[]
+  clinicPatients      ClinicPatient[] // fichas de esta mascota en veterinarias (vinculadas con código)
   members             PetMember[] // familiares con acceso (ver src/lib/access.ts)
   shareLinks          ShareLink[] // invitaciones y links para el veterinario
 }
@@ -321,9 +326,11 @@ model ClinicClient {
   email     String?
   address   String?
   notes     String?
+  userId    String? // cuenta de PetHealth del cliente, si la vinculó con su código
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
   clinic    Clinic          @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  user      User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
   patients  ClinicPatient[]
 
   @@index([clinicId, lastname])
@@ -344,10 +351,12 @@ model ClinicPatient {
   weightKg    Float? // último peso (se actualiza con cada consulta)
   alerts      String? // alergias, agresivo, cardíaco... (siempre visible)
   deceasedAt  DateTime?
+  petId       String? // mascota de PetHealth del dueño, si se importó con su código
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   clinic      Clinic             @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  pet         Pet?               @relation(fields: [petId], references: [id], onDelete: SetNull)
   client      ClinicClient       @relation(fields: [clientId], references: [id], onDelete: Cascade)
   records     ClinicalRecord[]
   preventives ClinicPreventive[]

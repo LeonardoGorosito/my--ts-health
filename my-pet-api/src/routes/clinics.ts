@@ -430,7 +430,24 @@ export default async function clinicRoutes(app: FastifyInstance) {
       },
     })
     if (!patient) return reply.status(404).send({ message: 'Paciente no encontrado' })
-    return patient
+
+    // Vinculado con el código del dueño: sumamos su ficha de PetHealth (solo lectura, siempre al día).
+    // El dueño puede cortar el vínculo desde "Compartir" en su app.
+    const familyRecord = patient.petId
+      ? await prisma.pet.findUnique({
+          where: { id: patient.petId },
+          select: {
+            specialNeeds: true,
+            vaccinations: { orderBy: { dateApplied: 'desc' }, select: { id: true, name: true, dateApplied: true, nextDueDate: true } },
+            dewormings: { orderBy: { dateApplied: 'desc' }, select: { id: true, name: true, type: true, dateApplied: true, nextDueDate: true } },
+            medicalHistory: { orderBy: { date: 'desc' }, select: { id: true, date: true, title: true, description: true } },
+            treatments: { orderBy: { startDate: 'desc' }, select: { id: true, name: true, dose: true, frequencyHours: true, startDate: true, endDate: true, notes: true } },
+            weights: { orderBy: { date: 'desc' }, select: { id: true, date: true, weightKg: true, note: true } },
+            attachments: { orderBy: { createdAt: 'desc' }, select: { id: true, name: true, url: true, createdAt: true } },
+          },
+        })
+      : null
+    return { ...patient, familyRecord }
   })
 
   app.put('/:clinicId/patients/:patientId', { preHandler: [authenticate] }, async (req, reply) => {
@@ -577,5 +594,73 @@ export default async function clinicRoutes(app: FastifyInstance) {
     await destroyCloudinaryUrl(attachment.url)
     await prisma.clinicAttachment.delete({ where: { id } })
     return { message: 'Eliminado' }
+  })
+
+  // ---------------------------------------------------------------
+  // CLIENTE CON PETHEALTH: importar con el código que genera el dueño en su app
+  // ---------------------------------------------------------------
+  const findCodeOwner = (code: string) =>
+    prisma.user.findFirst({
+      where: { clinicLinkCode: code.trim().toUpperCase(), clinicLinkCodeExpiresAt: { gt: new Date() } },
+      select: {
+        id: true, name: true, lastname: true, phone: true, email: true, address: true,
+        pets: {
+          orderBy: { name: 'asc' },
+          select: { id: true, name: true, species: true, breed: true, gender: true, birthDate: true, isCastrated: true, weight: true },
+        },
+      },
+    })
+
+  // Vista previa (GET /clinics/:clinicId/link-code/:code)
+  app.get('/:clinicId/link-code/:code', { preHandler: [authenticate], config: { rateLimit: { max: 20, timeWindow: '1 minute' } } }, async (req, reply) => {
+    const { clinicId, code } = req.params as { clinicId: string; code: string }
+    if (!(await guardClinic(reply, clinicId, req.user.sub))) return
+    const owner = await findCodeOwner(code)
+    if (!owner) return reply.status(404).send({ message: 'El código no existe o venció. Pedile al cliente que genere uno nuevo.' })
+    const [existingClient, imported] = await Promise.all([
+      prisma.clinicClient.findFirst({ where: { clinicId, userId: owner.id }, select: { id: true } }),
+      prisma.clinicPatient.findMany({ where: { clinicId, petId: { in: owner.pets.map((p) => p.id) } }, select: { petId: true } }),
+    ])
+    const { id: _id, ...person } = owner
+    return { ...person, existingClientId: existingClient?.id ?? null, importedPetIds: imported.map((i) => i.petId) }
+  })
+
+  // Importar (POST /clinics/:clinicId/clients/from-code  { code, petIds })
+  app.post('/:clinicId/clients/from-code', { preHandler: [authenticate] }, async (req, reply) => {
+    const { clinicId } = req.params as { clinicId: string }
+    const parsed = z.object({ code: z.string().min(4), petIds: z.array(z.string()).max(50) }).safeParse(req.body)
+    if (!parsed.success) return reply.status(400).send({ message: 'Datos inválidos' })
+    if (!(await guardClinic(reply, clinicId, req.user.sub))) return
+    const owner = await findCodeOwner(parsed.data.code)
+    if (!owner) return reply.status(404).send({ message: 'El código no existe o venció. Pedile al cliente que genere uno nuevo.' })
+
+    const pets = owner.pets.filter((p) => parsed.data.petIds.includes(p.id))
+    const clientId = await prisma.$transaction(async (tx) => {
+      // Si ya era cliente vinculado, actualizamos sus datos de contacto; si no, lo creamos
+      const existing = await tx.clinicClient.findFirst({ where: { clinicId, userId: owner.id } })
+      const contact = { name: owner.name, lastname: owner.lastname, phone: owner.phone, email: owner.email, address: owner.address }
+      const client = existing
+        ? await tx.clinicClient.update({ where: { id: existing.id }, data: contact })
+        : await tx.clinicClient.create({ data: { ...contact, clinicId, userId: owner.id } })
+
+      const already = await tx.clinicPatient.findMany({ where: { clinicId, petId: { in: pets.map((p) => p.id) } }, select: { petId: true } })
+      const skip = new Set(already.map((a) => a.petId))
+      for (const p of pets.filter((x) => !skip.has(x.id))) {
+        const weight = p.weight ? Number(String(p.weight).replace(',', '.')) : null
+        await tx.clinicPatient.create({
+          data: {
+            clinicId, clientId: client.id, petId: p.id,
+            name: p.name, species: p.species, breed: p.breed,
+            sex: p.gender === 'Macho' || p.gender === 'Hembra' ? p.gender : null,
+            birthDate: p.birthDate, isCastrated: p.isCastrated,
+            weightKg: weight && Number.isFinite(weight) ? weight : null,
+          },
+        })
+      }
+      // El código es de un solo uso
+      await tx.user.update({ where: { id: owner.id }, data: { clinicLinkCode: null, clinicLinkCodeExpiresAt: null } })
+      return client.id
+    })
+    return reply.status(201).send({ clientId })
   })
 }

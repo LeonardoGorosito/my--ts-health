@@ -8,7 +8,7 @@ import type { ClinicClient, ClinicPatient, RecordType } from '../../lib/clinic'
 import { formatDay } from '../../lib/dates'
 import { speciesName } from '../../lib/species'
 import { SpeciesIcon } from '../../components/SpeciesIcon'
-import { ClientFormModal } from '../../components/clinic/forms'
+import { NewClientModal } from '../../components/clinic/NewClientModal'
 import { card, inputClass, primaryButton } from '../../components/clinic/ui'
 import type { ClinicOutlet } from './ClinicShell'
 
@@ -153,10 +153,10 @@ export function ClinicHome() {
       )}
 
       {newClient && (
-        <ClientFormModal
+        <NewClientModal
           clinicId={clinicId}
           onClose={() => setNewClient(false)}
-          onSaved={(c) => navigate(`/clinica/clientes/${c.id}?nuevoPaciente=1`)}
+          onSaved={(id, imported) => navigate(`/clinica/clientes/${id}${imported ? '' : '?nuevoPaciente=1'}`)}
         />
       )}
     </div>

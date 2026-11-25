@@ -28,7 +28,7 @@ export default async function shareRoutes(app: FastifyInstance) {
     const { petId } = req.params as { petId: string }
     if (!(await guardPet(reply, petId, req.user.sub, { ownerOnly: true }))) return
 
-    const [members, links] = await Promise.all([
+    const [members, links, clinics] = await Promise.all([
       prisma.petMember.findMany({
         where: { petId },
         orderBy: { createdAt: 'asc' },
@@ -39,11 +39,17 @@ export default async function shareRoutes(app: FastifyInstance) {
         orderBy: { createdAt: 'desc' },
         select: { id: true, kind: true, token: true, createdAt: true, expiresAt: true },
       }),
+      // Veterinarias que vincularon esta mascota con el código del dueño
+      prisma.clinicPatient.findMany({
+        where: { petId },
+        select: { id: true, createdAt: true, clinic: { select: { name: true, city: true } } },
+      }),
     ])
     return reply.send({
       members: members.map((m) => ({ id: m.id, createdAt: m.createdAt, user: m.user })),
       invites: links.filter((l) => l.kind === 'FAMILY'),
       vetLinks: links.filter((l) => l.kind === 'VET'),
+      clinics,
     })
   })
 
@@ -89,6 +95,16 @@ export default async function shareRoutes(app: FastifyInstance) {
     }
     await prisma.petMember.delete({ where: { id } })
     return reply.send({ message: 'Acceso quitado' })
+  })
+
+  // DUEÑO: dejar de compartir la ficha con una veterinaria (DELETE /shares/pet/:petId/clinics/:clinicPatientId)
+  // La clínica conserva su propia historia clínica del paciente, pero deja de ver la ficha de la familia.
+  app.delete('/pet/:petId/clinics/:clinicPatientId', { preHandler: [authenticate] }, async (req, reply) => {
+    const { petId, clinicPatientId } = req.params as { petId: string; clinicPatientId: string }
+    if (!(await guardPet(reply, petId, req.user.sub, { ownerOnly: true }))) return
+    const { count } = await prisma.clinicPatient.updateMany({ where: { id: clinicPatientId, petId }, data: { petId: null } })
+    if (count === 0) return reply.status(404).send({ message: 'Vínculo no encontrado' })
+    return reply.send({ message: 'Dejaste de compartir la ficha con la veterinaria' })
   })
 
   // Familiar: dejar de ver una mascota compartida (DELETE /shares/pet/:petId/me)

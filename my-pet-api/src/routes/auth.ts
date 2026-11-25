@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import bcrypt from 'bcrypt'
+import { randomInt } from 'node:crypto'
 import { prisma } from '../db.js'
 import { authenticate } from '../hooks/authenticate.js'
 // IMPORTANTE: Asegurate de tener tu resend configurado en este archivo
@@ -414,5 +415,25 @@ export default async function auth(app: FastifyInstance) {
         ])
         req.log.info({ userId: user.id }, 'Cuenta eliminada por el usuario')
         return { message: 'Cuenta eliminada' }
+    })
+
+    // ==========================================================
+    // CÓDIGO PARA MI VETERINARIA (POST /auth/me/clinic-code)
+    // El dueño se lo pasa a su veterinaria para que importe sus datos y sus mascotas
+    // sin cargarlos a mano. 6 caracteres fáciles de dictar, un solo uso, vence a los 30 min.
+    // ==========================================================
+    app.post('/me/clinic-code', { preHandler: [authenticate], config: { rateLimit: { max: 10, timeWindow: '15 minutes' } } }, async (req: any) => {
+        const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // sin 0/O ni 1/I
+        const expiresAt = new Date(Date.now() + 30 * 60 * 1000)
+        for (let attempt = 0; attempt < 5; attempt++) {
+            const code = Array.from({ length: 6 }, () => ALPHABET[randomInt(ALPHABET.length)]).join('')
+            try {
+                await prisma.user.update({ where: { id: req.user.sub }, data: { clinicLinkCode: code, clinicLinkCodeExpiresAt: expiresAt } })
+                return { code, expiresAt }
+            } catch {
+                // choque con un código existente (único): probamos otro
+            }
+        }
+        throw new Error('No se pudo generar el código')
     })
 }
