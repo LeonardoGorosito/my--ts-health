@@ -8,6 +8,7 @@ import {
   CAN, guardClinic, findClinicPatient, readMultipart,
   uploadLicensePhoto, destroyLicensePhoto, uploadPublicFile,
 } from '../lib/clinic.js'
+import { syncPreventive, unsyncPreventive, syncRecord, unsyncRecord } from '../lib/clinic-sync.js'
 
 // ==========================================================
 // CLÍNICAS VETERINARIAS (/clinics) — etapa 1
@@ -88,6 +89,8 @@ const recordSchema = z.object({
   finalDx: optText(1000),
   treatment: optText(5000),
   nextControl: optDate,
+  sharedWithOwner: z.boolean().default(false),
+  ownerNote: optText(3000),
 })
 
 const preventiveSchema = z.object({
@@ -503,6 +506,7 @@ export default async function clinicRoutes(app: FastifyInstance) {
     })
     // El peso de la consulta pasa a ser el peso actual del paciente
     if (d.weightKg !== null) await prisma.clinicPatient.update({ where: { id: patientId }, data: { weightKg: d.weightKg } })
+    await syncRecord(record.id)
     return reply.status(201).send(record)
   })
 
@@ -514,17 +518,21 @@ export default async function clinicRoutes(app: FastifyInstance) {
     const parsed = recordSchema.safeParse(req.body)
     if (!parsed.success) return reply.status(400).send({ message: firstError(parsed.error) })
     const d = parsed.data
-    return prisma.clinicalRecord.update({
+    const updated = await prisma.clinicalRecord.update({
       where: { id: recordId },
       data: { ...d, date: new Date(d.date), heartRate: toInt(d.heartRate), respiratoryRate: toInt(d.respiratoryRate), bodyCondition: toInt(d.bodyCondition) },
     })
+    await syncRecord(updated.id)
+    return updated
   })
 
   app.delete('/:clinicId/records/:recordId', { preHandler: [authenticate] }, async (req, reply) => {
     const { clinicId, recordId } = req.params as { clinicId: string; recordId: string }
     if (!(await guardClinic(reply, clinicId, req.user.sub, CAN.deleteRecords))) return
-    const { count } = await prisma.clinicalRecord.deleteMany({ where: { id: recordId, clinicId } })
-    if (count === 0) return reply.status(404).send({ message: 'Consulta no encontrada' })
+    const record = await prisma.clinicalRecord.findFirst({ where: { id: recordId, clinicId }, select: { id: true } })
+    if (!record) return reply.status(404).send({ message: 'Consulta no encontrada' })
+    await unsyncRecord(record.id)
+    await prisma.clinicalRecord.delete({ where: { id: record.id } })
     return { message: 'Consulta eliminada' }
   })
 
@@ -542,6 +550,7 @@ export default async function clinicRoutes(app: FastifyInstance) {
     const created = await prisma.clinicPreventive.create({
       data: { ...d, route: d.kind === 'DEWORMING' ? d.route ?? null : null, dateApplied: new Date(d.dateApplied), clinicId, patientId, authorId: member.id },
     })
+    await syncPreventive(created.id)
     return reply.status(201).send(created)
   })
 
@@ -556,14 +565,17 @@ export default async function clinicRoutes(app: FastifyInstance) {
       data: { ...d, route: d.kind === 'DEWORMING' ? d.route ?? null : null, dateApplied: new Date(d.dateApplied) },
     })
     if (count === 0) return reply.status(404).send({ message: 'Registro no encontrado' })
+    await syncPreventive(id)
     return { message: 'Actualizado' }
   })
 
   app.delete('/:clinicId/preventives/:id', { preHandler: [authenticate] }, async (req, reply) => {
     const { clinicId, id } = req.params as { clinicId: string; id: string }
     if (!(await guardClinic(reply, clinicId, req.user.sub, CAN.deleteRecords))) return
-    const { count } = await prisma.clinicPreventive.deleteMany({ where: { id, clinicId } })
-    if (count === 0) return reply.status(404).send({ message: 'Registro no encontrado' })
+    const preventive = await prisma.clinicPreventive.findFirst({ where: { id, clinicId }, select: { id: true } })
+    if (!preventive) return reply.status(404).send({ message: 'Registro no encontrado' })
+    await unsyncPreventive(preventive.id)
+    await prisma.clinicPreventive.delete({ where: { id: preventive.id } })
     return { message: 'Eliminado' }
   })
 

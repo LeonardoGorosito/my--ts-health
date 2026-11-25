@@ -79,6 +79,8 @@ export type ClinicalRecord = {
   finalDx: string | null
   treatment: string | null
   nextControl: string | null
+  sharedWithOwner: boolean
+  ownerNote: string | null
   author: { role: ClinicRole; licenseNumber: string | null; user: { name: string; lastname: string } } | null
 }
 

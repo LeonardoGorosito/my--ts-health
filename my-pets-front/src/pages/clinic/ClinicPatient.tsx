@@ -172,6 +172,7 @@ export function ClinicPatient() {
           patientId={p.id}
           kind={preventive.kind}
           record={preventive.record}
+          linkedOwner={p.petId ? p.client.name : null}
           onClose={() => setPreventive(null)}
           onSaved={() => { setPreventive(null); refresh() }}
         />
@@ -213,7 +214,10 @@ function History({ records, patientId, clinical }: { records: ClinicalRecord[]; 
                   <span className="font-semibold tabular-nums text-gray-900 dark:text-white">{formatDay(r.date)}</span> · {RECORD_TYPE_LABEL[r.type]}
                   {r.author && <> · {r.author.user.name} {r.author.user.lastname}{r.author.licenseNumber ? ` (${r.author.licenseNumber})` : ''}</>}
                 </p>
-                <h3 className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{r.reason}</h3>
+                <h3 className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
+                  {r.reason}
+                  {r.sharedWithOwner && <span className="ml-2 align-middle rounded-full bg-sky-50 px-2 py-0.5 text-xs font-semibold text-sky-800 dark:bg-sky-900/30 dark:text-sky-200">Compartida con la familia</span>}
+                </h3>
               </div>
               {clinical && (
                 <Link to={`/clinica/pacientes/${patientId}/consulta/${r.id}`} className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-zinc-800">
@@ -232,6 +236,7 @@ function History({ records, patientId, clinical }: { records: ClinicalRecord[]; 
               <RecordText label="Diagnóstico presuntivo" value={r.presumptiveDx} />
               <RecordText label="Diagnóstico definitivo" value={r.finalDx} />
               <RecordText label="Tratamiento e indicaciones" value={r.treatment} />
+              {r.sharedWithOwner && <RecordText label="Lo que ve la familia" value={r.ownerNote} />}
               {r.nextControl && <RecordText label="Próximo control" value={formatDay(r.nextControl)} />}
             </dl>
           </li>

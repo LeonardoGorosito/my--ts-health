@@ -127,24 +127,30 @@ enum ShareKind {
 }
 
 model Vaccination {
-  id             String    @id @default(cuid())
-  name           String
-  dateApplied    DateTime
-  nextDueDate    DateTime?
-  reminderSentAt DateTime? // cuándo se avisó por email del vencimiento (null = pendiente)
-  notes          String?
-  petId          String
-  pet            Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
+  id                 String    @id @default(cuid())
+  name               String
+  dateApplied        DateTime
+  nextDueDate        DateTime?
+  reminderSentAt     DateTime? // cuándo se avisó por email del vencimiento (null = pendiente)
+  notes              String?
+  // Cargada por una veterinaria (paciente vinculado con el código del dueño): ver src/lib/clinic-sync.ts
+  clinicPreventiveId String?   @unique
+  sourceClinic       String? // nombre de la veterinaria, para mostrarlo en la app del dueño
+  petId              String
+  pet                Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
 }
 
 model MedicalRecord {
-  id          String       @id @default(cuid())
-  date        DateTime     @default(now())
-  title       String
-  description String
-  petId       String
-  attachments Attachment[]
-  pet         Pet          @relation(fields: [petId], references: [id], onDelete: Cascade)
+  id               String       @id @default(cuid())
+  date             DateTime     @default(now())
+  title            String
+  description      String
+  // Consulta compartida por una veterinaria: ver src/lib/clinic-sync.ts
+  clinicalRecordId String?      @unique
+  sourceClinic     String?
+  petId            String
+  attachments      Attachment[]
+  pet              Pet          @relation(fields: [petId], references: [id], onDelete: Cascade)
 }
 
 model Attachment {
@@ -189,15 +195,18 @@ model WeightRecord {
 }
 
 model Deworming {
-  id             String    @id @default(cuid())
-  name           String
-  dateApplied    DateTime
-  nextDueDate    DateTime?
-  reminderSentAt DateTime? // cuándo se avisó por email del vencimiento (null = pendiente)
-  type           String
-  petId          String
-  createdAt      DateTime  @default(now())
-  pet            Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
+  id                 String    @id @default(cuid())
+  name               String
+  dateApplied        DateTime
+  nextDueDate        DateTime?
+  reminderSentAt     DateTime? // cuándo se avisó por email del vencimiento (null = pendiente)
+  type               String
+  // Cargada por una veterinaria (paciente vinculado con el código del dueño): ver src/lib/clinic-sync.ts
+  clinicPreventiveId String?   @unique
+  sourceClinic       String? // nombre de la veterinaria, para mostrarlo en la app del dueño
+  petId              String
+  createdAt          DateTime  @default(now())
+  pet                Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
 }
 
 enum Plan {
@@ -391,6 +400,9 @@ model ClinicalRecord {
   finalDx         String?
   treatment       String?
   nextControl     DateTime?
+  // Compartir con la familia (si el paciente está vinculado a su app)
+  sharedWithOwner Boolean            @default(false)
+  ownerNote       String? // indicaciones para la familia (lo único que ve el dueño de la consulta)
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
 

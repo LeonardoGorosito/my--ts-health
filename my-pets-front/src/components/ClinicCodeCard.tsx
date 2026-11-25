@@ -53,7 +53,7 @@ export function ClinicCodeCard() {
         <div className="flex-1">
           <h2 id="clinic-code-title" className="text-lg font-semibold text-gray-800 dark:text-white">Código para mi veterinaria</h2>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            Si tu veterinaria usa PetHealth, pasale este código: carga tus datos de contacto y las mascotas que elija sin que tengas que dictarlos, y puede ver su ficha de salud (vacunas, tratamientos, historial y estudios). Podés dejar de compartir cada mascota desde “Compartir” en su perfil. El código sirve una sola vez y vence a los 30 minutos.
+            Si tu veterinaria usa PetHealth, pasale este código: carga tus datos de contacto y las mascotas que elija sin que tengas que dictarlos, y puede ver su ficha de salud (vacunas, tratamientos, historial y estudios). Las vacunas que te apliquen y las consultas que te compartan aparecen solas en tu app. Podés dejar de compartir cada mascota desde “Compartir” en su perfil. El código sirve una sola vez y vence a los 30 minutos.
           </p>
 
           {code && !expired ? (

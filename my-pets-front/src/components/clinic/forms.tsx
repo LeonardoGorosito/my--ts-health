@@ -170,11 +170,12 @@ export function PatientFormModal({ clinicId, clientId, patient, onClose, onSaved
 // ---------------------------------------------------------------
 // VACUNA / DESPARASITACIÓN
 // ---------------------------------------------------------------
-export function PreventiveFormModal({ clinicId, patientId, kind, record, onClose, onSaved }: {
+export function PreventiveFormModal({ clinicId, patientId, kind, record, linkedOwner, onClose, onSaved }: {
   clinicId: string
   patientId: string
   kind: 'VACCINE' | 'DEWORMING'
   record?: Preventive | null
+  linkedOwner?: string | null // nombre del dueño si el paciente está vinculado a su app
   onClose: () => void
   onSaved: () => void
 }) {
@@ -223,6 +224,11 @@ export function PreventiveFormModal({ clinicId, patientId, kind, record, onClose
         <Field label="Lote (opcional)">{(id) => <input id={id} value={f.lot} onChange={set('lot')} className={inputClass} />}</Field>
         <Field label="Fecha de aplicación">{(id) => <input id={id} type="date" required max={todayInput()} value={f.dateApplied} onChange={set('dateApplied')} className={inputClass} />}</Field>
         <Field label="Próxima dosis (opcional)">{(id) => <input id={id} type="date" min={f.dateApplied} value={f.nextDueDate} onChange={set('nextDueDate')} className={inputClass} />}</Field>
+        {linkedOwner && (
+          <p className="rounded-xl bg-sky-50 p-3 text-sm text-sky-950 sm:col-span-2 dark:bg-sky-900/20 dark:text-sky-100">
+            {linkedOwner} usa PetHealth: se suma a la libreta de la mascota en su app y le llega el recordatorio de la próxima dosis.
+          </p>
+        )}
         <div className="sm:col-span-2"><FormActions saving={saving} onCancel={onClose} label="Guardar" /></div>
       </form>
     </Modal>

@@ -506,7 +506,7 @@ export function PetProfile() {
                                     </span>
                                 </div>
                                 <p className="text-xs text-gray-600 dark:text-gray-400">
-                                   Aplicada el {appliedDate}
+                                   Aplicada el {appliedDate}{d.sourceClinic && <> · {d.sourceClinic}</>}
                                 </p>
                              </div>
                              
@@ -579,7 +579,7 @@ export function PetProfile() {
                              <div>
                                 <p className="font-bold text-gray-800 dark:text-gray-200 text-sm">{v.name}</p>
                                 <p className="text-xs text-gray-600 dark:text-gray-400">
-                                   Aplicada el {appliedDate}
+                                   Aplicada el {appliedDate}{v.sourceClinic && <> · {v.sourceClinic}</>}
                                 </p>
                              </div>
                              
@@ -721,7 +721,7 @@ export function PetProfile() {
                     </div>
                     <div className="flex-1">
                        <div className="flex justify-between items-start">
-                          <h3 className="font-bold text-gray-900 dark:text-white text-lg">{record.title}</h3>
+                          <h3 className="font-bold text-gray-900 dark:text-white text-lg">{record.title}{record.sourceClinic && <span className="ml-2 align-middle rounded-full bg-sky-50 px-2 py-0.5 text-xs font-semibold text-sky-800 dark:bg-sky-900/30 dark:text-sky-200">De tu veterinaria</span>}</h3>
                           <div className="flex items-center">
                           <button onClick={() => openMedicalModal(record)} aria-label={`Editar registro ${record.title}`} className="text-gray-500 dark:text-gray-400 hover:text-emerald-600 transition-colors p-2 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg">
                             <Edit2 size={16} aria-hidden="true" />

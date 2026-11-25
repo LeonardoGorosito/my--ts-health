@@ -22,6 +22,7 @@ type Form = {
   weightKg: string; temperatureC: string; heartRate: string; respiratoryRate: string
   mucous: string; capillaryRefill: string; hydration: string; bodyCondition: string; physicalExam: string
   presumptiveDx: string; finalDx: string; treatment: string; nextControl: string
+  sharedWithOwner: boolean; ownerNote: string
 }
 
 const MUCOUS = ['Rosadas', 'Pálidas', 'Congestivas', 'Cianóticas', 'Ictéricas']
@@ -67,6 +68,8 @@ export function ClinicRecordForm() {
       finalDx: r?.finalDx ?? '',
       treatment: r?.treatment ?? '',
       nextControl: r?.nextControl?.slice(0, 10) ?? '',
+      sharedWithOwner: r?.sharedWithOwner ?? false,
+      ownerNote: r?.ownerNote ?? '',
     })
   }, [patient, editing, recordId, f])
 
@@ -179,6 +182,36 @@ export function ClinicRecordForm() {
         <Field label="Tratamiento e indicaciones" className="sm:col-span-2">{(id) => <textarea id={id} rows={4} value={f.treatment} onChange={set('treatment')} className={inputClass} />}</Field>
         <Field label="Próximo control (opcional)">{(id) => <input id={id} type="date" min={f.date} value={f.nextControl} onChange={set('nextControl')} className={inputClass} />}</Field>
       </section>
+
+      {/* Compartir con la familia: solo si el paciente está vinculado a la app del dueño */}
+      {patient.petId && (
+        <section className={`${card} space-y-4`} aria-labelledby="owner-title">
+          <div>
+            <h3 id="owner-title" className="font-semibold text-gray-900 dark:text-white">Para la familia</h3>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              {patient.client.name} usa PetHealth. Si compartís la consulta, le aparece en el historial de {patient.name} con el motivo y estas indicaciones. Lo demás (anamnesis, examen, diagnósticos) queda solo en la clínica.
+            </p>
+          </div>
+          <label className="flex cursor-pointer items-center gap-3 text-sm font-semibold text-gray-900 dark:text-white">
+            <input
+              type="checkbox"
+              className="h-4 w-4"
+              checked={f.sharedWithOwner}
+              onChange={(e) => {
+                const checked = e.target.checked
+                // Primera vez: proponemos las indicaciones del tratamiento como punto de partida
+                setF((s) => (s ? { ...s, sharedWithOwner: checked, ownerNote: checked && !s.ownerNote ? s.treatment : s.ownerNote } : s))
+              }}
+            />
+            Compartir con la familia en su app
+          </label>
+          {f.sharedWithOwner && (
+            <Field label="Indicaciones para la familia" hint="Escribilo para el dueño: qué tiene que hacer, qué medicación darle y cuándo volver.">
+              {(id) => <textarea id={id} rows={4} value={f.ownerNote} onChange={set('ownerNote')} className={inputClass} />}
+            </Field>
+          )}
+        </section>
+      )}
 
       <div className="flex flex-col-reverse items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         {editing && canDelete(membership.role) ? <button type="button" onClick={remove} className={dangerLink}>Borrar consulta</button> : <span />}
