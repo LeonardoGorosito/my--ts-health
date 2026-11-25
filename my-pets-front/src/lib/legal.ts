@@ -14,7 +14,7 @@ export const LEGAL = {
   // Ciudad y provincia del responsable
   city: 'Santa Fe, Argentina',
   // Fecha de la última actualización de los textos
-  updatedAt: '23 de noviembre de 2026',
+  updatedAt: '25 de noviembre de 2026',
 }
 
 export const SERVICE_NAME = 'PetHealth'

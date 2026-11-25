@@ -1,12 +1,14 @@
 import { useNavigate } from 'react-router-dom'
+import { SpeciesIcon } from './SpeciesIcon'
 import { Card } from './Card'
-import { Cat, Dog, Heart, ArrowRight, Siren, Users } from 'lucide-react'
+import { Heart, ArrowRight, Siren, Users } from 'lucide-react'
+import { breedOrDefault } from '../lib/species'
 
 type PetCardProps = {
   pet: {
     id: string
     name: string
-    species: 'CAT' | 'DOG'
+    species: string
     breed?: string | null
     isCastrated: boolean
     profileImageUrl?: string | null // <--- Agregamos esto para leer la foto
@@ -43,14 +45,14 @@ export function PetCard({ pet }: PetCardProps) {
              ) : (
                 // Si NO tiene foto, mostramos el ícono por defecto
                 <div className="w-full h-full flex items-center justify-center bg-emerald-50 dark:bg-emerald-900/10 rounded-2xl text-emerald-600 dark:text-emerald-400">
-                   {pet.species === 'CAT' ? <Cat size={24} /> : <Dog size={24} />}
+                   <SpeciesIcon species={pet.species} size={24} />
                 </div>
              )}
           </div>
 
           <div>
             <h3 className="text-lg font-black text-gray-800 dark:text-gray-100 leading-tight">{pet.name}</h3>
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{pet.breed || (pet.gender === 'Hembra' ? 'Mestiza' : 'Mestizo')}</p>
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{breedOrDefault(pet.breed, pet.species, pet.gender)}</p>
           </div>
         </div>
 

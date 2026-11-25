@@ -32,6 +32,7 @@ const sections: LegalSection[] = [
           <li><strong>Datos de tus mascotas:</strong> nombre, especie, raza, sexo, fecha de nacimiento, peso, castración, necesidades especiales y fotos.</li>
           <li><strong>Información de salud de tus mascotas:</strong> vacunas, desparasitaciones, historial médico, historial de peso, medicación y tratamientos, y los archivos que adjuntes (estudios, análisis, recetas). Estos archivos pueden incluir datos tuyos o de tu veterinaria si figuran en el documento.</li>
           <li><strong>Datos de tu suscripción y preferencias:</strong> plan, fechas de la prueba y del plan, y si querés recibir recordatorios por email.</li>
+          <li><strong>Registro de tu consentimiento:</strong> la fecha en que aceptaste estos Términos y esta Política, y qué versión aceptaste.</li>
           <li><strong>Datos técnicos:</strong> la dirección IP desde la que te conectás, que usamos para limitar intentos de acceso y prevenir abusos, y los registros técnicos que genera nuestro proveedor de hosting.</li>
         </ul>
         <p>No usamos herramientas de publicidad ni de seguimiento de terceros.</p>
@@ -125,7 +126,7 @@ const sections: LegalSection[] = [
           Guardamos tus datos mientras tu cuenta esté activa. Si tu prueba o tu plan vencen, conservamos la información en modo de solo lectura para que no la pierdas si volvés.
         </p>
         <p>
-          Cuando borrás una mascota se eliminan sus registros y archivos. Si pedís la baja de tu cuenta, eliminamos tus datos, salvo los que debamos conservar por obligaciones legales (por ejemplo, registros de pagos).
+          Cuando borrás una mascota se eliminan sus registros y archivos. Podés eliminar tu cuenta cuando quieras desde <strong>Configuración → Eliminar mi cuenta</strong>: se borran en el momento tu cuenta, tus mascotas con todos sus registros y archivos, y los accesos que hayas compartido. Solo conservamos los datos que debamos guardar por obligaciones legales (por ejemplo, registros de pagos).
         </p>
       </>
     ),
@@ -139,7 +140,7 @@ const sections: LegalSection[] = [
         <ul>
           <li><strong>Acceder</strong> a tus datos de forma gratuita, en intervalos no menores a seis meses, salvo que acredites un interés legítimo.</li>
           <li><strong>Rectificarlos y actualizarlos.</strong> La mayoría podés editarlos directamente desde tu perfil y desde la ficha de cada mascota.</li>
-          <li><strong>Pedir su supresión,</strong> incluida la baja de tu cuenta.</li>
+          <li><strong>Pedir su supresión,</strong> incluida la baja de tu cuenta, que también podés hacer vos mismo desde Configuración.</li>
         </ul>
         <p>
           Para ejercerlos, escribinos a {contact} desde el email de tu cuenta. Respondemos los pedidos de acceso dentro de los 10 días corridos y los de rectificación o supresión dentro de los 5 días hábiles, como establece la Ley 25.326.
@@ -155,7 +156,7 @@ const sections: LegalSection[] = [
     title: 'Cómo protegemos tus datos',
     body: (
       <p>
-        Toda la comunicación viaja cifrada (HTTPS), las contraseñas se guardan cifradas, cada usuario solo puede ver y modificar sus propias mascotas, y limitamos los intentos de acceso para prevenir ataques. Ningún sistema es 100% invulnerable: si detectamos un incidente que afecte tus datos, te lo vamos a informar.
+        Toda la comunicación viaja cifrada (HTTPS), las contraseñas se guardan cifradas, cada usuario solo puede ver y modificar sus propias mascotas y las que otra persona decidió compartirle, y limitamos los intentos de acceso para prevenir ataques. Ningún sistema es 100% invulnerable: si detectamos un incidente que afecte tus datos, te lo vamos a informar.
       </p>
     ),
   },

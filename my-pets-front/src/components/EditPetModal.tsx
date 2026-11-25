@@ -1,17 +1,20 @@
 import { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
+import { SpeciesPicker } from './SpeciesPicker'
+import { speciesInfo } from '../lib/species'
+import type { Species } from '../lib/species'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { api } from '../lib/axios'
 import { toast } from 'sonner'
-import { X, Cat, Dog, Heart, Camera, Image as ImageIcon, Trash2, AlertTriangle } from 'lucide-react'
+import { X, Heart, Camera, Image as ImageIcon, Trash2, AlertTriangle } from 'lucide-react'
 import { Input } from './Input'
 import { Button } from './Button'
 import { useNavigate } from 'react-router-dom'
 
 const editPetSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-  species: z.enum(['CAT', 'DOG'], { message: 'Elegí una especie' }),
+  species: z.enum(['DOG', 'CAT', 'BIRD', 'RABBIT', 'RODENT', 'FERRET', 'REPTILE', 'FISH', 'HORSE', 'OTHER'], { message: 'Elegí una especie' }),
   breed: z.string().optional(),
   gender: z.enum(['Macho', 'Hembra'], { message: 'Elegí un género' }),
   birthDate: z.string().optional(),
@@ -43,7 +46,8 @@ type EditPetModalProps = {
 
 export function EditPetModal({ isOpen, onClose, onPetUpdated, petData, isOwner = true }: EditPetModalProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedSpecies, setSelectedSpecies] = useState<'CAT' | 'DOG'>(petData.species)
+  const [selectedSpecies, setSelectedSpecies] = useState<Species>(petData.species)
+  const SpeciesIcon = speciesInfo(selectedSpecies).icon
   const navigate = useNavigate()
   
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -177,7 +181,7 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData, isOwner =
                             <img src={profilePreview} alt="Perfil" className="w-full h-full object-cover" />
                         ) : (
                             <div className="text-gray-400 dark:text-gray-500">
-                                {selectedSpecies === 'CAT' ? <Cat size={32} /> : <Dog size={32} />}
+                                <SpeciesIcon size={32} />
                             </div>
                         )}
                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
@@ -205,8 +209,8 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData, isOwner =
                         {errors.name && <p className="mt-1 text-xs font-bold text-red-500">{errors.name.message}</p>}
                     </div>
                     <div>
-                        <label htmlFor="edit-pet-breed" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Raza</label>
-                        <Input type="text" id="edit-pet-breed" {...register('breed')} className="w-full bg-gray-50 dark:bg-bg-matte border-2 border-transparent focus:border-emerald-600 dark:text-gray-100 rounded-2xl transition-all font-bold text-sm" />
+                        <label htmlFor="edit-pet-breed" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Raza o tipo</label>
+                        <Input type="text" id="edit-pet-breed" placeholder={speciesInfo(selectedSpecies).breedHint} {...register('breed')} className="w-full bg-gray-50 dark:bg-bg-matte border-2 border-transparent focus:border-emerald-600 dark:text-gray-100 rounded-2xl transition-all font-bold text-sm" />
                     </div>
 
                     {/* Contacto del dueño para la placa pública: solo lo edita el dueño */}
@@ -243,13 +247,7 @@ export function EditPetModal({ isOpen, onClose, onPetUpdated, petData, isOwner =
 
                 <div>
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Especie</label>
-                    <div className="flex gap-2">
-                    {(['CAT', 'DOG'] as const).map((s) => (
-                        <button key={s} type="button" onClick={() => { setSelectedSpecies(s); setValue('species', s) }} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border-2 ${selectedSpecies === s ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg' : 'bg-gray-50 dark:bg-bg-matte border-transparent text-gray-400 dark:text-neutral-500'}`}>
-                        {s === 'CAT' ? <Cat size={18} /> : <Dog size={18} />} {s === 'CAT' ? 'Gato' : 'Perro'}
-                        </button>
-                    ))}
-                    </div>
+                    <SpeciesPicker name="edit-pet-species" value={selectedSpecies} onChange={(s) => { setSelectedSpecies(s); setValue('species', s) }} />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

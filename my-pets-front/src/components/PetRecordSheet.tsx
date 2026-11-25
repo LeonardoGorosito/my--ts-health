@@ -2,6 +2,7 @@ import type React from 'react'
 import { Placo } from './brand/Placo'
 import { daysFromToday, formatDay } from '../lib/dates'
 import { frequencyLabel, treatmentStatus } from '../lib/treatments'
+import { breedOrDefault, speciesName } from '../lib/species'
 import type { Treatment } from '../lib/treatments'
 
 // ==========================================================
@@ -14,7 +15,7 @@ type Dated = { id: string; name: string; dateApplied: string; nextDueDate?: stri
 export interface PetRecordData {
   id: string
   name: string
-  species: 'CAT' | 'DOG'
+  species: string
   breed: string | null
   gender: 'Macho' | 'Hembra' | null
   birthDate: string | null
@@ -90,8 +91,8 @@ export function PetRecordSheet({ pet, contact, include = ALL_SECTIONS }: {
   const latestWeight = weights[0] ? fmtKg(weights[0].weightKg) : pet.weight ? `${pet.weight} kg` : null
 
   const facts: [string, string | null][] = [
-    ['Especie', pet.species === 'CAT' ? (female ? 'Gata' : 'Gato') : (female ? 'Perra' : 'Perro')],
-    ['Raza', pet.breed || (female ? 'Mestiza' : 'Mestizo')],
+    ['Especie', speciesName(pet.species, pet.gender)],
+    ['Raza o tipo', breedOrDefault(pet.breed, pet.species, pet.gender)],
     ['Sexo', pet.gender],
     ['Nacimiento', pet.birthDate ? `${formatDay(pet.birthDate)} (${ageLabel(pet.birthDate)})` : null],
     ['Castración', pet.isCastrated ? (female ? 'Castrada' : 'Castrado') : 'No'],

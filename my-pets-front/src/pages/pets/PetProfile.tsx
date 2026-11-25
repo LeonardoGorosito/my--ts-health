@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { SpeciesIcon } from '../../components/SpeciesIcon'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { api } from '../../lib/axios'
 import { toast } from 'sonner'
@@ -8,8 +9,6 @@ import {
   ArrowLeft, 
   Calendar, 
   FileText, 
-  Cat, 
-  Dog, 
   AlertCircle, 
   Weight, 
   Edit2, 
@@ -44,6 +43,7 @@ import { todayInput } from '../../lib/treatments'
 import { formatDay, daysFromToday, dayParts } from '../../lib/dates'
 import type { Treatment } from '../../lib/treatments'
 import { LostModeModal } from '../../components/LostModeModal'
+import { breedOrDefault, speciesName } from '../../lib/species'
 import { ShareModal } from '../../components/ShareModal'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -73,7 +73,7 @@ function getAge(dateString: string | undefined) {
 interface PetDetail {
   id: string
   name: string
-  species: 'CAT' | 'DOG'
+  species: string
   breed: string | null
   gender: 'Macho' | 'Hembra'
   birthDate: string
@@ -363,14 +363,16 @@ export function PetProfile() {
                 <img src={pet.profileImageUrl} alt={pet.name} className="w-full h-full object-cover rounded-full" />
              ) : (
                 <div className="w-full h-full bg-gray-100 dark:bg-zinc-800 flex items-center justify-center rounded-full text-emerald-500 dark:text-emerald-500">
-                    {pet.species === 'CAT' ? <Cat size={48} /> : <Dog size={48} />}
+                    <SpeciesIcon species={pet.species} size={48} />
                 </div>
              )}
           </div>
           <div className="flex-1 pt-2 md:pb-2">
             <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-2 tracking-tight transition-colors">{pet.name}</h1>
             <div className="flex flex-wrap items-center gap-3 font-semibold text-emerald-700 dark:text-emerald-400">
-              <span>{pet.breed || 'Mestizo'}</span>
+              <span>{speciesName(pet.species, pet.gender)}</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-zinc-700"></span>
+              <span>{breedOrDefault(pet.breed, pet.species, pet.gender)}</span>
               <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-zinc-700"></span>
               <span>{pet.gender || 'Sin género'}</span>
             </div>

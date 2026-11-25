@@ -105,7 +105,7 @@ const FAQ = [
   },
   {
     q: '¿Sirve para cualquier mascota?',
-    a: 'Hoy está pensada para perros y gatos. En Standard podés registrar hasta 2 mascotas y en Pro, todas las que quieras.',
+    a: 'Sí: perros, gatos, aves, conejos, roedores, hurones, reptiles, peces y caballos. Si tu mascota es de otra especie, la cargás como “Otra”. En Standard podés registrar hasta 2 mascotas y en Pro, todas las que quieras.',
   },
   {
     q: '¿Puedo cancelar cuando quiera?',
@@ -245,7 +245,7 @@ export default function LandingPage() {
               </div>
               <ul className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-gray-600 dark:text-gray-400 lg:justify-start">
                 <li className="flex items-center gap-1.5"><CheckCircle2 size={16} aria-hidden="true" className="text-emerald-600" /> Sin tarjeta</li>
-                <li className="flex items-center gap-1.5"><CheckCircle2 size={16} aria-hidden="true" className="text-emerald-600" /> Perros y gatos</li>
+                <li className="flex items-center gap-1.5"><CheckCircle2 size={16} aria-hidden="true" className="text-emerald-600" /> Perros, gatos y más</li>
                 <li className="flex items-center gap-1.5"><CheckCircle2 size={16} aria-hidden="true" className="text-emerald-600" /> Cancelás cuando quieras</li>
               </ul>
             </div>

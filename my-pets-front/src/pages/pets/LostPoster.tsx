@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { ArrowLeft, Download, Printer, Share2, Siren } from 'lucide-react'
 import { api } from '../../lib/axios'
 import { todayInput } from '../../lib/dates'
+import { speciesName } from '../../lib/species'
 import { useAuth } from '../../context/AuthContext'
 import { Loader } from '../../components/Loader'
 import { Placo } from '../../components/brand/Placo'
@@ -15,7 +16,7 @@ import type { PosterData, PosterTitle } from '../../lib/poster'
 type PosterPet = {
   id: string
   name: string
-  species: 'CAT' | 'DOG'
+  species: string
   breed: string | null
   gender: string | null
   birthDate: string | null
@@ -50,8 +51,9 @@ const formatDate = (inputDate: string) => {
 // "Gata · Mestiza · 3 años"
 function describePet(pet: PosterPet) {
   const female = pet.gender === 'Hembra'
-  const species = pet.species === 'CAT' ? (female ? 'Gata' : 'Gato') : female ? 'Perra' : 'Perro'
-  const breed = pet.breed || (female ? 'Mestiza' : 'Mestizo')
+  const species = speciesName(pet.species, pet.gender)
+  // Sin raza: "Mestiza" solo en perros y gatos (en el resto ya lo dice la especie)
+  const breed = pet.breed || (pet.species === 'DOG' || pet.species === 'CAT' ? (female ? 'Mestiza' : 'Mestizo') : null)
   let age = ''
   if (pet.birthDate) {
     const months = Math.floor((Date.now() - new Date(pet.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 30.44))

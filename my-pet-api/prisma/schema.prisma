@@ -24,6 +24,10 @@ model User {
   vetPhone       String?
   emergencyPhone String?
 
+  // --- CONSENTIMIENTO (Ley 25.326): qué versión de Términos y Privacidad aceptó y cuándo ---
+  termsAcceptedAt DateTime?
+  termsVersion    String? // ver TERMS_VERSION en src/lib/legal.ts
+
   // --- PREFERENCIAS ---
   emailReminders Boolean @default(true) // recordatorios de vacunas/desparasitaciones por email
 
@@ -203,4 +207,12 @@ enum Role {
 enum Species {
   CAT
   DOG
+  BIRD // aves: canarios, cotorras, loros...
+  RABBIT
+  RODENT // hámster, cobayo, chinchilla, ratón...
+  FERRET
+  REPTILE // tortugas, iguanas, geckos...
+  FISH
+  HORSE
+  OTHER
 }

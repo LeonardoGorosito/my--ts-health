@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
+import { SpeciesIcon } from '../components/SpeciesIcon'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { isAxiosError } from 'axios'
 import { toast } from 'sonner'
-import { Cat, Dog } from 'lucide-react'
 import { api } from '../lib/axios'
 import { useAuth } from '../context/AuthContext'
 import { Loader } from '../components/Loader'
@@ -17,7 +17,7 @@ import { AuthTopBar } from '../components/AuthTopBar'
 // ==========================================================
 
 type InviteInfo = {
-  pet: { id: string; name: string; species: 'CAT' | 'DOG'; profileImageUrl: string | null }
+  pet: { id: string; name: string; species: string; profileImageUrl: string | null }
   owner: { name: string; lastname: string }
   expiresAt: string
 }
@@ -72,10 +72,8 @@ export function AcceptInvite() {
             <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-full bg-emerald-50 ring-4 ring-white shadow-lg dark:bg-emerald-900/30 dark:ring-gray-900">
               {info.pet.profileImageUrl ? (
                 <img src={info.pet.profileImageUrl} alt="" className="h-full w-full object-cover" />
-              ) : info.pet.species === 'CAT' ? (
-                <Cat size={48} aria-hidden="true" className="text-emerald-600" />
               ) : (
-                <Dog size={48} aria-hidden="true" className="text-emerald-600" />
+                <SpeciesIcon species={info.pet.species} size={48} className="text-emerald-600" />
               )}
             </div>
             <h1 className="mt-6 font-brand text-3xl font-bold text-gray-900 text-balance dark:text-white">

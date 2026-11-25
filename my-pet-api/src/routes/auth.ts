@@ -6,6 +6,8 @@ import { authenticate } from '../hooks/authenticate.js'
 // IMPORTANTE: Asegurate de tener tu resend configurado en este archivo
 import { resend, MAIL_FROM, logDevCode } from '../lib/mailer.js'
 import { getSubscription, trialEndFromNow } from '../lib/subscription.js'
+import { TERMS_VERSION } from '../lib/legal.js'
+import { destroyCloudinaryUrl } from '../lib/cloudinary-assets.js'
 
 // --- HELPER PARA CÓDIGOS DE 6 DÍGITOS ---
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString()
@@ -17,6 +19,8 @@ const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   phone: z.string().optional(),
+  // Consentimiento expreso (Ley 25.326): sin aceptar no se crea la cuenta
+  acceptTerms: z.literal(true, { message: 'Tenés que aceptar los términos y la política de privacidad' }),
 })
 
 const verifySchema = z.object({
@@ -42,14 +46,16 @@ const resetPasswordSchema = z.object({
 // Campos del usuario que devuelve /auth/me (nunca el hash ni los códigos)
 const meSelect = {
   id: true, email: true, name: true, lastname: true, phone: true, address: true,
-  vetName: true, vetPhone: true, emergencyPhone: true, emailReminders: true, role: true
+  vetName: true, vetPhone: true, emergencyPhone: true, emailReminders: true, role: true,
+  termsVersion: true, termsAcceptedAt: true
 } as const
 
 // Respuesta de /auth/me (y de lo que edita el perfil): datos del usuario + estado de la suscripción
 const meResponse = async (userId: string) => {
   const me = await prisma.user.findUnique({ where: { id: userId }, select: meSelect })
   if (!me) return null
-  return { ...me, subscription: await getSubscription(userId) }
+  // currentTermsVersion: si no coincide con termsVersion, el front pide aceptar los textos nuevos
+  return { ...me, currentTermsVersion: TERMS_VERSION, subscription: await getSubscription(userId) }
 }
 
 const updateMeSchema = z.object({
@@ -69,6 +75,10 @@ const changePasswordSchema = z.object({
 
 const preferencesSchema = z.object({
   emailReminders: z.boolean(),
+})
+
+const deleteAccountSchema = z.object({
+  password: z.string().min(1, 'Ingresá tu contraseña'),
 })
 
 // --- LÍMITES DE INTENTOS POR IP ---
@@ -96,7 +106,9 @@ export default async function auth(app: FastifyInstance) {
                         where: { email: body.email },
                         data: {
                             verificationCode: otp,
-                            verificationCodeExpiry: new Date(Date.now() + 15 * 60 * 1000) // 15 mins
+                            verificationCodeExpiry: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
+                            termsAcceptedAt: new Date(),
+                            termsVersion: TERMS_VERSION
                         }
                     })
                     logDevCode('verificación', body.email, otp)
@@ -124,6 +136,8 @@ export default async function auth(app: FastifyInstance) {
                     role: 'USER',
                     isVerified: false,
                     trialEndsAt: trialEndFromNow(), // 30 días de prueba con todo lo de Pro
+                    termsAcceptedAt: new Date(),
+                    termsVersion: TERMS_VERSION,
                     verificationCode: otp,
                     verificationCodeExpiry: new Date(Date.now() + 15 * 60 * 1000) // 15 mins
                 }
@@ -349,5 +363,50 @@ export default async function auth(app: FastifyInstance) {
             select: { id: true }
         })
         return meResponse(me.id)
+    })
+
+    // ==========================================================
+    // ACEPTAR TÉRMINOS VIGENTES (POST /auth/me/accept-terms)
+    // Para usuarios que aceptaron una versión anterior (o se registraron antes de guardarla)
+    // ==========================================================
+    app.post('/me/accept-terms', { preHandler: [authenticate] }, async (req: any) => {
+        await prisma.user.update({
+            where: { id: req.user.sub },
+            data: { termsAcceptedAt: new Date(), termsVersion: TERMS_VERSION },
+        })
+        return meResponse(req.user.sub)
+    })
+
+    // ==========================================================
+    // ELIMINAR MI CUENTA (DELETE /auth/me) — derecho de supresión, Ley 25.326
+    // Borra las mascotas propias (con sus registros y archivos en Cloudinary),
+    // los accesos compartidos y la cuenta. Pide la contraseña.
+    // ==========================================================
+    app.delete('/me', { preHandler: [authenticate], ...codeLimit }, async (req: any, reply) => {
+        const parsed = deleteAccountSchema.safeParse(req.body)
+        if (!parsed.success) return reply.code(400).send({ message: parsed.error.issues[0]?.message ?? 'Datos inválidos' })
+
+        const user = await prisma.user.findUnique({ where: { id: req.user.sub } })
+        if (!user) return reply.code(404).send({ message: 'La cuenta no existe' })
+        if (!user.passwordHash || !(await bcrypt.compare(parsed.data.password, user.passwordHash))) {
+            return reply.code(401).send({ message: 'La contraseña no es correcta' })
+        }
+
+        // Archivos en Cloudinary: fotos de las mascotas y adjuntos
+        const pets = await prisma.pet.findMany({
+            where: { ownerId: user.id },
+            select: { profileImageUrl: true, bannerImageUrl: true, attachments: { select: { url: true } } },
+        })
+        const urls = pets.flatMap((p) => [p.profileImageUrl, p.bannerImageUrl, ...p.attachments.map((a) => a.url)])
+        await Promise.all(urls.map((u) => destroyCloudinaryUrl(u)))
+
+        // Base de datos: las mascotas arrastran en cascada sus registros, accesos y links;
+        // el usuario arrastra los accesos que otros le compartieron.
+        await prisma.$transaction([
+            prisma.pet.deleteMany({ where: { ownerId: user.id } }),
+            prisma.user.delete({ where: { id: user.id } }),
+        ])
+        req.log.info({ userId: user.id }, 'Cuenta eliminada por el usuario')
+        return { message: 'Cuenta eliminada' }
     })
 }

@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react'
+import { SpeciesIcon } from '../../components/SpeciesIcon'
 import { useParams } from 'react-router-dom'
 import { api } from '../../lib/axios'
 import { Logo } from '../../components/brand/Logo'
 import { Placo } from '../../components/brand/Placo'
 // NUEVO: Agregamos el ícono Phone
-import { AlertCircle, Cat, Dog, Mail, User, Phone, Siren } from 'lucide-react'
+import { AlertCircle, Mail, User, Phone, Siren } from 'lucide-react'
+import { breedOrDefault } from '../../lib/species'
 
 // NUEVO: Agregamos el phone al interface del dueño
 interface PublicPet {
   name: string
-  species: 'CAT' | 'DOG'
+  species: string
   breed: string | null
   gender: string
   specialNeeds: string | null
@@ -111,7 +113,7 @@ export function PublicPetProfile() {
                 <img src={pet.profileImageUrl} alt={pet.name} className="w-full h-full object-cover rounded-full" />
              ) : (
                 <div className="text-emerald-500">
-                    {pet.species === 'CAT' ? <Cat size={48} /> : <Dog size={48} />}
+                    <SpeciesIcon species={pet.species} size={48} />
                 </div>
              )}
           </div>
@@ -122,7 +124,7 @@ export function PublicPetProfile() {
       <div className="mt-20 px-6 max-w-md mx-auto text-center">
         <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-2">{pet.name}</h1>
         <div className="flex justify-center items-center gap-2 text-sm font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-8">
-          <span>{pet.breed || 'Mestizo'}</span>
+          <span>{breedOrDefault(pet.breed, pet.species, pet.gender)}</span>
           <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-zinc-700"></span>
           <span>{pet.gender}</span>
         </div>

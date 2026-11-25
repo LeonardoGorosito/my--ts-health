@@ -1,4 +1,4 @@
-import { Cat } from 'lucide-react'
+import { PawPrint } from 'lucide-react'
 
 type LoaderProps = {
   text?: string
@@ -18,7 +18,7 @@ export function Loader({ text = 'Cargando...', fullScreen = false }: LoaderProps
 
         {/* Icono en el centro (Fijo) */}
         <div className="absolute inset-0 flex items-center justify-center">
-           <Cat size={28} className="text-emerald-600 dark:text-emerald-400" />
+           <PawPrint size={28} className="text-emerald-600 dark:text-emerald-400" />
         </div>
       </div>
 

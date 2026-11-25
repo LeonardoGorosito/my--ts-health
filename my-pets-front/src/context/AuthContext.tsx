@@ -15,6 +15,10 @@ export type User = {
   emailReminders?: boolean;
   role: 'USER' | 'ADMIN'; 
   subscription?: Subscription;
+  // Consentimiento: versión aceptada y versión vigente (si no coinciden, se pide aceptar de nuevo)
+  termsVersion?: string | null;
+  termsAcceptedAt?: string | null;
+  currentTermsVersion?: string;
 }
 
 // Estado de la suscripción que devuelve /auth/me (ver my-pet-api/src/lib/subscription.ts)
@@ -63,6 +67,8 @@ type AuthCtx = {
   updateProfile: (data: ProfileUpdate) => Promise<void>
   updatePreferences: (data: Preferences) => Promise<void>
   refreshUser: () => Promise<void>
+  acceptTerms: () => Promise<void>
+  deleteAccount: (password: string) => Promise<void>
 }
 
 const Ctx = createContext<AuthCtx | null>(null)
@@ -99,7 +105,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // CORRECCIÓN: Le sacamos el setLoading() global para que no te desmonte la pantalla
   const register = async (name: string, lastname: string, email: string, password: string, phone?: string) => {
-    await api.post('/auth/register', { name, lastname, email, password, phone });
+    // Solo se llama después de marcar la casilla de Términos y Privacidad (AuthPage)
+    await api.post('/auth/register', { name, lastname, email, password, phone, acceptTerms: true });
   }
 
   // CORRECCIÓN: Le sacamos el setLoading() global
@@ -126,7 +133,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(me);
   }
 
-  const value = useMemo(() => ({ user, loading, login, logout, register, verifyEmail, updateProfile, updatePreferences, refreshUser }), [user, loading])
+  const acceptTerms = async () => {
+    const { data: me } = await api.post('/auth/me/accept-terms');
+    setUser(me);
+  }
+
+  // Borra la cuenta en el servidor y cierra la sesión local
+  const deleteAccount = async (password: string) => {
+    await api.delete('/auth/me', { data: { password } });
+    logout();
+  }
+
+  const value = useMemo(() => ({ user, loading, login, logout, register, verifyEmail, updateProfile, updatePreferences, refreshUser, acceptTerms, deleteAccount }), [user, loading])
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
 
