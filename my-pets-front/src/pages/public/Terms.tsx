@@ -157,6 +157,34 @@ const sections: LegalSection[] = [
     ),
   },
   {
+    id: 'veterinarias',
+    title: 'Términos para veterinarias',
+    body: (
+      <>
+        <p>
+          Las veterinarias pueden registrarse para llevar en PetHealth la gestión de su clínica: clientes, pacientes, historia clínica, vacunas y estudios. Estos puntos se suman al resto de los términos:
+        </p>
+        <ul>
+          <li>
+            <strong>Matrícula:</strong> cada veterinario carga su número de matrícula, el colegio o la provincia que la emite y una foto del carnet. Declara que los datos son verdaderos y que su matrícula está vigente. La revisamos de forma manual y podemos rechazarla o suspender la cuenta si no se puede verificar o si es falsa. La aprobación no implica que PetHealth avale el ejercicio profesional.
+          </li>
+          <li>
+            <strong>Datos de los clientes:</strong> la veterinaria es la responsable de los datos de sus clientes y pacientes que carga en la plataforma, y debe tener una base legal para tratarlos (por ejemplo, el consentimiento del cliente o la prestación del servicio veterinario). PetHealth los guarda y procesa solo por cuenta de la veterinaria, para prestarle el servicio, y no los usa para otros fines.
+          </li>
+          <li>
+            <strong>Equipo:</strong> quien registra la clínica decide a quién invita y puede quitar el acceso en cualquier momento. Cada persona es responsable de lo que carga con su cuenta.
+          </li>
+          <li>
+            <strong>Criterio profesional:</strong> PetHealth es una herramienta de registro. Los diagnósticos, tratamientos e indicaciones son responsabilidad exclusiva del profesional que los carga.
+          </li>
+          <li>
+            <strong>Plan:</strong> las veterinarias tienen una prueba gratis de {TRIAL_DAYS} días. Antes de que empiece a cobrarse un plan para veterinarias, vamos a publicar el precio y avisar con anticipación.
+          </li>
+        </ul>
+      </>
+    ),
+  },
+  {
     id: 'responsabilidad',
     title: 'Responsabilidad',
     body: (

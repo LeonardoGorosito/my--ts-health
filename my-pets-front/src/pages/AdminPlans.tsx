@@ -5,6 +5,7 @@ import { Search, ShieldCheck } from 'lucide-react'
 import { api } from '../lib/axios'
 import { TIER_LABEL } from '../lib/plans'
 import type { Subscription } from '../context/AuthContext'
+import { AdminLicenses } from '../components/AdminLicenses'
 
 type AdminUser = {
   email: string
@@ -64,7 +65,7 @@ export function AdminPlans() {
     <div className="max-w-3xl mx-auto p-4 md:p-6 space-y-6">
       <div className="flex items-center gap-2">
         <ShieldCheck className="text-emerald-600" aria-hidden="true" />
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Administrar planes</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Administración</h1>
       </div>
       <p className="text-gray-600 dark:text-gray-400">
         Asigná un plan a mano a quien te pagó por transferencia u otro medio. Si ya tiene ese plan vigente, se suman los meses.
@@ -114,6 +115,8 @@ export function AdminPlans() {
           </div>
         </div>
       )}
+
+      <AdminLicenses />
     </div>
   )
 }

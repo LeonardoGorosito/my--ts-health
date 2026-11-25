@@ -10,11 +10,14 @@ import {
   QrCode,
   LayoutDashboard,
   CreditCard,
-  ShieldCheck
+  ShieldCheck,
+  Stethoscope
 } from 'lucide-react'
+import { useMyClinics } from '../lib/clinic'
 
 export function ProfileDropdown() {
   const { user, logout } = useAuth()
+  const { data: clinics } = useMyClinics(!!user)
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -58,8 +61,13 @@ export function ProfileDropdown() {
           <MenuLink to="/configuracion" icon={<Settings size={18} />} label="Configuración" onClick={() => setIsOpen(false)} />
           <MenuLink to="/app/qr" icon={<QrCode size={18} />} label="Código QR Mascotas" onClick={() => setIsOpen(false)} />
           <MenuLink to="/app/plan" icon={<CreditCard size={18} />} label="Mi plan" onClick={() => setIsOpen(false)} />
+          {clinics?.length ? (
+            <MenuLink to="/clinica" icon={<Stethoscope size={18} />} label="Mi veterinaria" onClick={() => setIsOpen(false)} />
+          ) : (
+            <MenuLink to="/veterinarias/registro" icon={<Stethoscope size={18} />} label="Soy veterinario/a" onClick={() => setIsOpen(false)} />
+          )}
           {user?.role === 'ADMIN' && (
-            <MenuLink to="/admin" icon={<ShieldCheck size={18} />} label="Administrar planes" onClick={() => setIsOpen(false)} />
+            <MenuLink to="/admin" icon={<ShieldCheck size={18} />} label="Administración" onClick={() => setIsOpen(false)} />
           )}
         </div>
 

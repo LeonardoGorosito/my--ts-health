@@ -392,6 +392,12 @@ export default async function auth(app: FastifyInstance) {
             return reply.code(401).send({ message: 'La contraseña no es correcta' })
         }
 
+        // Quien administra una veterinaria no puede borrar su cuenta sin resolver la clínica antes
+        const ownsClinic = await prisma.clinicMember.count({ where: { userId: user.id, role: 'OWNER' } })
+        if (ownsClinic > 0) {
+            return reply.code(409).send({ message: 'Administrás una veterinaria. Escribinos para darla de baja o transferirla antes de eliminar tu cuenta.' })
+        }
+
         // Archivos en Cloudinary: fotos de las mascotas y adjuntos
         const pets = await prisma.pet.findMany({
             where: { ownerId: user.id },

@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/axios'
@@ -10,6 +10,7 @@ import type { Treatment } from '../lib/treatments'
 import { ProfileDropdown } from './ProfileDropdown'
 import { NotificationsModal } from './NotificationsModal'
 import { Logo } from './brand/Logo'
+import { useMyClinics } from '../lib/clinic'
 
 export type Alert = {
   id: string;
@@ -192,6 +193,9 @@ export default function Navbar() {
           </Link>
 
 
+          {/* Selector de sección para quien forma parte de una veterinaria */}
+          {user && <SectionSwitch />}
+
           {/* DERECHA DESKTOP */}
           <div className="hidden md:flex items-center ml-auto gap-3">
             {user ? (
@@ -247,6 +251,20 @@ export default function Navbar() {
         onClose={() => setIsFullModalOpen(false)} 
         alerts={alerts} 
       />
+    </nav>
+  )
+}
+
+// "Mis mascotas | Mi clínica": solo aparece si el usuario es parte de una veterinaria
+function SectionSwitch() {
+  const { data: clinics } = useMyClinics()
+  if (!clinics?.length) return null
+  const item = ({ isActive }: { isActive: boolean }) =>
+    `rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${isActive ? 'bg-white text-emerald-800 shadow-sm dark:bg-zinc-900 dark:text-emerald-300' : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`
+  return (
+    <nav aria-label="Sección" className="ml-4 mr-auto hidden rounded-xl sm:flex bg-gray-100 p-1 dark:bg-zinc-800">
+      <NavLink to="/app" className={item}>Mis mascotas</NavLink>
+      <NavLink to="/clinica" className={item}>Mi clínica</NavLink>
     </nav>
   )
 }

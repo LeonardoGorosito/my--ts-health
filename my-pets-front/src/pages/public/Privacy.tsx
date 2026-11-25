@@ -90,6 +90,20 @@ const sections: LegalSection[] = [
     ),
   },
   {
+    id: 'veterinarias',
+    title: 'Datos que cargan las veterinarias',
+    body: (
+      <>
+        <p>
+          Si sos veterinario o veterinaria y registrás tu clínica, además guardamos los datos de la clínica (nombre, dirección, teléfono, email y logo), tu número de matrícula, el colegio o la provincia que la emite y una foto de tu carnet. La foto se guarda como archivo privado: solo la ve la persona que revisa la matrícula.
+        </p>
+        <p>
+          Los datos de los clientes de una veterinaria (nombre, DNI, teléfono, email y dirección) y la historia clínica de sus pacientes los carga la veterinaria, que es la <strong>responsable</strong> de esos datos. PetHealth actúa como <strong>encargado del tratamiento</strong>: los guarda y procesa solo por cuenta de la veterinaria y para prestarle el servicio, y solo pueden verlos las personas de su equipo. Si sos cliente de una veterinaria y querés ejercer tus derechos sobre esos datos, dirigite a la veterinaria; si nos escribís a nosotros, le pasamos tu pedido.
+        </p>
+      </>
+    ),
+  },
+  {
     id: 'terceros',
     title: 'Con quién compartimos tus datos',
     body: (
@@ -98,7 +112,7 @@ const sections: LegalSection[] = [
         <ul>
           <li><strong>Vercel:</strong> alojamiento de la aplicación.</li>
           <li><strong>Neon:</strong> base de datos.</li>
-          <li><strong>Cloudinary:</strong> almacenamiento de fotos y archivos adjuntos.</li>
+          <li><strong>Cloudinary:</strong> almacenamiento de fotos, archivos adjuntos y carnets de matrícula.</li>
           <li><strong>Resend:</strong> envío de emails.</li>
         </ul>
         <p>

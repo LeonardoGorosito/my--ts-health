@@ -27,6 +27,14 @@ import { LostPoster } from '../pages/pets/LostPoster'
 import { PetRecord } from '../pages/pets/PetRecord'
 import { VetRecord } from '../pages/public/VetRecord'
 import { AcceptInvite } from '../pages/AcceptInvite'
+import { ClinicSignup } from '../pages/clinic/ClinicSignup'
+import { ClinicShell } from '../pages/clinic/ClinicShell'
+import { ClinicHome } from '../pages/clinic/ClinicHome'
+import { ClinicClients, ClinicClientDetail } from '../pages/clinic/ClinicClients'
+import { ClinicPatient } from '../pages/clinic/ClinicPatient'
+import { ClinicRecordForm } from '../pages/clinic/ClinicRecordForm'
+import { ClinicTeam, ClinicInviteAccept } from '../pages/clinic/ClinicTeam'
+import { ClinicSettings } from '../pages/clinic/ClinicSettings'
 import { AdminPlans } from '../pages/AdminPlans'
 
 // ------------------------------------------------------------------
@@ -79,6 +87,8 @@ export function AppRouter() {
       <Route path="/vet/:token" element={<VetRecord />} />
       {/* Invitación de la familia: funciona con o sin sesión iniciada */}
       <Route path="/invitacion/:token" element={<AcceptInvite />} />
+      {/* Invitación al equipo de una veterinaria (con o sin sesión) */}
+      <Route path="/clinica/invitacion/:token" element={<ClinicInviteAccept />} />
 
       {/* =================================================================
           ZONA PRIVADA (Requiere iniciar sesión)
@@ -107,6 +117,19 @@ export function AppRouter() {
         <Route path="/perfil" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
         <Route path="/configuracion" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute roles={['ADMIN']}><AdminPlans /></ProtectedRoute>} />
+
+        {/* VETERINARIAS: alta con matrícula y sección de gestión de la clínica */}
+        <Route path="/veterinarias/registro" element={<ProtectedRoute><ClinicSignup /></ProtectedRoute>} />
+        <Route path="/clinica" element={<ProtectedRoute><ClinicShell /></ProtectedRoute>}>
+          <Route index element={<ClinicHome />} />
+          <Route path="clientes" element={<ClinicClients />} />
+          <Route path="clientes/:clientId" element={<ClinicClientDetail />} />
+          <Route path="pacientes/:patientId" element={<ClinicPatient />} />
+          <Route path="pacientes/:patientId/consulta/nueva" element={<ClinicRecordForm />} />
+          <Route path="pacientes/:patientId/consulta/:recordId" element={<ClinicRecordForm />} />
+          <Route path="equipo" element={<ClinicTeam />} />
+          <Route path="datos" element={<ClinicSettings />} />
+        </Route>
       </Route>
       
       {/* --- RUTA SALVAVIDAS (Catch-all) --- */}

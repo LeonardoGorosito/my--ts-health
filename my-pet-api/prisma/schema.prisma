@@ -45,8 +45,9 @@ model User {
   resetToken       String?   @unique
   resetTokenExpiry DateTime?
 
-  pets        Pet[]
-  memberships PetMember[] // mascotas que otra persona compartió con este usuario
+  pets              Pet[]
+  memberships       PetMember[] // mascotas que otra persona compartió con este usuario
+  clinicMemberships ClinicMember[] // veterinarias de las que forma parte (ver sección CLÍNICAS)
 }
 
 model Pet {
@@ -215,4 +216,216 @@ enum Species {
   FISH
   HORSE
   OTHER
+}
+
+// ==========================================================
+// CLÍNICAS VETERINARIAS (sección /clinica) — ver src/lib/clinic.ts
+// La clínica tiene su propia base de clientes y pacientes, separada de las
+// mascotas de los dueños (el vínculo con la app del dueño llega más adelante).
+// Cada veterinario carga su matrícula y un administrador la aprueba a mano.
+// ==========================================================
+
+enum ClinicRole {
+  OWNER // quien registró la clínica: maneja el equipo y los datos de la clínica
+  VET // veterinario con matrícula
+  STAFF // recepción / asistente: clientes y pacientes, sin cargar historia clínica
+}
+
+enum LicenseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ClinicalRecordType {
+  CONSULTATION
+  CONTROL
+  EMERGENCY
+  SURGERY
+  OTHER
+}
+
+enum PreventiveKind {
+  VACCINE
+  DEWORMING
+}
+
+model Clinic {
+  id          String   @id @default(cuid())
+  name        String
+  address     String
+  city        String
+  province    String
+  phone       String
+  email       String?
+  logoUrl     String?
+  trialEndsAt DateTime // prueba gratis de la clínica (el plan propio se define más adelante)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members     ClinicMember[]
+  invites     ClinicInvite[]
+  clients     ClinicClient[]
+  patients    ClinicPatient[]
+  records     ClinicalRecord[]
+  preventives ClinicPreventive[]
+  attachments ClinicAttachment[]
+}
+
+model ClinicMember {
+  id                String         @id @default(cuid())
+  clinicId          String
+  userId            String
+  role              ClinicRole
+  // Matrícula (OWNER y VET). El carnet se guarda en Cloudinary como archivo privado:
+  // solo se ve con una URL firmada que genera el admin.
+  licenseNumber     String?
+  licenseIssuer     String? // colegio o provincia que la emite
+  licensePhotoId    String? // public_id de Cloudinary (type: authenticated)
+  licenseStatus     LicenseStatus?
+  licenseNote       String? // motivo del rechazo
+  licenseReviewedAt DateTime?
+  createdAt         DateTime       @default(now())
+
+  clinic  Clinic           @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  records ClinicalRecord[]
+
+  @@unique([clinicId, userId])
+  @@index([userId])
+  @@index([licenseStatus])
+}
+
+model ClinicInvite {
+  id        String     @id @default(cuid())
+  clinicId  String
+  role      ClinicRole // VET o STAFF
+  token     String     @unique
+  createdAt DateTime   @default(now())
+  expiresAt DateTime
+  revokedAt DateTime?
+  usedAt    DateTime?
+  usedById  String?
+  clinic    Clinic     @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@index([clinicId])
+}
+
+model ClinicClient {
+  id        String          @id @default(cuid())
+  clinicId  String
+  name      String
+  lastname  String
+  dni       String?
+  phone     String?
+  email     String?
+  address   String?
+  notes     String?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  clinic    Clinic          @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patients  ClinicPatient[]
+
+  @@index([clinicId, lastname])
+}
+
+model ClinicPatient {
+  id          String    @id @default(cuid())
+  clinicId    String
+  clientId    String
+  name        String
+  species     Species
+  breed       String?
+  sex         String? // "Macho" | "Hembra"
+  birthDate   DateTime?
+  coat        String? // pelaje y señas particulares
+  microchip   String?
+  isCastrated Boolean   @default(false)
+  weightKg    Float? // último peso (se actualiza con cada consulta)
+  alerts      String? // alergias, agresivo, cardíaco... (siempre visible)
+  deceasedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  clinic      Clinic             @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  client      ClinicClient       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  records     ClinicalRecord[]
+  preventives ClinicPreventive[]
+  attachments ClinicAttachment[]
+
+  @@index([clinicId, name])
+  @@index([clientId])
+}
+
+// Consulta / historia clínica
+model ClinicalRecord {
+  id              String             @id @default(cuid())
+  clinicId        String
+  patientId       String
+  authorId        String? // ClinicMember que la cargó (null si después lo quitan del equipo)
+  date            DateTime
+  type            ClinicalRecordType @default(CONSULTATION)
+  reason          String
+  anamnesis       String?
+  // Examen físico
+  weightKg        Float?
+  temperatureC    Float?
+  heartRate       Int? // lpm
+  respiratoryRate Int? // rpm
+  mucous          String? // mucosas: rosadas, pálidas...
+  capillaryRefill String? // TLLC
+  hydration       String?
+  bodyCondition   Int? // 1 a 9
+  physicalExam    String?
+  // Diagnóstico y tratamiento
+  presumptiveDx   String?
+  finalDx         String?
+  treatment       String?
+  nextControl     DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  clinic  Clinic        @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patient ClinicPatient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  author  ClinicMember? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([patientId, date])
+  @@index([clinicId, date])
+}
+
+// Vacunas y desparasitaciones aplicadas en la clínica
+model ClinicPreventive {
+  id          String         @id @default(cuid())
+  clinicId    String
+  patientId   String
+  kind        PreventiveKind
+  name        String
+  lot         String?
+  route       String? // desparasitación: INTERNA | EXTERNA
+  dateApplied DateTime
+  nextDueDate DateTime?
+  authorId    String?
+  createdAt   DateTime       @default(now())
+
+  clinic  Clinic        @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patient ClinicPatient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([clinicId, nextDueDate])
+}
+
+model ClinicAttachment {
+  id           String   @id @default(cuid())
+  clinicId     String
+  patientId    String
+  name         String
+  url          String
+  fileType     String
+  uploadedById String?
+  createdAt    DateTime @default(now())
+
+  clinic  Clinic        @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patient ClinicPatient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
 }

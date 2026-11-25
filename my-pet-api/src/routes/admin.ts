@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { prisma } from '../db.js'
 import { authenticate } from '../hooks/authenticate.js'
 import { getSubscription } from '../lib/subscription.js'
+import { licensePhotoUrl } from '../lib/clinic.js'
 
 // ==========================================================
 // ADMINISTRACIÓN (solo role ADMIN)
@@ -59,5 +60,50 @@ export default async function adminRoutes(app: FastifyInstance) {
     await prisma.user.update({ where: { id: user.id }, data })
     req.log.info({ admin: req.user.sub, target: user.id, ...data }, 'Plan actualizado por admin')
     return { email: user.email, subscription: await getSubscription(user.id) }
+  })
+
+  // ---------------------------------------------------------------
+  // MATRÍCULAS DE VETERINARIOS (GET /admin/licenses?status=PENDING)
+  // Devuelve una URL firmada y temporal para ver la foto del carnet.
+  // ---------------------------------------------------------------
+  app.get('/licenses', { preHandler: [authenticate, requireAdmin] }, async (req) => {
+    const { status } = req.query as { status?: string }
+    const licenseStatus: 'PENDING' | 'APPROVED' | 'REJECTED' = status === 'APPROVED' || status === 'REJECTED' ? status : 'PENDING'
+    const where = { licenseStatus }
+    const members = await prisma.clinicMember.findMany({
+      where,
+      orderBy: { createdAt: 'asc' },
+      take: 100,
+      include: {
+        user: { select: { name: true, lastname: true, email: true } },
+        clinic: { select: { name: true, city: true, province: true, phone: true } },
+      },
+    })
+    return members.map((m) => ({
+      id: m.id, role: m.role, createdAt: m.createdAt,
+      licenseNumber: m.licenseNumber, licenseIssuer: m.licenseIssuer, licenseStatus: m.licenseStatus, licenseNote: m.licenseNote,
+      photoUrl: licensePhotoUrl(m.licensePhotoId),
+      user: m.user, clinic: m.clinic,
+    }))
+  })
+
+  const reviewSchema = z.object({
+    status: z.enum(['APPROVED', 'REJECTED']),
+    note: z.string().trim().max(300).optional(),
+  })
+
+  app.put('/licenses/:memberId', { preHandler: [authenticate, requireAdmin] }, async (req, reply) => {
+    const { memberId } = req.params as { memberId: string }
+    const parsed = reviewSchema.safeParse(req.body)
+    if (!parsed.success) return reply.code(400).send({ message: 'Datos inválidos' })
+    if (parsed.data.status === 'REJECTED' && !parsed.data.note) {
+      return reply.code(400).send({ message: 'Escribí el motivo del rechazo: lo va a ver el veterinario' })
+    }
+    const { count } = await prisma.clinicMember.updateMany({
+      where: { id: memberId, licenseNumber: { not: null } },
+      data: { licenseStatus: parsed.data.status, licenseNote: parsed.data.status === 'REJECTED' ? parsed.data.note : null, licenseReviewedAt: new Date() },
+    })
+    if (count === 0) return reply.code(404).send({ message: 'Matrícula no encontrada' })
+    return { message: parsed.data.status === 'APPROVED' ? 'Matrícula aprobada' : 'Matrícula rechazada' }
   })
 }
